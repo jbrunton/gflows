@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/jsonnet-workflows/styles"
+	"github.com/jbrunton/jflows/styles"
 	"github.com/logrusorgru/aurora"
 
 	"github.com/fatih/color"

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jbrunton/jsonnet-workflows/styles"
+	"github.com/jbrunton/jflows/styles"
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/jbrunton/jsonnet-workflows/lib"
+	"github.com/jbrunton/jflows/lib"
 	"github.com/spf13/cobra"
 )
 

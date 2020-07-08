@@ -6,8 +6,8 @@
     "runs-on": "ubuntu-latest"
     "steps":
     - "uses": "actions/checkout@v2"
-    - "name": "install jsonnet-workflows"
-      "run": "go get github.com/jbrunton/jsonnet-workflows"
+    - "name": "install jflows"
+      "run": "go get github.com/jbrunton/jflows"
     - "name": "validate workflows"
       "run": "jflows check"
 "name": "g3ops-workflows"
