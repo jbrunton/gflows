@@ -1,11 +1,11 @@
 local git_config = import '../config/git.libsonnet';
+local steps = import '../common/steps.libsonnet';
 
 local test_job = {
   'runs-on': 'ubuntu-latest',
   'steps': [
-      { uses: 'actions/checkout@v2' },
-      { uses: 'actions/setup-go@v2',
-        with: { 'go-version': '^1.14.4' } },
+      steps.checkout,
+      steps.setup_go,
       { name: 'build',
         run: 'go build' },
       { name: 'test',

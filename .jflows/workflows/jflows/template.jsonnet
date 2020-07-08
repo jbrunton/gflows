@@ -1,18 +1,12 @@
 local git_config = import '../config/git.libsonnet';
+local steps = import '../common/steps.libsonnet';
 
 local check_workflows_job = {
   'name': 'check-workflows',
   'runs-on': 'ubuntu-latest',
   steps: [
-    {
-      uses: 'actions/checkout@v2'
-    },
-    {
-      uses: 'actions/setup-go@v2',
-      with: {
-        'go-version': '^1.14.4'
-      }
-    },
+    steps.checkout,
+    steps.setup_go,
     {
       name: 'install jflows',
       run: 'go get github.com/jbrunton/jflows'
