@@ -7,14 +7,8 @@ local check_workflows_job = {
   steps: [
     steps.checkout,
     steps.setup_go,
-    {
-      name: 'install jflows',
-      run: 'go get github.com/jbrunton/jflows'
-    },
-    {
-      name: 'validate workflows',
-      run: 'jflows check'
-    },
+    steps.named('install jflows', 'go get github.com/jbrunton/jflows'),
+    steps.named('validate workflows', 'jflows check')
   ]
 };
 

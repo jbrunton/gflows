@@ -6,10 +6,8 @@ local test_job = {
   'steps': [
       steps.checkout,
       steps.setup_go,
-      { name: 'build',
-        run: 'go build' },
-      { name: 'test',
-        run: 'go test ./...' },
+      steps.run('go build'),
+      steps.run('go test ./...')
   ]
 };
 
