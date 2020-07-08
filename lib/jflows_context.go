@@ -21,7 +21,7 @@ type JFlowsContext struct {
 var contextCache map[*cobra.Command]*JFlowsContext
 
 // NewContext - returns a context for the given config
-func NewContext(fs *afero.Afero, configPath string, dryRun bool) (*JFlowsContext, error) {
+func NewContext(fs *afero.Afero, configPath string) (*JFlowsContext, error) {
 	contextDir := filepath.Dir(configPath)
 
 	config, err := GetContextConfig(fs, configPath)
@@ -54,11 +54,6 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*JFlowsContext, error) {
 		return context, nil
 	}
 
-	dryRun, err := cmd.Flags().GetBool("dry-run")
-	if err != nil {
-		panic(err)
-	}
-
 	configPath, err := cmd.Flags().GetString("config")
 	if err != nil {
 		panic(err)
@@ -71,7 +66,7 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*JFlowsContext, error) {
 		configPath = ".jflow/config.yml"
 	}
 
-	return NewContext(fs, configPath, dryRun)
+	return NewContext(fs, configPath)
 }
 
 // LoadServiceManifest - finds and returns the JFlowsService for the given service
