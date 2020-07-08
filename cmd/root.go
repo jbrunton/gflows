@@ -43,5 +43,9 @@ func NewRootCommand() *cobra.Command {
 	//styles.ConfigureUsageTemplate(cmd)
 	//styles.ConfigureUnknownCommandErrorFunc(cmd)
 
+	cmd.AddCommand(newListWorkflowsCmd())
+	cmd.AddCommand(newUpdateWorkflowsCmd())
+	cmd.AddCommand(newCheckWorkflowsCmd())
+
 	return cmd
 }
