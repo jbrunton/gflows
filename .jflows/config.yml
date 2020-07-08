@@ -1,0 +1,4 @@
+name: g3ops
+repo: jbrunton/g3ops
+releases:
+  createPullRequest: false

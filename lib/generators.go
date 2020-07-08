@@ -30,7 +30,7 @@ func updateFileContent(fs *afero.Afero, destination string, content string, deta
 	} else {
 		action = "     create"
 	}
-	err := fs.WriteFile(destination, []byte(content), 0644)
+	err := safelyWriteFile(fs, destination, content)
 	if err != nil {
 		panic(err)
 	}

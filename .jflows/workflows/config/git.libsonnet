@@ -1,0 +1,3 @@
+{
+  main_branch: 'master'
+}
