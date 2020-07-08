@@ -16,7 +16,7 @@ limitations under the License.
 package main
 
 import (
-	"github.com/jbrunton/jsonnet-workflows/cmd"
+	"github.com/jbrunton/jflows/cmd"
 )
 
 func main() {

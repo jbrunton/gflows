@@ -1,4 +1,4 @@
-module github.com/jbrunton/jsonnet-workflows
+module github.com/jbrunton/jflows
 
 go 1.14
 

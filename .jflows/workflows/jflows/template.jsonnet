@@ -8,8 +8,8 @@ local check_workflows_job = {
       uses: 'actions/checkout@v2'
     },
     {
-      name: 'install jsonnet-workflows',
-      run: 'go get github.com/jbrunton/jsonnet-workflows'
+      name: 'install jflows',
+      run: 'go get github.com/jbrunton/jflows'
     },
     {
       name: 'validate workflows',
