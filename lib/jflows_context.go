@@ -63,7 +63,7 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*JFlowsContext, error) {
 		configPath = os.Getenv("JFLOWS_CONFIG")
 	}
 	if configPath == "" {
-		configPath = ".jflow/config.yml"
+		configPath = ".jflows/config.yml"
 	}
 
 	return NewContext(fs, configPath)
@@ -73,6 +73,7 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*JFlowsContext, error) {
 func (context *JFlowsContext) LoadServiceManifest(name string) (JFlowsService, error) {
 	serviceContext := context.Config.Services[name]
 
+	// TODO: use afero
 	data, err := ioutil.ReadFile(serviceContext.Manifest)
 
 	if err != nil {
