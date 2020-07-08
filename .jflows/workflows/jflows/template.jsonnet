@@ -1,5 +1,6 @@
 local git_config = import '../config/git.libsonnet';
 local steps = import '../common/steps.libsonnet';
+local workflows = import '../common/workflows.libsonnet';
 
 local check_workflows_job = {
   'name': 'check-workflows',
@@ -14,14 +15,7 @@ local check_workflows_job = {
 
 local workflow = {
   name: 'jflows-workflows',
-  on: {
-    pull_request: {
-      branches: [git_config.main_branch]
-    },
-    push: {
-      branches: [git_config.main_branch]
-    }
-  },
+  on: workflows.triggers.pull_request_defaults,
   jobs: {
     check_workflows: check_workflows_job
   },
