@@ -8,6 +8,12 @@ local check_workflows_job = {
       uses: 'actions/checkout@v2'
     },
     {
+      uses: 'actions/setup-go@v2',
+      with: {
+        'go-version': '^1.14.4'
+      }
+    },
+    {
       name: 'install jflows',
       run: 'go get github.com/jbrunton/jflows'
     },
