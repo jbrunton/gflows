@@ -25,7 +25,7 @@ local check_workflows_job = {
 };
 
 local workflow = {
-  name: 'g3ops-workflows',
+  name: 'jflows-workflows',
   on: {
     pull_request: {
       branches: [git_config.main_branch]

@@ -1,4 +1,4 @@
-name: g3ops
-repo: jbrunton/g3ops
+name: jflows
+repo: jbrunton/jflows
 releases:
   createPullRequest: false
