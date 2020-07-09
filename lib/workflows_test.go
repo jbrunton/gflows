@@ -77,6 +77,6 @@ func ExampleValidateWorkflows() {
 	//   ► Run "jflows workflow generate" to update
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
 	//   Content is out of date for "test" (.github/workflows/test.yml)
-	//   ► Run "jflows workflow generate" to update
+	//   ► Run "jflows workflow update" to update
 	// Checking [1mtest[0m ... [1;32mOK[0m
 }
