@@ -46,7 +46,6 @@ func NewRootCommand() *cobra.Command {
 	cmd.AddCommand(newListWorkflowsCmd())
 	cmd.AddCommand(newUpdateWorkflowsCmd())
 	cmd.AddCommand(newCheckWorkflowsCmd())
-	cmd.AddCommand(newWatchCmd())
 	cmd.AddCommand(newDiffCmd())
 
 	return cmd

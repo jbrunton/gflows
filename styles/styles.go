@@ -43,6 +43,11 @@ func StyleOK(s string) aurora.Value {
 	return aurora.Green(s).Bold()
 }
 
+// StyleWarning - style warning logs
+func StyleWarning(s string) aurora.Value {
+	return aurora.Yellow(s).Bold()
+}
+
 // StyleCommandUsage - style command usage examples
 func StyleCommandUsage(s string) string {
 	styledCommand := StyleCommand(s).String()

@@ -8,6 +8,7 @@ import (
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/jbrunton/jflows/diff"
 	"github.com/jbrunton/jflows/styles"
+	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/fsnotify/fsnotify"
@@ -29,10 +30,11 @@ func diffWorkflows(cmd *cobra.Command) {
 
 	for _, definition := range definitions {
 		result := validator.ValidateContent(definition)
+		fmt.Printf("Checking %s ... ", aurora.Bold(definition.Name))
 		if result.Valid {
-			fmt.Printf("%s is up to date\n", definition.Name)
+			fmt.Println(styles.StyleOK("UP TO DATE"))
 		} else {
-
+			fmt.Println(styles.StyleWarning("OUT OF DATE"))
 			fpatch, err := diff.CreateFilePatch(definition.Content, result.ActualContent)
 			if err != nil {
 				panic(err)
@@ -42,10 +44,17 @@ func diffWorkflows(cmd *cobra.Command) {
 			ue := fdiff.NewUnifiedEncoder(os.Stdout, fdiff.DefaultContextLines)
 			ue.Encode(patch)
 		}
+		schemaResult := validator.ValidateSchema(definition)
+		if !schemaResult.Valid {
+			fmt.Println(styles.StyleWarning("Warning:"), definition.Name, "failed schema validation:")
+			for _, err := range schemaResult.Errors {
+				fmt.Printf("  ► %s\n", err)
+			}
+		}
 	}
 }
 
-func watchWorkflows(cmd *cobra.Command) {
+func watchWorkflows(cmd *cobra.Command, onChange func()) {
 	log.Println("Watching workflows")
 	fs := lib.CreateOsFs()
 	context, err := lib.GetContext(fs, cmd)
@@ -60,6 +69,11 @@ func watchWorkflows(cmd *cobra.Command) {
 	}
 	defer watcher.Close()
 
+	screen.Clear()
+	screen.MoveTopLeft()
+	log.Println("Watching workflow templates")
+	onChange()
+
 	done := make(chan bool)
 	go func() {
 		for {
@@ -73,6 +87,7 @@ func watchWorkflows(cmd *cobra.Command) {
 					screen.Clear()
 					screen.MoveTopLeft()
 					log.Println("modified file:", event.Name)
+					onChange()
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -96,24 +111,34 @@ func watchWorkflows(cmd *cobra.Command) {
 	<-done
 }
 
-func newWatchCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "watch",
-		Short: "Watch workflows",
-		Run: func(cmd *cobra.Command, args []string) {
-			watchWorkflows(cmd)
-		},
-	}
-}
+// func newWatchCmd() *cobra.Command {
+// 	return &cobra.Command{
+// 		Use:   "watch",
+// 		Short: "Watch workflows",
+// 		Run: func(cmd *cobra.Command, args []string) {
+// 			watchWorkflows(cmd)
+// 		},
+// 	}
+// }
 
 func newDiffCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "diff",
 		Short: "Diff workflows",
 		Run: func(cmd *cobra.Command, args []string) {
-			diffWorkflows(cmd)
+			watch, err := cmd.Flags().GetBool("watch")
+			if err != nil {
+				panic(err)
+			}
+			if watch {
+				watchWorkflows(cmd, func() { diffWorkflows(cmd) })
+			} else {
+				diffWorkflows(cmd)
+			}
 		},
 	}
+	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
+	return cmd
 }
 
 func newListWorkflowsCmd() *cobra.Command {
