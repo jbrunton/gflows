@@ -74,7 +74,7 @@ func ExampleValidateWorkflows() {
 	//   ► (root): jobs is required
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
 	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "jflows workflow generate" to update
+	//   ► Run "jflows workflow update" to update
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
 	//   Content is out of date for "test" (.github/workflows/test.yml)
 	//   ► Run "jflows workflow update" to update
