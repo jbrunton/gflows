@@ -3,21 +3,33 @@ package json
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"regexp"
 )
+
+var keywords []string
+var idRegex *regexp.Regexp
+
+func isIdentifier(token []byte) bool {
+	if !idRegex.Match(token) {
+		return false
+	}
+
+	for _, keyword := range keywords {
+		if string(token) == keyword {
+			return false
+		}
+	}
+
+	return true
+}
 
 func cleanKeys(dst *bytes.Buffer, src []byte) error {
 	origLen := dst.Len()
 	scan := newScanner()
 	defer freeScanner(scan)
-	//needIndent := false
-	//depth := 0
+
 	currentKey := []byte{}
 	recordKey := false
-	//prevParseState := -1
-	fmt.Println("parseObjectKey:", parseObjectKey)
-	fmt.Println("parseObjectValue:", parseObjectValue)
-	fmt.Println("parseArrayValue:", parseArrayValue)
 	for _, c := range src {
 		scan.bytes++
 		v := scan.step(scan, c)
@@ -27,18 +39,15 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 
 		if len(scan.parseState) > 0 {
 			currentParseState := scan.parseState[len(scan.parseState)-1]
-			//fmt.Println("scan.parseState:", scan.parseState)
-			//fmt.Println("currentParseState:", currentParseState)
 			if currentParseState == parseObjectKey {
-				//fmt.Println("currentParseState == scanObjectKey")
-				if len(currentKey) == 0 && c == '"' {
-					recordKey = true
-				} else if len(currentKey) > 0 && c == '"' {
-					recordKey = false
+				if c == '"' {
+					if len(currentKey) == 0 {
+						recordKey = true
+					} else {
+						recordKey = false
+					}
 					continue
-				}
-
-				if recordKey {
+				} else if recordKey {
 					currentKey = append(currentKey, c)
 					continue
 				}
@@ -52,18 +61,18 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 		}
 
 		if v == scanObjectKey {
-			//fmt.Println("scan.parseState:", scan.parseState)
-			fmt.Println("key:", string(currentKey))
-			dst.Write(currentKey[1:len(currentKey)])
+			if isIdentifier(currentKey) {
+				dst.Write(currentKey)
+			} else {
+				dst.WriteByte('"')
+				dst.Write(currentKey)
+				dst.WriteByte('"')
+			}
 			dst.WriteString(":")
 			currentKey = []byte{}
 			continue
 		}
-		// if v == scanBeginObject {
-		// 	fmt.Println("scanBeginObject")
-		// 	fmt.Println("scan.parseState:", scan.parseState)
-		// 	fmt.Println("scanBeginObject:", scanBeginObject)
-		// }
+
 		dst.WriteByte(c)
 	}
 	if scan.eof() == scanError {
@@ -84,4 +93,10 @@ func MarshalJson(v interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func init() {
+	keywords = []string{"assert", "else", "error", "false", "for", "function", "if", "import",
+		"importstr", "in", "local", "null", "tailstrict", "then", "self", "super", "true"}
+	idRegex = regexp.MustCompile("^[_a-zA-Z][_a-zA-Z0-9]*$")
 }
