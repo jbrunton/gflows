@@ -60,15 +60,17 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 				panic(err)
 			}
 
-			templateContent, err := json.MarshalIndent(jsonData, "", "  ")
+			json, err := json.MarshalIndent(jsonData, "", "  ")
 			if err != nil {
 				panic(err)
 			}
 
+			templateContent := fmt.Sprintf("local workflow = %s;\n\nstd.manifestYamlDoc(workflow)\n", string(json))
+
 			_, filename := filepath.Split(workflow.path)
 			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 			templatePath := filepath.Join(context.WorkflowsDir, templateName, "template.jsonnet")
-			safelyWriteFile(fs, templatePath, string(templateContent))
+			safelyWriteFile(fs, templatePath, templateContent)
 			fmt.Println("  Imported template:", templatePath)
 		} else {
 			fmt.Println("  Source:", workflow.definition.Source)
