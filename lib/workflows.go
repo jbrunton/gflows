@@ -134,7 +134,7 @@ func ValidateWorkflows(fs *afero.Afero, context *JFlowsContext) error {
 		if !contentResult.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  " + contentResult.Errors[0])
-			fmt.Println("  ► Run \"jflows workflow generate\" to update")
+			fmt.Println("  ► Run \"jflows workflow update\" to update")
 			valid = false
 			continue
 		}
