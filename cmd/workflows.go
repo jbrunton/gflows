@@ -160,3 +160,19 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		},
 	}
 }
+
+func newImportWorkflowsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "import",
+		Short: "Import workflow files",
+		Run: func(cmd *cobra.Command, args []string) {
+			fs := lib.CreateOsFs()
+			context, err := lib.GetContext(fs, cmd)
+			if err != nil {
+				fmt.Println(styles.StyleError(err.Error()))
+				os.Exit(1)
+			}
+			lib.ImportWorkflows(fs, context)
+		},
+	}
+}
