@@ -1,11 +1,11 @@
 package lib
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/jflows/jsonnet"
 	"github.com/jbrunton/jflows/styles"
 
 	"github.com/spf13/afero"
@@ -63,7 +63,7 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 				panic(err)
 			}
 
-			json, err := json.MarshalIndent(jsonData, "", "  ")
+			json, err := jsonnet.Marshal(jsonData)
 			if err != nil {
 				panic(err)
 			}

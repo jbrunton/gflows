@@ -19,4 +19,5 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	gopkg.in/yaml.v2 v2.2.4
+	gotest.tools v2.2.0+incompatible
 )
