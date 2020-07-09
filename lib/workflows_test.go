@@ -17,8 +17,9 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 	fs, context := newTestContext()
 	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 
-	definitions := GetWorkflowDefinitions(fs, context)
+	definitions, err := GetWorkflowDefinitions(fs, context)
 
+	assert.NoError(t, err)
 	assert.Len(t, definitions, 1)
 	assert.Equal(t, ".jflows/workflows/test.jsonnet", definitions[0].Source)
 	assert.Equal(t, ".github/workflows/test.yml", definitions[0].Destination)
