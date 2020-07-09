@@ -1,6 +1,8 @@
 package diff
 
 import (
+	"bytes"
+
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
@@ -115,6 +117,13 @@ func (t *Patch) FilePatches() []fdiff.FilePatch {
 
 func (t *Patch) Message() string {
 	return t.message
+}
+
+func (t *Patch) Format() string {
+	out := bytes.NewBuffer(nil)
+	ue := fdiff.NewUnifiedEncoder(out, fdiff.DefaultContextLines)
+	ue.Encode(t)
+	return out.String()
 }
 
 type textChunk struct {
