@@ -31,6 +31,17 @@ func diffWorkflows(cmd *cobra.Command) {
 	for _, definition := range definitions {
 		result := validator.ValidateContent(definition)
 		fmt.Printf("Checking %s ... ", aurora.Bold(definition.Name))
+
+		if !definition.Status.Valid {
+			fmt.Println(styles.StyleError("ERROR"))
+			fmt.Println("  Error parsing template:")
+			for _, err := range definition.Status.Errors {
+				fmt.Printf("  ► %s\n\n", err)
+			}
+			fmt.Println()
+			continue
+		}
+
 		if result.Valid {
 			fmt.Println(styles.StyleOK("UP TO DATE"))
 		} else {
