@@ -23,8 +23,7 @@ type ValidationResult struct {
 
 // NewWorkflowValidator - creates a new validator for the given filesystem
 func NewWorkflowValidator(fs *afero.Afero) *WorkflowValidator {
-	// TODO: once https://github.com/SchemaStore/schemastore/pull/1135 is merged, switch back to https://json.schemastore.org/github-workflow
-	schemaLoader := gojsonschema.NewReferenceLoader("https://raw.githubusercontent.com/SchemaStore/schemastore/1523f724449ef1f48228f85cae2464e3b5922bf6/src/schemas/json/github-workflow.json")
+	schemaLoader := gojsonschema.NewReferenceLoader("https://json.schemastore.org/github-workflow")
 	schema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
 		panic(err)
