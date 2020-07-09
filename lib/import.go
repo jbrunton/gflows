@@ -1,11 +1,11 @@
 package lib
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/jflows/json"
 	"github.com/jbrunton/jflows/styles"
 
 	"github.com/spf13/afero"
@@ -63,7 +63,7 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 				panic(err)
 			}
 
-			json, err := json.MarshalIndent(jsonData, "", "  ")
+			json, err := json.MarshalJson(jsonData)
 			if err != nil {
 				panic(err)
 			}
@@ -73,7 +73,8 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 			_, filename := filepath.Split(workflow.path)
 			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 			templatePath := filepath.Join(context.WorkflowsDir, templateName, "template.jsonnet")
-			safelyWriteFile(fs, templatePath, templateContent)
+			//safelyWriteFile(fs, templatePath, templateContent)
+			fmt.Println(templateContent)
 			fmt.Println("  Imported template:", templatePath)
 			imported++
 		} else {
