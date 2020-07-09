@@ -141,7 +141,7 @@ func diffWorkflows(cmd *cobra.Command) {
 				panic(err)
 			}
 			ue := fdiff.NewUnifiedEncoder(os.Stdout, fdiff.DefaultContextLines)
-			message := fmt.Sprintf("--- %s (generated)\n+++ %s", definition.Source, definition.Destination)
+			message := fmt.Sprintf("--- <generated> (source: %s)\n+++ %s", definition.Source, definition.Destination)
 			patch := &Patch{
 				filePatches: []fdiff.FilePatch{fpatch},
 				message:     message,
