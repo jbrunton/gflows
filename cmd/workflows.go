@@ -22,7 +22,10 @@ func diffWorkflows(cmd *cobra.Command) {
 		os.Exit(1)
 	}
 
-	definitions := lib.GetWorkflowDefinitions(fs, context)
+	definitions, err := lib.GetWorkflowDefinitions(fs, context)
+	if err != nil {
+		panic(err)
+	}
 	validator := lib.NewWorkflowValidator(fs)
 
 	for _, definition := range definitions {
@@ -91,7 +94,10 @@ func newListWorkflowsCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			definitions := lib.GetWorkflowDefinitions(fs, context)
+			definitions, err := lib.GetWorkflowDefinitions(fs, context)
+			if err != nil {
+				panic(err)
+			}
 			validator := lib.NewWorkflowValidator(fs)
 
 			table := tablewriter.NewWriter(os.Stdout)
