@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -41,15 +42,19 @@ func diffWorkflows(cmd *cobra.Command) {
 			}
 			message := fmt.Sprintf("--- <generated> (source: %s)\n+++ %s", definition.Source, definition.Destination)
 			patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
-			ue := fdiff.NewUnifiedEncoder(os.Stdout, fdiff.DefaultContextLines)
+
+			out := bytes.NewBuffer(nil)
+			ue := fdiff.NewUnifiedEncoder(out, fdiff.DefaultContextLines)
 			ue.Encode(patch)
+			lib.PrettyPrintDiff(out.String())
 		}
 		schemaResult := validator.ValidateSchema(definition)
 		if !schemaResult.Valid {
-			fmt.Println(styles.StyleWarning("Warning:"), definition.Name, "failed schema validation:")
+			fmt.Println(styles.StyleWarning("Warning:"), definition.Name, " workflow failed schema validation:")
 			for _, err := range schemaResult.Errors {
 				fmt.Printf("  ► %s\n", err)
 			}
+			fmt.Println()
 		}
 	}
 }
