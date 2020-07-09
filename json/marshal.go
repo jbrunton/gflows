@@ -13,6 +13,8 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 	//needIndent := false
 	//depth := 0
 	currentKey := []byte{}
+	recordKey := false
+	//prevParseState := -1
 	fmt.Println("parseObjectKey:", parseObjectKey)
 	fmt.Println("parseObjectValue:", parseObjectValue)
 	fmt.Println("parseArrayValue:", parseArrayValue)
@@ -29,7 +31,17 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 			//fmt.Println("currentParseState:", currentParseState)
 			if currentParseState == parseObjectKey {
 				//fmt.Println("currentParseState == scanObjectKey")
-				currentKey = append(currentKey, c)
+				if len(currentKey) == 0 && c == '"' {
+					recordKey = true
+				} else if len(currentKey) > 0 && c == '"' {
+					recordKey = false
+					continue
+				}
+
+				if recordKey {
+					currentKey = append(currentKey, c)
+					continue
+				}
 			}
 		}
 		// Emit semantically uninteresting bytes
@@ -42,7 +54,10 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 		if v == scanObjectKey {
 			//fmt.Println("scan.parseState:", scan.parseState)
 			fmt.Println("key:", string(currentKey))
+			dst.Write(currentKey[1:len(currentKey)])
+			dst.WriteString(":")
 			currentKey = []byte{}
+			continue
 		}
 		// if v == scanBeginObject {
 		// 	fmt.Println("scanBeginObject")
