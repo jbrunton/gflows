@@ -24,7 +24,10 @@ func getWorkflows(fs *afero.Afero, context *JFlowsContext) []GitWorkflow {
 		panic(err)
 	}
 
-	definitions := GetWorkflowDefinitions(fs, context)
+	definitions, err := GetWorkflowDefinitions(fs, context)
+	if err != nil {
+		panic(err) // TODO: improve handling
+	}
 
 	var workflows []GitWorkflow
 
