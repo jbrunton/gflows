@@ -7,12 +7,36 @@ import (
 
 	"github.com/jbrunton/jflows/styles"
 	"github.com/olekukonko/tablewriter"
+	"github.com/sergi/go-diff/diffmatchpatch"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/inancgumus/screen"
 	"github.com/jbrunton/jflows/lib"
 	"github.com/spf13/cobra"
 )
+
+func diffWorkflows(cmd *cobra.Command) {
+	fs := lib.CreateOsFs()
+	context, err := lib.GetContext(fs, cmd)
+	if err != nil {
+		fmt.Println(styles.StyleError(err.Error()))
+		os.Exit(1)
+	}
+
+	definitions := lib.GetWorkflowDefinitions(fs, context)
+	validator := lib.NewWorkflowValidator(fs)
+
+	for _, definition := range definitions {
+		result := validator.ValidateContent(definition)
+		if result.Valid {
+			fmt.Printf("%s is up to date\n", definition.Name)
+		} else {
+			dmp := diffmatchpatch.New()
+			diffs := dmp.DiffMain(definition.Content, result.ActualContent, false)
+			fmt.Printf("%s it out of date. Diff:\n%s\n", definition.Name, dmp.DiffPrettyText(diffs))
+		}
+	}
+}
 
 func watchWorkflows(cmd *cobra.Command) {
 	log.Println("Watching workflows")
@@ -71,6 +95,16 @@ func newWatchCmd() *cobra.Command {
 		Short: "Watch workflows",
 		Run: func(cmd *cobra.Command, args []string) {
 			watchWorkflows(cmd)
+		},
+	}
+}
+
+func newDiffCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "diff",
+		Short: "Diff workflows",
+		Run: func(cmd *cobra.Command, args []string) {
+			diffWorkflows(cmd)
 		},
 	}
 }
