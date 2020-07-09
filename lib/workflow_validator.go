@@ -16,8 +16,9 @@ type WorkflowValidator struct {
 
 // ValidationResult - validate result
 type ValidationResult struct {
-	Valid  bool
-	Errors []string
+	Valid         bool
+	Errors        []string
+	ActualContent string
 }
 
 // NewWorkflowValidator - creates a new validator for the given filesystem
@@ -74,8 +75,9 @@ func (validator *WorkflowValidator) ValidateContent(definition *WorkflowDefiniti
 	if !exists {
 		reason := fmt.Sprintf("Workflow missing for %q (expected workflow at %s)", definition.Name, definition.Destination)
 		return ValidationResult{
-			Valid:  false,
-			Errors: []string{reason},
+			Valid:         false,
+			Errors:        []string{reason},
+			ActualContent: "",
 		}
 	}
 
@@ -88,8 +90,9 @@ func (validator *WorkflowValidator) ValidateContent(definition *WorkflowDefiniti
 	if actualContent != definition.Content {
 		reason := fmt.Sprintf("Content is out of date for %q (%s)", definition.Name, definition.Destination)
 		return ValidationResult{
-			Valid:  false,
-			Errors: []string{reason},
+			Valid:         false,
+			Errors:        []string{reason},
+			ActualContent: actualContent,
 		}
 	}
 

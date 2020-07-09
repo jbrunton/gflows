@@ -4,12 +4,80 @@ import (
 	"fmt"
 	"os"
 
+	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
+	"github.com/jbrunton/jflows/diff"
 	"github.com/jbrunton/jflows/styles"
+	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/jbrunton/jflows/lib"
 	"github.com/spf13/cobra"
 )
+
+func diffWorkflows(cmd *cobra.Command) {
+	fs := lib.CreateOsFs()
+	context, err := lib.GetContext(fs, cmd)
+	if err != nil {
+		fmt.Println(styles.StyleError(err.Error()))
+		os.Exit(1)
+	}
+
+	definitions := lib.GetWorkflowDefinitions(fs, context)
+	validator := lib.NewWorkflowValidator(fs)
+
+	for _, definition := range definitions {
+		result := validator.ValidateContent(definition)
+		fmt.Printf("Checking %s ... ", aurora.Bold(definition.Name))
+		if result.Valid {
+			fmt.Println(styles.StyleOK("UP TO DATE"))
+		} else {
+			fmt.Println(styles.StyleWarning("OUT OF DATE"))
+			fpatch, err := diff.CreateFilePatch(definition.Content, result.ActualContent)
+			if err != nil {
+				panic(err)
+			}
+			message := fmt.Sprintf("--- <generated> (source: %s)\n+++ %s", definition.Source, definition.Destination)
+			patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
+			lib.PrettyPrintDiff(patch.Format())
+		}
+		schemaResult := validator.ValidateSchema(definition)
+		if !schemaResult.Valid {
+			fmt.Println(styles.StyleWarning("Warning:"), aurora.Bold(definition.Name), "failed schema validation:")
+			for _, err := range schemaResult.Errors {
+				fmt.Printf("  ► %s\n", err)
+			}
+			fmt.Println()
+		}
+	}
+}
+
+func newDiffCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "diff",
+		Short: "Diff workflows",
+		Run: func(cmd *cobra.Command, args []string) {
+			fs := lib.CreateOsFs()
+			context, err := lib.GetContext(fs, cmd)
+			if err != nil {
+				fmt.Println(styles.StyleError(err.Error()))
+				os.Exit(1)
+			}
+
+			watch, err := cmd.Flags().GetBool("watch")
+			if err != nil {
+				panic(err)
+			}
+
+			if watch {
+				lib.WatchWorkflows(fs, context, func() { diffWorkflows(cmd) })
+			} else {
+				diffWorkflows(cmd)
+			}
+		},
+	}
+	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
+	return cmd
+}
 
 func newListWorkflowsCmd() *cobra.Command {
 	return &cobra.Command{
