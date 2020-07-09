@@ -5,119 +5,16 @@ import (
 	"log"
 	"os"
 
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/filemode"
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
-	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/go-git/go-git/v5/utils/diff"
+	"github.com/jbrunton/jflows/diff"
 	"github.com/jbrunton/jflows/styles"
 	"github.com/olekukonko/tablewriter"
-	dmp "github.com/sergi/go-diff/diffmatchpatch"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/inancgumus/screen"
 	"github.com/jbrunton/jflows/lib"
 	"github.com/spf13/cobra"
 )
-
-func getPatch(wanted, got string) (fdiff.FilePatch, error) {
-	diffs := diff.Do(wanted, got)
-	var chunks []fdiff.Chunk
-	for _, d := range diffs {
-
-		var op fdiff.Operation
-		switch d.Type {
-		case dmp.DiffEqual:
-			op = fdiff.Equal
-		case dmp.DiffDelete:
-			op = fdiff.Delete
-		case dmp.DiffInsert:
-			op = fdiff.Add
-		}
-
-		chunks = append(chunks, &textChunk{d.Text, op})
-	}
-
-	return &textFilePatch{
-		chunks: chunks,
-		from: object.ChangeEntry{
-			Name: wanted,
-		},
-		to: object.ChangeEntry{
-			Name: got,
-		},
-	}, nil
-}
-
-// textFilePatch is an implementation of fdiff.FilePatch interface
-type textFilePatch struct {
-	chunks   []fdiff.Chunk
-	from, to object.ChangeEntry
-}
-
-func (tf *textFilePatch) Files() (from fdiff.File, to fdiff.File) {
-	f := &changeEntryWrapper{tf.from}
-	t := &changeEntryWrapper{tf.to}
-
-	if !f.Empty() {
-		from = f
-	}
-
-	if !t.Empty() {
-		to = t
-	}
-
-	return
-}
-
-func (t *textFilePatch) IsBinary() bool {
-	return len(t.chunks) == 0
-}
-
-func (t *textFilePatch) Chunks() []fdiff.Chunk {
-	return t.chunks
-}
-
-// changeEntryWrapper is an implementation of fdiff.File interface
-type changeEntryWrapper struct {
-	ce object.ChangeEntry
-}
-
-func (f *changeEntryWrapper) Hash() plumbing.Hash {
-	if !f.ce.TreeEntry.Mode.IsFile() {
-		return plumbing.ZeroHash
-	}
-
-	return f.ce.TreeEntry.Hash
-}
-
-func (f *changeEntryWrapper) Mode() filemode.FileMode {
-	return f.ce.TreeEntry.Mode
-}
-func (f *changeEntryWrapper) Path() string {
-	if !f.ce.TreeEntry.Mode.IsFile() {
-		return ""
-	}
-
-	return f.ce.Name
-}
-
-func (f *changeEntryWrapper) Empty() bool {
-	return !f.ce.TreeEntry.Mode.IsFile()
-}
-
-type Patch struct {
-	message     string
-	filePatches []fdiff.FilePatch
-}
-
-func (t *Patch) FilePatches() []fdiff.FilePatch {
-	return t.filePatches
-}
-
-func (t *Patch) Message() string {
-	return t.message
-}
 
 func diffWorkflows(cmd *cobra.Command) {
 	fs := lib.CreateOsFs()
@@ -136,33 +33,16 @@ func diffWorkflows(cmd *cobra.Command) {
 			fmt.Printf("%s is up to date\n", definition.Name)
 		} else {
 
-			fpatch, err := getPatch(definition.Content, result.ActualContent)
+			fpatch, err := diff.CreateFilePatch(definition.Content, result.ActualContent)
 			if err != nil {
 				panic(err)
 			}
-			ue := fdiff.NewUnifiedEncoder(os.Stdout, fdiff.DefaultContextLines)
 			message := fmt.Sprintf("--- <generated> (source: %s)\n+++ %s", definition.Source, definition.Destination)
-			patch := &Patch{
-				filePatches: []fdiff.FilePatch{fpatch},
-				message:     message,
-			}
+			patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
+			ue := fdiff.NewUnifiedEncoder(os.Stdout, fdiff.DefaultContextLines)
 			ue.Encode(patch)
-			//fmt.Printf("%s it out of date. Diff:\n%s\n", definition.Name, dmp.DiffPrettyText(diffs))
 		}
 	}
-}
-
-type textChunk struct {
-	content string
-	op      fdiff.Operation
-}
-
-func (t *textChunk) Content() string {
-	return t.content
-}
-
-func (t *textChunk) Type() fdiff.Operation {
-	return t.op
 }
 
 func watchWorkflows(cmd *cobra.Command) {
