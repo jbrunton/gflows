@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -18,11 +19,6 @@ func WatchWorkflows(fs *afero.Afero, context *JFlowsContext, onChange func()) {
 		log.Fatal(err)
 	}
 	defer watcher.Close()
-
-	screen.Clear()
-	screen.MoveTopLeft()
-	log.Println("Watching workflow templates")
-	onChange()
 
 	done := make(chan bool)
 	go func() {
@@ -48,15 +44,22 @@ func WatchWorkflows(fs *afero.Afero, context *JFlowsContext, onChange func()) {
 		}
 	}()
 
-	definitions := GetWorkflowDefinitions(fs, context)
+	screen.Clear()
+	screen.MoveTopLeft()
+	log.Println("Watching workflow templates")
 
-	for _, definition := range definitions {
-		err = watcher.Add(definition.Source)
+	sources := getWorkflowSources(fs, context)
+
+	for _, source := range sources {
+		fmt.Println("  Watching", source)
+		err = watcher.Add(source)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
 	}
+
+	onChange()
 
 	<-done
 }

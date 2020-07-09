@@ -12,10 +12,11 @@ import (
 
 // JFlowsContext - current command context
 type JFlowsContext struct {
-	Dir        string
-	ConfigPath string
-	GitHubDir  string
-	Config     *JFlowsConfig
+	Dir          string
+	ConfigPath   string
+	GitHubDir    string
+	WorkflowsDir string
+	Config       *JFlowsConfig
 }
 
 var contextCache map[*cobra.Command]*JFlowsContext
@@ -37,11 +38,14 @@ func NewContext(fs *afero.Afero, configPath string) (*JFlowsContext, error) {
 		githubDir = filepath.Join(filepath.Dir(contextDir), githubDir)
 	}
 
+	workflowsDir := filepath.Join(contextDir, "/workflows")
+
 	context := &JFlowsContext{
-		Config:     config,
-		ConfigPath: configPath,
-		GitHubDir:  githubDir,
-		Dir:        contextDir,
+		Config:       config,
+		ConfigPath:   configPath,
+		GitHubDir:    githubDir,
+		WorkflowsDir: workflowsDir,
+		Dir:          contextDir,
 	}
 
 	return context, nil
