@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
 
 type GitWorkflow struct {
-	filename   string
+	path       string
 	definition *WorkflowDefinition
 }
 
@@ -26,7 +27,7 @@ func getWorkflows(fs *afero.Afero, context *JFlowsContext) []GitWorkflow {
 	var workflows []GitWorkflow
 
 	for _, file := range files {
-		workflow := GitWorkflow{filename: file}
+		workflow := GitWorkflow{path: file}
 		for _, definition := range definitions {
 			if definition.Destination == file {
 				workflow.definition = definition
@@ -42,9 +43,9 @@ func getWorkflows(fs *afero.Afero, context *JFlowsContext) []GitWorkflow {
 func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 	workflows := getWorkflows(fs, context)
 	for _, workflow := range workflows {
-		fmt.Println("Found workflow:", workflow.filename)
+		fmt.Println("Found workflow:", workflow.path)
 		if workflow.definition == nil {
-			workflowContent, err := fs.ReadFile(workflow.filename)
+			workflowContent, err := fs.ReadFile(workflow.path)
 			if err != nil {
 				panic(err)
 			}
@@ -58,11 +59,17 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 			if err != nil {
 				panic(err)
 			}
-			templateContent, err := json.Marshal(jsonData)
+
+			templateContent, err := json.MarshalIndent(jsonData, "", "  ")
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(string(templateContent))
+
+			_, filename := filepath.Split(workflow.path)
+			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
+			templatePath := filepath.Join(context.WorkflowsDir, templateName, "template.jsonnet")
+			safelyWriteFile(fs, templatePath, string(templateContent))
+			fmt.Println("  Imported template:", templatePath)
 		} else {
 			fmt.Println("  Source:", workflow.definition.Source)
 		}
