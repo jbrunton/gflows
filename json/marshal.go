@@ -82,7 +82,7 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 	return nil
 }
 
-func MarshalJson(v interface{}) ([]byte, error) {
+func MarshalJsonnet(v interface{}) ([]byte, error) {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return nil, err

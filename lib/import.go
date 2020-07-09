@@ -63,7 +63,7 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 				panic(err)
 			}
 
-			json, err := json.MarshalJson(jsonData)
+			json, err := json.MarshalJsonnet(jsonData)
 			if err != nil {
 				panic(err)
 			}
@@ -73,8 +73,7 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 			_, filename := filepath.Split(workflow.path)
 			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 			templatePath := filepath.Join(context.WorkflowsDir, templateName, "template.jsonnet")
-			//safelyWriteFile(fs, templatePath, templateContent)
-			fmt.Println(templateContent)
+			safelyWriteFile(fs, templatePath, templateContent)
 			fmt.Println("  Imported template:", templatePath)
 			imported++
 		} else {
