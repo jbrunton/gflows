@@ -45,6 +45,25 @@ func TestMarshal(t *testing.T) {
 				`}`,
 			}, "\n"),
 		},
+		{
+			jsonInput: `{
+				"nested": {
+					"foo": "bar"
+				},
+				"array": [1, 2]
+			}`,
+			expectedJsonnet: strings.Join([]string{
+				`{`,
+				`  array: [`,
+				`    1,`,
+				`    2`,
+				`  ],`,
+				`  nested: {`,
+				`    foo: "bar"`,
+				`  }`,
+				`}`,
+			}, "\n"),
+		},
 	}
 
 	for _, testCase := range testCases {

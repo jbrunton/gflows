@@ -29,7 +29,7 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 	defer freeScanner(scan)
 
 	currentKey := []byte{}
-	recordKey := false
+	processKey := false
 	for _, c := range src {
 		scan.bytes++
 		v := scan.step(scan, c)
@@ -41,13 +41,17 @@ func cleanKeys(dst *bytes.Buffer, src []byte) error {
 			currentParseState := scan.parseState[len(scan.parseState)-1]
 			if currentParseState == parseObjectKey {
 				if c == '"' {
+					// parseObjectKey is set from the opening `{` of an object until the `:` after the key, including whitespace.
+					// But we only want to examine the characters between the `"` chars.
 					if len(currentKey) == 0 {
-						recordKey = true
+						// We just encountered the first `"`, so start processing the key
+						processKey = true
 					} else {
-						recordKey = false
+						// We encountered the closing `"`, so stop processing it
+						processKey = false
 					}
 					continue
-				} else if recordKey {
+				} else if processKey {
 					currentKey = append(currentKey, c)
 					continue
 				}
