@@ -141,9 +141,10 @@ func diffWorkflows(cmd *cobra.Command) {
 				panic(err)
 			}
 			ue := fdiff.NewUnifiedEncoder(os.Stdout, fdiff.DefaultContextLines)
+			message := fmt.Sprintf("--- %s (generated)\n+++ %s", definition.Source, definition.Destination)
 			patch := &Patch{
 				filePatches: []fdiff.FilePatch{fpatch},
-				message:     "hi",
+				message:     message,
 			}
 			ue.Encode(patch)
 			//fmt.Printf("%s it out of date. Diff:\n%s\n", definition.Name, dmp.DiffPrettyText(diffs))
