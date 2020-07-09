@@ -23,10 +23,11 @@ type WorkflowDefinition struct {
 	Content     string
 }
 
-func getWorkflowTemplates(fs *afero.Afero, workflowsDir string, context *JFlowsContext) []string {
+func getWorkflowSources(fs *afero.Afero, context *JFlowsContext) []string {
 	files := []string{}
-	err := fs.Walk(workflowsDir, func(path string, f os.FileInfo, err error) error {
-		if filepath.Ext(path) == ".jsonnet" {
+	err := fs.Walk(context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
+		ext := filepath.Ext(path)
+		if ext == ".jsonnet" || ext == ".libsonnet" {
 			files = append(files, path)
 		}
 		return nil
@@ -37,6 +38,17 @@ func getWorkflowTemplates(fs *afero.Afero, workflowsDir string, context *JFlowsC
 	}
 
 	return files
+}
+
+func getWorkflowTemplates(fs *afero.Afero, context *JFlowsContext) []string {
+	sources := getWorkflowSources(fs, context)
+	var templates []string
+	for _, source := range sources {
+		if filepath.Ext(source) == ".jsonnet" {
+			templates = append(templates, source)
+		}
+	}
+	return templates
 }
 
 func getWorkflowName(workflowsDir string, filename string) string {
@@ -60,11 +72,10 @@ func GetWorkflowDefinitions(fs *afero.Afero, context *JFlowsContext) []*Workflow
 	vm.StringOutput = true
 	vm.ErrorFormatter.SetColorFormatter(color.New(color.FgRed).Fprintf)
 
-	workflowsDir := filepath.Join(context.Dir, "/workflows")
-	templates := getWorkflowTemplates(fs, workflowsDir, context)
+	templates := getWorkflowTemplates(fs, context)
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
-		workflowName := getWorkflowName(workflowsDir, templatePath)
+		workflowName := getWorkflowName(context.WorkflowsDir, templatePath)
 		input, err := fs.ReadFile(templatePath)
 		if err != nil {
 			panic(err)
