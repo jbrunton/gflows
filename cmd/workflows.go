@@ -140,7 +140,7 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 }
 
 func newCheckWorkflowsCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "check",
 		Short: "Check workflow files are up to date",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -150,15 +150,35 @@ func newCheckWorkflowsCmd() *cobra.Command {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			err = lib.ValidateWorkflows(fs, context)
+
+			watch, err := cmd.Flags().GetBool("watch")
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
-			} else {
-				fmt.Println(styles.StyleCommand("Workflows up to date"))
+				panic(err)
 			}
+
+			if watch {
+				lib.WatchWorkflows(fs, context, func() {
+					err := lib.ValidateWorkflows(fs, context)
+					if err != nil {
+						fmt.Println(styles.StyleError(err.Error()))
+					} else {
+						fmt.Println(styles.StyleCommand("Workflows up to date"))
+					}
+				})
+			} else {
+				err := lib.ValidateWorkflows(fs, context)
+				if err != nil {
+					fmt.Println(styles.StyleError(err.Error()))
+					os.Exit(1)
+				} else {
+					fmt.Println(styles.StyleCommand("Workflows up to date"))
+				}
+			}
+
 		},
 	}
+	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
+	return cmd
 }
 
 func newImportWorkflowsCmd() *cobra.Command {
