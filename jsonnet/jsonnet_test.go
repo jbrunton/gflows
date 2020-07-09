@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMarshalJsonnet(t *testing.T) {
+func TestMarshal(t *testing.T) {
 	testCases := []struct {
 		jsonInput       string
 		expectedJsonnet string
@@ -50,7 +50,7 @@ func TestMarshalJsonnet(t *testing.T) {
 	for _, testCase := range testCases {
 		v := make(map[string]interface{})
 		json.Unmarshal([]byte(testCase.jsonInput), &v)
-		out, err := MarshalJsonnet(v)
+		out, err := Marshal(v)
 		assert.Equal(t, testCase.expectedJsonnet, string(out))
 		assert.NoError(t, err)
 	}
