@@ -24,6 +24,7 @@ type ValidationResult struct {
 
 // NewWorkflowValidator - creates a new validator for the given filesystem
 func NewWorkflowValidator(fs *afero.Afero, context *JFlowsContext) *WorkflowValidator {
+	fmt.Printf("%#v", context.Config)
 	schemaLoader := gojsonschema.NewReferenceLoader(context.Config.Defaults.Checks.Schema.URI)
 	defaultSchema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {

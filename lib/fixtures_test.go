@@ -13,9 +13,9 @@ func newTestCommand() *cobra.Command {
 	return cmd
 }
 
-func newTestContext(cmd *cobra.Command) (*afero.Afero, *JFlowsContext) {
+func newTestContext(cmd *cobra.Command, config string) (*afero.Afero, *JFlowsContext) {
 	fs := CreateMemFs()
-	fs.WriteFile(".jflows/config.yml", []byte{}, 0644)
+	fs.WriteFile(".jflows/config.yml", []byte(config), 0644)
 	context, _ := GetContext(fs, cmd)
 	return fs, context
 }
