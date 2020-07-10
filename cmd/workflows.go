@@ -11,6 +11,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/jbrunton/gflows/lib"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -172,6 +173,18 @@ func newInitCmd() *cobra.Command {
 	}
 }
 
+func checkWorkflows(fs *afero.Afero, context *lib.GFlowsContext, watch bool, showDiff bool) {
+	err := lib.ValidateWorkflows(fs, context, showDiff)
+	if err != nil {
+		fmt.Println(styles.StyleError(err.Error()))
+		if !watch {
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println(styles.StyleCommand("Workflows up to date"))
+	}
+}
+
 func newCheckWorkflowsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
@@ -189,28 +202,22 @@ func newCheckWorkflowsCmd() *cobra.Command {
 				panic(err)
 			}
 
-			if watch {
-				lib.WatchWorkflows(fs, context, func() {
-					err := lib.ValidateWorkflows(fs, context)
-					if err != nil {
-						fmt.Println(styles.StyleError(err.Error()))
-					} else {
-						fmt.Println(styles.StyleCommand("Workflows up to date"))
-					}
-				})
-			} else {
-				err := lib.ValidateWorkflows(fs, context)
-				if err != nil {
-					fmt.Println(styles.StyleError(err.Error()))
-					os.Exit(1)
-				} else {
-					fmt.Println(styles.StyleCommand("Workflows up to date"))
-				}
+			showDiff, err := cmd.Flags().GetBool("show-diff")
+			if err != nil {
+				panic(err)
 			}
 
+			if watch {
+				lib.WatchWorkflows(fs, context, func() {
+					checkWorkflows(fs, context, watch, showDiff)
+				})
+			} else {
+				checkWorkflows(fs, context, watch, showDiff)
+			}
 		},
 	}
 	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
+	cmd.Flags().Bool("show-diff", false, "show diff with generated workflow (useful when refactoring)")
 	return cmd
 }
 

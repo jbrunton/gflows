@@ -7,9 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/diff"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/logrusorgru/aurora"
 
+	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/google/go-jsonnet"
 	"github.com/spf13/afero"
 )
@@ -115,7 +117,7 @@ func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) {
 }
 
 // ValidateWorkflows - returns an error if the workflows are out of date
-func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
+func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) error {
 	WorkflowValidator := NewWorkflowValidator(fs, context)
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
@@ -152,6 +154,17 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
 			fmt.Println("  " + contentResult.Errors[0])
 			fmt.Println("  ► Run \"gflows workflow update\" to update")
 			valid = false
+
+			if showDiff {
+				fpatch, err := diff.CreateFilePatch(definition.Content, contentResult.ActualContent)
+				if err != nil {
+					panic(err)
+				}
+				message := fmt.Sprintf("--- <generated> (source: %s)\n+++ %s", definition.Source, definition.Destination)
+				patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
+				PrettyPrintDiff(patch.Format())
+			}
+
 			continue
 		}
 
