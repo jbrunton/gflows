@@ -1,6 +1,8 @@
 package lib
 
 import (
+	"fmt"
+
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
@@ -35,7 +37,8 @@ func GetContextConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	data, err := fs.ReadFile(path)
 
 	if err != nil {
-		return nil, err
+		fmt.Println("Warning: no config set:", err)
+		//data = []byte{}
 	}
 
 	return parseConfig(data)
