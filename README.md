@@ -80,7 +80,9 @@ To make the process of refactoring easier, you can run the `check` command with 
 
 ```
     $ gflows check --watch --show-diff
-    Checking gflows ... UP TO DATE
+    2020/07/10 18:43:56 Watching workflow templates
+      Watching .gflows/workflows/my-workflow.jsonnet
+      Watching .github/workflows/my-workflow.yml
     Checking my-workflow ... UP TO DATE
 ```
 
