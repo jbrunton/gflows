@@ -57,3 +57,17 @@ This generates:
 
 At this point you can commit and push your changes. If you create a PR against your main branch you should see the `gflows` workflow checking your workflows are up to date.
 
+## Validating your workflows
+
+You can validate and verify your workflows with the `check` command:
+
+    $ gflows check
+    Checking gflows ... OK
+    Checking my-workflow ... OK
+    Workflows up to date
+
+By default this command will check, for each workflow:
+
+* That the Jsonnet source is valid.
+* That the content of the generated workflow file in .github/workflows is up to date.
+* That the workflow is validated by the [github-workflow schema](https://json.schemastore.org/github-workflow) from [schemastore.org](https://www.schemastore.org/json/). (Note that this schema is comprehensive but may fail for occasional edge cases. You can disable schema validation on a per workflow basis if need be.)
