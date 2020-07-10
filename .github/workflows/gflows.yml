@@ -13,7 +13,7 @@
       "run": "go get github.com/jbrunton/gflows"
     - "name": "validate workflows"
       "run": "gflows check"
-"name": "gflows-workflows"
+"name": "gflows"
 "on":
   "pull_request":
     "branches":

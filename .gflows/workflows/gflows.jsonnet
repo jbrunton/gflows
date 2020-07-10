@@ -14,7 +14,7 @@ local check_workflows_job = {
 };
 
 local workflow = {
-  name: 'gflows-workflows',
+  name: 'gflows',
   on: workflows.triggers.pull_request_defaults,
   jobs: {
     check_workflows: check_workflows_job
