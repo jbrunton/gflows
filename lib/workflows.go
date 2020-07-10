@@ -61,6 +61,9 @@ func getWorkflowName(workflowsDir string, filename string) string {
 // GetWorkflowDefinitions - get workflow definitions for the given context
 func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*WorkflowDefinition, error) {
 	vm := jsonnet.MakeVM()
+	vm.Importer(&jsonnet.FileImporter{
+		JPaths: context.evalJPaths(),
+	})
 	vm.StringOutput = true
 	//vm.ErrorFormatter.SetColorFormatter(color.New(color.FgRed).Fprintf)
 
