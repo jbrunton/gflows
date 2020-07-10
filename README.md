@@ -77,7 +77,7 @@ By default this command will check, for each workflow:
 
 If it fails any of the validation checks, you'll see clear errors describing the problem:
 
-![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-diff.png)
+![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
 
 ## Refactoring Workflows
 
@@ -95,7 +95,7 @@ To make the process of refactoring easier, you can run the `check` command with 
 
 If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will include syntax highlighting. For example:
 
-![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
+![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-diff.png)
 
 ## Using jsonnet-bundler
 
