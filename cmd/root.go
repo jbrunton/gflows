@@ -40,13 +40,9 @@ func NewRootCommand() *cobra.Command {
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")
 
-	//styles.ConfigureUsageTemplate(cmd)
-	//styles.ConfigureUnknownCommandErrorFunc(cmd)
-
 	cmd.AddCommand(newListWorkflowsCmd())
 	cmd.AddCommand(newUpdateWorkflowsCmd())
 	cmd.AddCommand(newCheckWorkflowsCmd())
-	cmd.AddCommand(newDiffCmd())
 	cmd.AddCommand(newImportWorkflowsCmd())
 	cmd.AddCommand(newInitCmd())
 
