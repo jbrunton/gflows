@@ -13,13 +13,13 @@ func TestGetWorkflowName(t *testing.T) {
 
 func TestGenerateWorkflowDefinitions(t *testing.T) {
 	fs, context := newTestContext(newTestCommand(), "")
-	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 
 	definitions, err := GetWorkflowDefinitions(fs, context)
 
 	assert.NoError(t, err)
 	assert.Len(t, definitions, 1)
-	assert.Equal(t, ".jflows/workflows/test.jsonnet", definitions[0].Source)
+	assert.Equal(t, ".gflows/workflows/test.jsonnet", definitions[0].Source)
 	assert.Equal(t, ".github/workflows/test.yml", definitions[0].Destination)
 	assert.Equal(t, definitions[0].Content, exampleWorkflow)
 }
@@ -28,12 +28,12 @@ func TestValidateWorkflows(t *testing.T) {
 	fs, context := newTestContext(newTestCommand(), "")
 
 	// invalid template
-	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
 	err := ValidateWorkflows(fs, context)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, missing workflow
-	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 	err = ValidateWorkflows(fs, context)
 	assert.EqualError(t, err, "workflow validation failed")
 
@@ -52,11 +52,11 @@ func ExampleValidateWorkflows() {
 	fs, context := newTestContext(newTestCommand(), "")
 
 	// invalid template
-	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
 	ValidateWorkflows(fs, context)
 
 	// valid template, missing workflow
-	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 	ValidateWorkflows(fs, context)
 
 	// valid template, out of date workflow
@@ -73,9 +73,9 @@ func ExampleValidateWorkflows() {
 	//   ► (root): jobs is required
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
 	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "jflows workflow update" to update
+	//   ► Run "gflows workflow update" to update
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
 	//   Content is out of date for "test" (.github/workflows/test.yml)
-	//   ► Run "jflows workflow update" to update
+	//   ► Run "gflows workflow update" to update
 	// Checking [1mtest[0m ... [1;32mOK[0m
 }

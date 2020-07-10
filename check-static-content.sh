@@ -13,10 +13,10 @@ fi
 
 make build
 
-./jflows init
+./gflows init
 
 if [[ `git status --porcelain` ]]; then
-  echo "Default workflow files don't match generated files. Contents of static-content and .jflows need to match."
+  echo "Default workflow files don't match generated files. Contents of static-content and .gflows need to match."
   exit 1
 else
   echo "Default workflow files are up to date."

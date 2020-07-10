@@ -16,7 +16,7 @@ limitations under the License.
 package main
 
 import (
-	_ "github.com/jbrunton/jflows/statik"
+	_ "github.com/jbrunton/workflow-templates/statik"
 )
 
 func main() {

@@ -45,7 +45,7 @@ func updateFileContent(fs *afero.Afero, destination string, content string, deta
 	}
 }
 
-func applyGenerator(fs *afero.Afero, context *JFlowsContext, generator workflowGenerator) {
+func applyGenerator(fs *afero.Afero, context *GFlowsContext, generator workflowGenerator) {
 	sourceFs, err := statikFs.New()
 	if err != nil {
 		panic(err)

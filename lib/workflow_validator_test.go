@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupValidator(templateContent string, config string) (*afero.Afero, *JFlowsContext, *WorkflowValidator, *WorkflowDefinition) {
+func setupValidator(templateContent string, config string) (*afero.Afero, *GFlowsContext, *WorkflowValidator, *WorkflowDefinition) {
 	fs, context := newTestContext(newTestCommand(), config)
 	WorkflowDefinition := newTestWorkflowDefinition("test", templateContent)
 	validator := NewWorkflowValidator(fs, context)

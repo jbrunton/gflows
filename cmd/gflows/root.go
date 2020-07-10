@@ -35,7 +35,7 @@ func Execute() {
 // NewRootCommand creates a new root command
 func NewRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "jflow",
+		Use:   "gflows",
 		Short: "Generate GitHub workflows from jsonnet templates",
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")

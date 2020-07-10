@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func getWatchFiles(fs *afero.Afero, context *JFlowsContext) []string {
+func getWatchFiles(fs *afero.Afero, context *GFlowsContext) []string {
 	files := getWorkflowSources(fs, context)
 	for _, workflow := range getWorkflows(fs, context) {
 		files = append(files, workflow.path)
@@ -19,7 +19,7 @@ func getWatchFiles(fs *afero.Afero, context *JFlowsContext) []string {
 }
 
 // WatchWorkflows - watch workflow files and invoke onChange on any changes
-func WatchWorkflows(fs *afero.Afero, context *JFlowsContext, onChange func()) {
+func WatchWorkflows(fs *afero.Afero, context *GFlowsContext, onChange func()) {
 	log.Println("Watching workflows")
 
 	watcher, err := fsnotify.NewWatcher()

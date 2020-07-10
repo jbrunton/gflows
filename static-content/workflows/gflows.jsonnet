@@ -8,13 +8,13 @@ local check_workflows_job = {
   steps: [
     steps.checkout,
     steps.setup_go,
-    steps.named('install jflows', 'go get github.com/jbrunton/jflows/cmd/jflows'),
-    steps.named('validate workflows', 'jflows check')
+    steps.named('install gflows', 'go get github.com/jbrunton/workflow-templates/cmd/gflows'),
+    steps.named('validate workflows', 'gflows check')
   ]
 };
 
 local workflow = {
-  name: 'jflows-workflows',
+  name: 'gflows-workflows',
   on: workflows.triggers.pull_request_defaults,
   jobs: {
     check_workflows: check_workflows_job
