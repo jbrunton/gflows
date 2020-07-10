@@ -10,6 +10,8 @@ GFlows provides a templating mechanism for GitHub Workflows, using [Jsonnet](htt
 * Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
 * Watch changes to the templates, so you can develop and refactor workflows with instant feedback on your changes.
 
+Note: this project is very new, so I expect there is room for improvement (especially around error handling). But I've used it comfortably in my own projects, and the risk of adoption is low since it mostly just builds on top of existing tooling (primarily Jsonnet). If you have any feedback I'd love to hear it!
+
 ## Installing
 
     go get github.com/jbrunton/gflows
