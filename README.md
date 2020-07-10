@@ -12,6 +12,19 @@ GFlows provides a templating mechanism for GitHub Workflows, using [Jsonnet](htt
 
 Note: this project is very new, so I expect there is room for improvement (especially around error handling). But I've used it comfortably in my own projects, and the risk of adoption is low since it mostly just builds on top of existing tooling (primarily Jsonnet). If you have any feedback I'd love to hear it!
 
+## Contents
+
+* [Installing](#installing)
+* [Getting Started](#getting-started)
+    * [Adding GFlows to a repository](#adding-gflows-to-a-repository)
+    * [Importing existing workflows](#importing-existing-workflows)
+* [Validating Workflows](#validating-workflows)
+* [Refactoring Workflows](#refactoring-workflows)
+* [Configuration](#configuration)
+* [Development Tips](#development-tips)
+* [Examples](#examples)
+
+
 ## Installing
 
     go get github.com/jbrunton/gflows
@@ -60,7 +73,7 @@ Because Jsonnet (very probably) renders yaml differently from your existing work
 
 At this point you can commit and push your changes. If you create a PR against your main branch you should see the `gflows` workflow checking your workflows are up to date.
 
-## Validating your workflows
+## Validating Workflows
 
 You can validate and verify your workflows with the `check` command:
 
@@ -153,7 +166,7 @@ jsonnet:
   - my-library
 ```
 
-## Development tips
+## Development Tips
 
 * You can get Jsonnet syntax highlighting and autocomplete in VS Code from the [Jsonnet Language Support](https://marketplace.visualstudio.com/items?itemName=liamdawson.jsonnet-language) extension.
 * You can get workflow schema validation directly in VS Code if you add the [YAML Language Support](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) extension and add the below to your settings.json:
