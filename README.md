@@ -10,6 +10,12 @@ GFlows provides a templating mechanism for GitHub Workflows, using Jsonnet. It c
 * Validate GitHub workflows are up to date with their source templates.
 * Watch changes to the templates, so you can develop and refactor workflows with instant feedback on your changes.
 
+* [Installing](#installing)
+* [Getting Started](#getting-started)
+    * [Adding GFlows to a repository](#adding-gflows-to-a-repository)
+     * [Importing existing workflows](#importing-existing-workflows)
+* [Checking your workflows](#checking-your-workflows)
+
 ## Installing
 
     go get github.com/jbrunton/gflows
