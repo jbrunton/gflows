@@ -7,16 +7,26 @@ local test_job = {
   'steps': [
       steps.checkout,
       steps.setup_go,
-      steps.run('go build'),
       steps.run('go test ./...')
   ]
+};
+
+local build_job = {
+  'runs-on': 'ubuntu-latest',
+  'steps': [
+    steps.checkout,
+    steps.setup_go,
+    steps.run('go build'),
+    steps.run('./check-static-content.sh')
+  ],
 };
 
 local workflow = {
   name: 'build',
   on: workflows.triggers.pull_request_defaults,
   jobs: {
-    test: test_job
+    test: test_job,
+    build: build_job
   },
 };
 

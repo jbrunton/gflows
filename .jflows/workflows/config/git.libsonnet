@@ -1,4 +1,3 @@
 {
   main_branch: 'develop'
-  
 }
