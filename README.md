@@ -71,3 +71,19 @@ By default this command will check, for each workflow:
 * That the Jsonnet source is valid.
 * That the content of the generated workflow file in .github/workflows is up to date.
 * That the workflow is validated by the [github-workflow schema](https://json.schemastore.org/github-workflow) from [schemastore.org](https://www.schemastore.org/json/). (Note that this schema is comprehensive but may fail for occasional edge cases. You can disable schema validation on a per workflow basis if need be.)
+
+## Refactoring Workflows
+
+One of the joys of Jsonnet is it gives you a whole host of options (including objects, functions and library files) for refactoring complex workflows.
+
+To make the process of refactoring easier, you can run the `check` command with `--watch` and `--diff` flags. While refactoring, you should see no changes to the generated workflow, so any changes indicate an error in the refactor: the diff output will quickly show you what it is.
+
+```
+    $ gflows check --watch --show-diff
+    Checking gflows ... UP TO DATE
+    Checking my-workflow ... UP TO DATE
+```
+
+If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will include syntax highlighting. For example:
+
+![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
