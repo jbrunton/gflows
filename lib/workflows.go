@@ -145,12 +145,13 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 				fmt.Printf("  ► %s\n", err)
 			}
 			valid = false
-			continue
 		}
 
 		contentResult := WorkflowValidator.ValidateContent(definition)
 		if !contentResult.Valid {
-			fmt.Println(styles.StyleError("FAILED"))
+			if schemaResult.Valid { // otherwise we'll duplicate the failure message
+				fmt.Println(styles.StyleError("FAILED"))
+			}
 			fmt.Println("  " + contentResult.Errors[0])
 			fmt.Println("  ► Run \"gflows workflow update\" to update")
 			valid = false
@@ -164,13 +165,13 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 				patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
 				PrettyPrintDiff(patch.Format())
 			}
-
-			continue
 		}
 
-		fmt.Println(styles.StyleOK("OK"))
-		for _, err := range append(schemaResult.Errors, contentResult.Errors...) {
-			fmt.Printf("  Warning: %s\n", err)
+		if schemaResult.Valid && contentResult.Valid {
+			fmt.Println(styles.StyleOK("OK"))
+			for _, err := range append(schemaResult.Errors, contentResult.Errors...) {
+				fmt.Printf("  Warning: %s\n", err)
+			}
 		}
 	}
 	if !valid {
