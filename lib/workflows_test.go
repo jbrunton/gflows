@@ -12,7 +12,7 @@ func TestGetWorkflowName(t *testing.T) {
 }
 
 func TestGenerateWorkflowDefinitions(t *testing.T) {
-	fs, context := newTestContext()
+	fs, context := newTestContext(newTestCommand())
 	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 
 	definitions, err := GetWorkflowDefinitions(fs, context)
@@ -25,7 +25,7 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 }
 
 func TestValidateWorkflows(t *testing.T) {
-	fs, context := newTestContext()
+	fs, context := newTestContext(newTestCommand())
 
 	// invalid template
 	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
@@ -49,7 +49,7 @@ func TestValidateWorkflows(t *testing.T) {
 }
 
 func ExampleValidateWorkflows() {
-	fs, context := newTestContext()
+	fs, context := newTestContext(newTestCommand())
 
 	// invalid template
 	fs.WriteFile(".jflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)

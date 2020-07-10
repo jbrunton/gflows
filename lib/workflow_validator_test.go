@@ -7,15 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupValidator(templateContent string) (*afero.Afero, *WorkflowValidator, *WorkflowDefinition) {
-	fs := CreateMemFs()
+func setupValidator(templateContent string) (*afero.Afero, *JFlowsContext, *WorkflowValidator, *WorkflowDefinition) {
+	fs, context := newTestContext(newTestCommand())
+	fs.WriteFile(".jflows/config.yml", []byte{}, 0644)
 	WorkflowDefinition := newTestWorkflowDefinition("test", templateContent)
-	validator := NewWorkflowValidator(fs)
-	return fs, validator, WorkflowDefinition
+	validator := NewWorkflowValidator(fs, context)
+	return fs, context, validator, WorkflowDefinition
 }
 
 func TestValidateContent(t *testing.T) {
-	fs, validator, definition := setupValidator(exampleTemplate)
+	fs, _, validator, definition := setupValidator(exampleTemplate)
 
 	fs.WriteFile(definition.Destination, []byte(exampleTemplate), 0644)
 	result := validator.ValidateContent(definition)
@@ -25,7 +26,7 @@ func TestValidateContent(t *testing.T) {
 }
 
 func TestValidateContentMissing(t *testing.T) {
-	_, validator, definition := setupValidator(exampleTemplate)
+	_, _, validator, definition := setupValidator(exampleTemplate)
 
 	result := validator.ValidateContent(definition)
 
@@ -34,7 +35,7 @@ func TestValidateContentMissing(t *testing.T) {
 }
 
 func TestValidateContentOutOfDate(t *testing.T) {
-	fs, validator, definition := setupValidator(exampleTemplate)
+	fs, _, validator, definition := setupValidator(exampleTemplate)
 
 	fs.WriteFile(definition.Destination, []byte("incorrect content"), 0644)
 	result := validator.ValidateContent(definition)
@@ -44,7 +45,7 @@ func TestValidateContentOutOfDate(t *testing.T) {
 }
 
 func TestValidateSchema(t *testing.T) {
-	_, validator, definition := setupValidator(exampleWorkflow)
+	_, _, validator, definition := setupValidator(exampleWorkflow)
 
 	result := validator.ValidateSchema(definition)
 
@@ -53,7 +54,7 @@ func TestValidateSchema(t *testing.T) {
 }
 
 func TestValidateSchemaMissingField(t *testing.T) {
-	_, validator, definition := setupValidator(invalidWorkflow)
+	_, _, validator, definition := setupValidator(invalidWorkflow)
 
 	result := validator.ValidateSchema(definition)
 

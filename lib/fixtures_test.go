@@ -4,14 +4,19 @@ import (
 	"fmt"
 
 	"github.com/spf13/afero"
+	"github.com/spf13/cobra"
 )
 
-func newTestContext() (*afero.Afero, *JFlowsContext) {
+func newTestCommand() *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.Flags().String("config", "", "")
+	return cmd
+}
+
+func newTestContext(cmd *cobra.Command) (*afero.Afero, *JFlowsContext) {
 	fs := CreateMemFs()
-	context := &JFlowsContext{
-		Dir:       ".jflows",
-		GitHubDir: ".github/",
-	}
+	fs.WriteFile(".jflows/config.yml", []byte{}, 0644)
+	context, _ := GetContext(fs, cmd)
 	return fs, context
 }
 
