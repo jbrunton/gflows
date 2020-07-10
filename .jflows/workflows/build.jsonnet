@@ -16,6 +16,7 @@ local build_job = {
   'steps': [
     steps.checkout,
     steps.setup_go,
+    steps.run('go get github.com/rakyll/statik'),
     steps.run('go build'),
     steps.run('./check-static-content.sh')
   ],
