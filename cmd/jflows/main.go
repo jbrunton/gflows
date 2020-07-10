@@ -16,10 +16,9 @@ limitations under the License.
 package main
 
 import (
-	"github.com/jbrunton/jflows/cmd"
 	_ "github.com/jbrunton/jflows/statik"
 )
 
 func main() {
-	cmd.Execute()
+	Execute()
 }
