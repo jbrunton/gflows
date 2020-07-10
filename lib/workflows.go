@@ -165,3 +165,16 @@ func ValidateWorkflows(fs *afero.Afero, context *JFlowsContext) error {
 	}
 	return nil
 }
+
+// InitWorkflows - copies g3ops workflow sources to context directory
+func InitWorkflows(fs *afero.Afero, context *JFlowsContext) {
+	generator := workflowGenerator{
+		name: "g3ops",
+		sources: []string{
+			"/workflows/common/git.libsonnet",
+			"/workflows/g3ops/config.libsonnet",
+			"/workflows/g3ops/template.jsonnet",
+		},
+	}
+	applyGenerator(fs, context, generator)
+}

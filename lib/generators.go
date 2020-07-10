@@ -2,7 +2,11 @@ package lib
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
+	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 )
 
@@ -38,5 +42,32 @@ func updateFileContent(fs *afero.Afero, destination string, content string, deta
 		fmt.Println(action, destination, details)
 	} else {
 		fmt.Println(action, destination)
+	}
+}
+
+func applyGenerator(fs *afero.Afero, context *JFlowsContext, generator workflowGenerator) {
+	sourceFs, err := statikFs.New()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, sourcePath := range generator.sources {
+		file, err := sourceFs.Open(sourcePath)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		content, err := ioutil.ReadAll(file)
+		destinationPath := filepath.Join(context.Dir, sourcePath)
+		if err != nil {
+			panic(err)
+		}
+		source := fileSource{
+			source:      sourcePath,
+			destination: destinationPath,
+			content:     string(content),
+		}
+		updateFileContent(fs, source.destination, source.content, "")
 	}
 }

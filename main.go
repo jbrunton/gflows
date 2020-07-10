@@ -16,6 +16,7 @@ limitations under the License.
 package main
 
 import (
+	_ "github.com/jbrunton/g3ops/statik"
 	"github.com/jbrunton/jflows/cmd"
 )
 
