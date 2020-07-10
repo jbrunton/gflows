@@ -26,7 +26,7 @@ func diffWorkflows(cmd *cobra.Command) {
 	if err != nil {
 		panic(err)
 	}
-	validator := lib.NewWorkflowValidator(fs)
+	validator := lib.NewWorkflowValidator(fs, context)
 
 	for _, definition := range definitions {
 		result := validator.ValidateContent(definition)
@@ -109,7 +109,7 @@ func newListWorkflowsCmd() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			validator := lib.NewWorkflowValidator(fs)
+			validator := lib.NewWorkflowValidator(fs, context)
 
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})

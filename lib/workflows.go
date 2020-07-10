@@ -116,7 +116,7 @@ func UpdateWorkflows(fs *afero.Afero, context *JFlowsContext) {
 
 // ValidateWorkflows - returns an error if the workflows are out of date
 func ValidateWorkflows(fs *afero.Afero, context *JFlowsContext) error {
-	WorkflowValidator := NewWorkflowValidator(fs)
+	WorkflowValidator := NewWorkflowValidator(fs, context)
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
 		return err
@@ -156,6 +156,9 @@ func ValidateWorkflows(fs *afero.Afero, context *JFlowsContext) error {
 		}
 
 		fmt.Println(styles.StyleOK("OK"))
+		for _, err := range append(schemaResult.Errors, contentResult.Errors...) {
+			fmt.Printf("  Warning: %s\n", err)
+		}
 	}
 	if !valid {
 		return errors.New("workflow validation failed")
