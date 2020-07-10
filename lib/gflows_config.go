@@ -1,8 +1,6 @@
 package lib
 
 import (
-	"fmt"
-
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
@@ -34,13 +32,7 @@ type gflowsContentCheckConfig struct {
 
 // GetContextConfig - finds and returns the GFlowsConfig
 func GetContextConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
-	data, err := fs.ReadFile(path)
-
-	if err != nil {
-		fmt.Println("Warning: no config set:", err)
-		//data = []byte{}
-	}
-
+	data, _ := fs.ReadFile(path)
 	return parseConfig(data)
 }
 
