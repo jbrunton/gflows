@@ -157,11 +157,14 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 			valid = false
 
 			if showDiff {
-				fpatch, err := diff.CreateFilePatch(definition.Content, contentResult.ActualContent)
+				fpatch, err := diff.CreateFilePatch(contentResult.ActualContent, definition.Content)
 				if err != nil {
 					panic(err)
 				}
-				message := fmt.Sprintf("--- <generated> (source: %s)\n+++ %s", definition.Source, definition.Destination)
+				message := strings.Join([]string{
+					fmt.Sprintf("src: <generated from: %s>\ndst: %s", definition.Source, definition.Destination),
+					fmt.Sprintf(`This diff shows what will happen to %s if you run "gflows update"`, definition.Destination),
+				}, "\n")
 				patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
 				PrettyPrintDiff(patch.Format())
 			}
