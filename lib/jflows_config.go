@@ -1,50 +1,33 @@
 package lib
 
 import (
-	"path/filepath"
-
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
 
 // JFlowsConfig - type of current jflows context
 type JFlowsConfig struct {
-	Name         string
-	Environments map[string]jflowsEnvironmentConfig
-	Services     map[string]jflowsServiceConfig
-	Ci           jflowsCiConfig
-	Workflows    jflowsWorkflowsConfig
-	Repo         string
-	Releases     jflowsReleasesConfig
+	GithubDir string `yaml:"githubDir"`
+	Defaults  jflowsWorkflowConfig
+	Workflows map[string]*jflowsWorkflowConfig
 }
 
-type jflowsWorkflowsConfig struct {
-	GitHubDir string `yaml:"githubDir"`
+type jflowsWorkflowConfig struct {
+	Checks jflowsChecksConfig
 }
 
-type jflowsEnvironmentConfig struct {
-	Manifest string
+type jflowsChecksConfig struct {
+	Schema  jflowsSchemaCheckConfig
+	Content jflowsContentCheckConfig
 }
 
-type jflowsServiceConfig struct {
-	Manifest string
+type jflowsSchemaCheckConfig struct {
+	Enabled *bool
+	URI     string `yaml:"uri"`
 }
 
-type jflowsReleasesConfig struct {
-	CreatePullRequest bool `yaml:"createPullRequest"`
-}
-
-type jflowsCiConfig struct {
-	Defaults jflowsCiDefaultsConfig
-}
-
-type jflowsCiDefaultsConfig struct {
-	Build jflowsBuildConfig
-}
-
-type jflowsBuildConfig struct {
-	Env     map[string]string
-	Command string
+type jflowsContentCheckConfig struct {
+	Enabled *bool
 }
 
 // GetContextConfig - finds and returns the JFlowsConfig
@@ -71,22 +54,8 @@ func parseConfig(input []byte) (*JFlowsConfig, error) {
 		panic(err)
 	}
 
-	for envName, env := range config.Environments {
-		path, err := filepath.Abs(env.Manifest)
-		if err != nil {
-			panic(err)
-		}
-		env.Manifest = path
-		config.Environments[envName] = env
-	}
-
-	for serviceName, service := range config.Services {
-		path, err := filepath.Abs(service.Manifest)
-		if err != nil {
-			panic(err)
-		}
-		service.Manifest = path
-		config.Services[serviceName] = service
+	if config.Defaults.Checks.Schema.URI == "" {
+		config.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
 	}
 
 	return &config, nil

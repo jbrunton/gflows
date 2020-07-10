@@ -10,8 +10,9 @@ import (
 
 // WorkflowValidator - validates a workflow definition
 type WorkflowValidator struct {
-	fs     *afero.Afero
-	schema *gojsonschema.Schema
+	fs            *afero.Afero
+	defaultSchema *gojsonschema.Schema
+	config        *JFlowsConfig
 }
 
 // ValidationResult - validate result
@@ -22,20 +23,31 @@ type ValidationResult struct {
 }
 
 // NewWorkflowValidator - creates a new validator for the given filesystem
-func NewWorkflowValidator(fs *afero.Afero) *WorkflowValidator {
-	schemaLoader := gojsonschema.NewReferenceLoader("https://json.schemastore.org/github-workflow")
-	schema, err := gojsonschema.NewSchema(schemaLoader)
+func NewWorkflowValidator(fs *afero.Afero, context *JFlowsContext) *WorkflowValidator {
+	schemaLoader := gojsonschema.NewReferenceLoader(context.Config.Defaults.Checks.Schema.URI)
+	defaultSchema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
 		panic(err)
 	}
 	return &WorkflowValidator{
-		fs:     fs,
-		schema: schema,
+		fs:            fs,
+		defaultSchema: defaultSchema,
+		config:        context.Config,
 	}
 }
 
 // ValidateSchema - validates the template for the definition generates a valid workflow
 func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinition) ValidationResult {
+	enabled := validator.getCheckEnabled(definition.Name, func(config jflowsWorkflowConfig) *bool {
+		return config.Checks.Schema.Enabled
+	})
+	if !enabled {
+		return ValidationResult{
+			Valid:  true,
+			Errors: []string{fmt.Sprintf("Schema checks disabled for %s, skipping", definition.Name)},
+		}
+	}
+
 	var yamlData map[interface{}]interface{}
 	err := yaml.Unmarshal([]byte(definition.Content), &yamlData)
 	if err != nil {
@@ -48,7 +60,8 @@ func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinitio
 	}
 
 	loader := gojsonschema.NewGoLoader(jsonData)
-	result, err := validator.schema.Validate(loader)
+	schema := validator.getWorkflowSchema(definition.Name)
+	result, err := schema.Validate(loader)
 	if err != nil {
 		panic(err)
 	}
@@ -66,6 +79,16 @@ func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinitio
 
 // ValidateContent - validates the content at the destination in the definition is up to date
 func (validator *WorkflowValidator) ValidateContent(definition *WorkflowDefinition) ValidationResult {
+	enabled := validator.getCheckEnabled(definition.Name, func(config jflowsWorkflowConfig) *bool {
+		return config.Checks.Content.Enabled
+	})
+	if !enabled {
+		return ValidationResult{
+			Valid:  true,
+			Errors: []string{fmt.Sprintf("Content checks disabled for %s, skipping", definition.Name)},
+		}
+	}
+
 	exists, err := validator.fs.Exists(definition.Destination)
 	if err != nil {
 		panic(err)
@@ -99,6 +122,34 @@ func (validator *WorkflowValidator) ValidateContent(definition *WorkflowDefiniti
 		Valid:  true,
 		Errors: []string{},
 	}
+}
+
+func (validator *WorkflowValidator) getWorkflowSchema(workflowName string) *gojsonschema.Schema {
+	workflowConfig := validator.config.Workflows[workflowName]
+	if workflowConfig == nil || workflowConfig.Checks.Schema.URI == "" {
+		return validator.defaultSchema
+	}
+	schemaLoader := gojsonschema.NewReferenceLoader(workflowConfig.Checks.Schema.URI)
+	schema, err := gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		panic(err)
+	}
+	return schema
+}
+
+func (validator *WorkflowValidator) getCheckEnabled(workflowName string, selector func(config jflowsWorkflowConfig) *bool) bool {
+	workflowConfig := validator.config.Workflows[workflowName]
+	if workflowConfig != nil {
+		enabled := selector(*workflowConfig)
+		if enabled != nil {
+			return *enabled
+		}
+	}
+	enabled := selector(validator.config.Defaults)
+	if enabled != nil {
+		return *enabled
+	}
+	return true
 }
 
 // Taken from Docker (and then refactored to keep CodeClimate happy).

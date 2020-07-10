@@ -1,13 +1,11 @@
 package lib
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 // JFlowsContext - current command context
@@ -30,7 +28,7 @@ func NewContext(fs *afero.Afero, configPath string) (*JFlowsContext, error) {
 		return nil, err
 	}
 
-	githubDir := config.Workflows.GitHubDir
+	githubDir := config.GithubDir
 	if githubDir == "" {
 		githubDir = ".github/"
 	}
@@ -71,26 +69,6 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*JFlowsContext, error) {
 	}
 
 	return NewContext(fs, configPath)
-}
-
-// LoadServiceManifest - finds and returns the JFlowsService for the given service
-func (context *JFlowsContext) LoadServiceManifest(name string) (JFlowsService, error) {
-	serviceContext := context.Config.Services[name]
-
-	// TODO: use afero
-	data, err := ioutil.ReadFile(serviceContext.Manifest)
-
-	if err != nil {
-		return JFlowsService{}, err
-	}
-
-	service := JFlowsService{}
-	err = yaml.Unmarshal(data, &service)
-	if err != nil {
-		panic(err)
-	}
-
-	return service, nil
 }
 
 func init() {
