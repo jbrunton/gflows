@@ -75,7 +75,7 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 
 			_, filename := filepath.Split(workflow.path)
 			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
-			templatePath := filepath.Join(context.WorkflowsDir, templateName, "template.jsonnet")
+			templatePath := filepath.Join(context.WorkflowsDir, templateName+".jsonnet")
 			safelyWriteFile(fs, templatePath, templateContent)
 			fmt.Println("  Imported template:", templatePath)
 			imported++
