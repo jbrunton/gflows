@@ -147,6 +147,18 @@ jsonnet:
   - my-library
 ```
 
+## Development tips
+
+* You can get Jsonnet syntax highlighting and autocomplete in VS Code from the [Jsonnet Language Support](https://marketplace.visualstudio.com/items?itemName=liamdawson.jsonnet-language) extension.
+* You can get workflow schema validation directly in VS Code if you add the [YAML Language Support](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) extension and add the below to your settings.json:
+
+```json
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow": ["/.github/workflows/*.yml"]
+    }
+```
+
 ## Examples
 
 * [This PR](https://github.com/jbrunton/bechdel-lists/pull/190/files) from another project I was working on shows how I was able to break up two very awkward workflow files into multiple smaller ones (and also reduce the loc). It was a large refactor, but only took a few minutes with the feedback from `gflows check --watch --show-diffs`.
+
