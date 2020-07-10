@@ -2,7 +2,7 @@ statik:
 	statik -m -src=static-content
 
 compile:
-	go build
+	go build ./cmd/jflows
 
 build: statik compile
 
