@@ -52,17 +52,7 @@ func getWorkflowTemplates(fs *afero.Afero, context *JFlowsContext) []string {
 }
 
 func getWorkflowName(workflowsDir string, filename string) string {
-	templateDir, templateFileName := filepath.Split(filename)
-	if templateFileName == "template.jsonnet" {
-		// Check to see if the file is a top level template.
-		if filepath.Clean(templateDir) != filepath.Clean(workflowsDir) {
-			// If the file is called template.jsonnet and it's in a subdirectory, then rename it to the directory name.
-			// E.g. "workflows/my-workflow/template.jsonnet" returns "my-workflow"
-			return filepath.Base(templateDir)
-		}
-	}
-	// In all other cases, simply return the name of the file less the extension.
-	// E.g. "workflows/my-workflow.jsonnet" returns "my-workflow"
+	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
