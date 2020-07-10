@@ -124,6 +124,7 @@ defaults:
 
     content:
       # Whether or not to validate that the workflow in .github is up to date
+      # Default: true
       enabled: true
 
 # Overrides for specific workflows
