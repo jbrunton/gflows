@@ -175,6 +175,7 @@ func InitWorkflows(fs *afero.Afero, context *JFlowsContext) {
 			"/workflows/common/workflows.libsonnet",
 			"/workflows/config/git.libsonnet",
 			"/workflows/jflows.jsonnet",
+			"/config.yml",
 		},
 	}
 	applyGenerator(fs, context, generator)
