@@ -74,3 +74,17 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 func init() {
 	contextCache = make(map[*cobra.Command]*GFlowsContext)
 }
+
+func (context *GFlowsContext) evalJPaths() []string {
+	var paths []string
+
+	for _, path := range context.Config.Jsonnet.JPath {
+		if filepath.IsAbs(path) {
+			paths = append(paths, path)
+		} else {
+			paths = append(paths, filepath.Join(context.Dir, path))
+		}
+	}
+
+	return paths
+}

@@ -87,3 +87,58 @@ To make the process of refactoring easier, you can run the `check` command with 
 If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will include syntax highlighting. For example:
 
 ![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
+
+## Using remote templates
+
+If you want to extract templates into a separate repository then the recommended approach is to use [jsonnet-bundler](https://github.com/jsonnet-bundler/jsonnet-bundler).
+
+Any additional library paths should be added to the `jsonnet.jpath` list in the config file. These paths may be relative, so, for example, if you install dependencies into `.jflows/vendor`, then your config may look like this:
+
+```
+jsonnet:
+  jpath:
+  - vendor
+```
+
+## Configuration
+
+The config file (`.gflows/config.yml`) can be edited to configure validation and jsonnet options. The options look like this:
+
+```yaml
+# The .github directory. Set this if you put `gflows` in a different directory than the default.
+# Default: .github
+githubDir: .github
+
+# Default options for generating workflows
+defaults:
+  # The checks to conduct when running `gflows check`
+  checks:
+    schema:
+      # Whether or not to validate with a JSON schema.
+      # Default: true
+      enabled: true
+      
+      # The schema to use.
+      # Default: https://json.schemastore.org/github-workflow
+      uri: https://example.com/my-schema
+
+    content:
+      # Whether or not to validate that the workflow in .github is up to date
+      enabled: true
+
+# Overrides for specific workflows
+workflows:
+  # For example, this overrides the schema options for my-workflow
+  my-workflow:
+    checks:
+      schema:
+        enabled: false
+
+# Jsonnet options
+jsonnet:
+  # Additional paths to search for libraries. Useful if you use jsonnet-bundler.
+  # Default: <empty list>
+  jpath:
+  - vendor
+  - my-library
+```

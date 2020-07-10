@@ -10,6 +10,11 @@ type GFlowsConfig struct {
 	GithubDir string `yaml:"githubDir"`
 	Defaults  gflowsWorkflowConfig
 	Workflows map[string]*gflowsWorkflowConfig
+	Jsonnet   jsonnetConfig
+}
+
+type jsonnetConfig struct {
+	JPath []string `yaml:"jpath"`
 }
 
 type gflowsWorkflowConfig struct {
