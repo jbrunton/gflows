@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 make statik
 
 if [[ `git status --porcelain` ]]; then
