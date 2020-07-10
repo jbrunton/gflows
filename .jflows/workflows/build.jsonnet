@@ -1,6 +1,6 @@
-local git_config = import '../config/git.libsonnet';
-local steps = import '../common/steps.libsonnet';
-local workflows = import '../common/workflows.libsonnet';
+local git_config = import 'config/git.libsonnet';
+local steps = import 'common/steps.libsonnet';
+local workflows = import 'common/workflows.libsonnet';
 
 local test_job = {
   'runs-on': 'ubuntu-latest',
