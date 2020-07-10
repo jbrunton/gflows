@@ -7,7 +7,7 @@
 GFlows provides a templating mechanism for GitHub Workflows, using [Jsonnet](https://jsonnet.org/). It comprises a CLI tool that can:
 
 * Import existing workflows into GFlow templates.
-* Validate GitHub workflows are up to date with their source templates.
+* Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
 * Watch changes to the templates, so you can develop and refactor workflows with instant feedback on your changes.
 
 ## Installing
