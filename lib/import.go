@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/jflows/jsonnet"
-	"github.com/jbrunton/jflows/styles"
+	"github.com/jbrunton/workflow-templates/jsonnet"
+	"github.com/jbrunton/workflow-templates/styles"
 
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
@@ -17,7 +17,7 @@ type GitWorkflow struct {
 	definition *WorkflowDefinition
 }
 
-func getWorkflows(fs *afero.Afero, context *JFlowsContext) []GitWorkflow {
+func getWorkflows(fs *afero.Afero, context *GFlowsContext) []GitWorkflow {
 	files := []string{}
 	files, err := afero.Glob(fs, filepath.Join(context.GitHubDir, "workflows/*.yml"))
 	if err != nil {
@@ -45,7 +45,7 @@ func getWorkflows(fs *afero.Afero, context *JFlowsContext) []GitWorkflow {
 	return workflows
 }
 
-func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
+func ImportWorkflows(fs *afero.Afero, context *GFlowsContext) {
 	imported := 0
 	workflows := getWorkflows(fs, context)
 	for _, workflow := range workflows {
@@ -87,6 +87,6 @@ func ImportWorkflows(fs *afero.Afero, context *JFlowsContext) {
 	if imported > 0 {
 		fmt.Println()
 		fmt.Println(styles.StyleWarning("Important:"), "imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.")
-		fmt.Println("  ► Run \"jflows workflow update\" to do this now")
+		fmt.Println("  ► Run \"gflows workflow update\" to do this now")
 	}
 }

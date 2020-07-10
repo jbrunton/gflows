@@ -5,12 +5,12 @@ import (
 	"os"
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
-	"github.com/jbrunton/jflows/diff"
-	"github.com/jbrunton/jflows/styles"
+	"github.com/jbrunton/workflow-templates/diff"
+	"github.com/jbrunton/workflow-templates/styles"
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/jbrunton/jflows/lib"
+	"github.com/jbrunton/workflow-templates/lib"
 	"github.com/spf13/cobra"
 )
 

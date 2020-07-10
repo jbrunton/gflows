@@ -8,19 +8,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// JFlowsContext - current command context
-type JFlowsContext struct {
+// GFlowsContext - current command context
+type GFlowsContext struct {
 	Dir          string
 	ConfigPath   string
 	GitHubDir    string
 	WorkflowsDir string
-	Config       *JFlowsConfig
+	Config       *GFlowsConfig
 }
 
-var contextCache map[*cobra.Command]*JFlowsContext
+var contextCache map[*cobra.Command]*GFlowsContext
 
 // NewContext - returns a context for the given config
-func NewContext(fs *afero.Afero, configPath string) (*JFlowsContext, error) {
+func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
 	contextDir := filepath.Dir(configPath)
 
 	config, err := GetContextConfig(fs, configPath)
@@ -38,7 +38,7 @@ func NewContext(fs *afero.Afero, configPath string) (*JFlowsContext, error) {
 
 	workflowsDir := filepath.Join(contextDir, "/workflows")
 
-	context := &JFlowsContext{
+	context := &GFlowsContext{
 		Config:       config,
 		ConfigPath:   configPath,
 		GitHubDir:    githubDir,
@@ -50,7 +50,7 @@ func NewContext(fs *afero.Afero, configPath string) (*JFlowsContext, error) {
 }
 
 // GetContext - returns the current command context
-func GetContext(fs *afero.Afero, cmd *cobra.Command) (*JFlowsContext, error) {
+func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 	context := contextCache[cmd]
 	if context != nil {
 		return context, nil
@@ -62,15 +62,15 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*JFlowsContext, error) {
 	}
 
 	if configPath == "" {
-		configPath = os.Getenv("JFLOWS_CONFIG")
+		configPath = os.Getenv("GFLOWS_CONFIG")
 	}
 	if configPath == "" {
-		configPath = ".jflows/config.yml"
+		configPath = ".gflows/config.yml"
 	}
 
 	return NewContext(fs, configPath)
 }
 
 func init() {
-	contextCache = make(map[*cobra.Command]*JFlowsContext)
+	contextCache = make(map[*cobra.Command]*GFlowsContext)
 }
