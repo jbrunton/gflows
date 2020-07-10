@@ -90,7 +90,7 @@ If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will
 
 ![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
 
-## Using remote templates
+## Using jsonnet-bundler
 
 If you want to extract templates into a separate repository then the recommended approach is to use [jsonnet-bundler](https://github.com/jsonnet-bundler/jsonnet-bundler).
 
