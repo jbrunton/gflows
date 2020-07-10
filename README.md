@@ -31,6 +31,7 @@ This generates:
 
 * A workflow called `gflows` defined in `gflows.libsonnet`, which will run against PRs and your main branch to ensure your workflows are kept up to date with their source templates.
 * Some common code factored out into libsonnet files in the `config/` and `common/` directories.
+* A `config.yml` file to customize build and validation options (see [Configuration](#configuration) for more details).
 
 At this point, you should update the `config/git.libsonnet` file to reference the correct name of your main branch.
 
