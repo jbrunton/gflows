@@ -146,3 +146,7 @@ jsonnet:
   - vendor
   - my-library
 ```
+
+## Examples
+
+* [This PR](https://github.com/jbrunton/bechdel-lists/pull/190/files) from another project I was working on shows how I was able to break up two very awkward workflow files into multiple smaller ones (and also reduce the loc). It was a large refactor, but only took a few minutes with the feedback from `gflows check --watch --show-diffs`.
