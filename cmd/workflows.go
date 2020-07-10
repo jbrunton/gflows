@@ -4,94 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
-	"github.com/jbrunton/gflows/diff"
 	"github.com/jbrunton/gflows/styles"
-	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/jbrunton/gflows/lib"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
-
-func diffWorkflows(cmd *cobra.Command) {
-	fs := lib.CreateOsFs()
-	context, err := lib.GetContext(fs, cmd)
-	if err != nil {
-		fmt.Println(styles.StyleError(err.Error()))
-		os.Exit(1)
-	}
-
-	definitions, err := lib.GetWorkflowDefinitions(fs, context)
-	if err != nil {
-		panic(err)
-	}
-	validator := lib.NewWorkflowValidator(fs, context)
-
-	for _, definition := range definitions {
-		result := validator.ValidateContent(definition)
-		fmt.Printf("Checking %s ... ", aurora.Bold(definition.Name))
-
-		if !definition.Status.Valid {
-			fmt.Println(styles.StyleError("ERROR"))
-			fmt.Println("  Error parsing template:")
-			for _, err := range definition.Status.Errors {
-				fmt.Printf("  ► %s\n\n", err)
-			}
-			fmt.Println()
-			continue
-		}
-
-		if result.Valid {
-			fmt.Println(styles.StyleOK("UP TO DATE"))
-		} else {
-			fmt.Println(styles.StyleWarning("OUT OF DATE"))
-			fpatch, err := diff.CreateFilePatch(definition.Content, result.ActualContent)
-			if err != nil {
-				panic(err)
-			}
-			message := fmt.Sprintf("--- <generated> (source: %s)\n+++ %s", definition.Source, definition.Destination)
-			patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
-			lib.PrettyPrintDiff(patch.Format())
-		}
-		schemaResult := validator.ValidateSchema(definition)
-		if !schemaResult.Valid {
-			fmt.Println(styles.StyleWarning("Warning:"), aurora.Bold(definition.Name), "failed schema validation:")
-			for _, err := range schemaResult.Errors {
-				fmt.Printf("  ► %s\n", err)
-			}
-			fmt.Println()
-		}
-	}
-}
-
-func newDiffCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "diff",
-		Short: "Diff workflows",
-		Run: func(cmd *cobra.Command, args []string) {
-			fs := lib.CreateOsFs()
-			context, err := lib.GetContext(fs, cmd)
-			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
-			}
-
-			watch, err := cmd.Flags().GetBool("watch")
-			if err != nil {
-				panic(err)
-			}
-
-			if watch {
-				lib.WatchWorkflows(fs, context, func() { diffWorkflows(cmd) })
-			} else {
-				diffWorkflows(cmd)
-			}
-		},
-	}
-	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
-	return cmd
-}
 
 func newListWorkflowsCmd() *cobra.Command {
 	return &cobra.Command{
@@ -172,6 +91,18 @@ func newInitCmd() *cobra.Command {
 	}
 }
 
+func checkWorkflows(fs *afero.Afero, context *lib.GFlowsContext, watch bool, showDiff bool) {
+	err := lib.ValidateWorkflows(fs, context, showDiff)
+	if err != nil {
+		fmt.Println(styles.StyleError(err.Error()))
+		if !watch {
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println(styles.StyleCommand("Workflows up to date"))
+	}
+}
+
 func newCheckWorkflowsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
@@ -189,28 +120,22 @@ func newCheckWorkflowsCmd() *cobra.Command {
 				panic(err)
 			}
 
-			if watch {
-				lib.WatchWorkflows(fs, context, func() {
-					err := lib.ValidateWorkflows(fs, context)
-					if err != nil {
-						fmt.Println(styles.StyleError(err.Error()))
-					} else {
-						fmt.Println(styles.StyleCommand("Workflows up to date"))
-					}
-				})
-			} else {
-				err := lib.ValidateWorkflows(fs, context)
-				if err != nil {
-					fmt.Println(styles.StyleError(err.Error()))
-					os.Exit(1)
-				} else {
-					fmt.Println(styles.StyleCommand("Workflows up to date"))
-				}
+			showDiff, err := cmd.Flags().GetBool("show-diff")
+			if err != nil {
+				panic(err)
 			}
 
+			if watch {
+				lib.WatchWorkflows(fs, context, func() {
+					checkWorkflows(fs, context, watch, showDiff)
+				})
+			} else {
+				checkWorkflows(fs, context, watch, showDiff)
+			}
 		},
 	}
 	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
+	cmd.Flags().Bool("show-diff", false, "show diff with generated workflow (useful when refactoring)")
 	return cmd
 }
 

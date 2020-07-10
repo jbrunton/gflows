@@ -29,22 +29,22 @@ func TestValidateWorkflows(t *testing.T) {
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
-	err := ValidateWorkflows(fs, context)
+	err := ValidateWorkflows(fs, context, false)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, missing workflow
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	err = ValidateWorkflows(fs, context)
+	err = ValidateWorkflows(fs, context, false)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, out of date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte("incorrect content"), 0644)
-	err = ValidateWorkflows(fs, context)
+	err = ValidateWorkflows(fs, context, false)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, up to date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
-	err = ValidateWorkflows(fs, context)
+	err = ValidateWorkflows(fs, context, false)
 	assert.NoError(t, err)
 }
 
@@ -53,24 +53,26 @@ func ExampleValidateWorkflows() {
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
-	ValidateWorkflows(fs, context)
+	ValidateWorkflows(fs, context, false)
 
 	// valid template, missing workflow
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	ValidateWorkflows(fs, context)
+	ValidateWorkflows(fs, context, false)
 
 	// valid template, out of date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte("incorrect content"), 0644)
-	ValidateWorkflows(fs, context)
+	ValidateWorkflows(fs, context, false)
 
 	// valid template, up to date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
-	ValidateWorkflows(fs, context)
+	ValidateWorkflows(fs, context, false)
 
 	// Output:
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
 	//   Workflow failed schema validation:
 	//   ► (root): jobs is required
+	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
+	//   ► Run "gflows workflow update" to update
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
 	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
 	//   ► Run "gflows workflow update" to update
