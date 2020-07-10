@@ -1,6 +1,6 @@
 # GFlows - GitHub Workflow Templates
 
-[![Build Status](https://github.com/jbrunton/gflows/workflows/ci-build/badge.svg?branch=master)](https://github.com/jbrunton/gflows/actions?query=branch%3Amaster+workflow%3Aci-build)
+[![Build Status](https://github.com/jbrunton/gflows/workflows/build/badge.svg?branch=develop)](https://github.com/jbrunton/gflows/actions?query=branch%3Adevelop+workflow%3Abuild)
 [![Maintainability](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/maintainability)](https://codeclimate.com/github/jbrunton/gflows/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/test_coverage)](https://codeclimate.com/github/jbrunton/gflows/test_coverage)
 
