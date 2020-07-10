@@ -17,6 +17,7 @@ package main
 
 import (
 	"github.com/jbrunton/jflows/cmd"
+	_ "github.com/jbrunton/jflows/statik"
 )
 
 func main() {

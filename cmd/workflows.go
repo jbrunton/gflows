@@ -156,6 +156,22 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 	}
 }
 
+func newInitCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "init",
+		Short: "Setup config and templates for first time use",
+		Run: func(cmd *cobra.Command, args []string) {
+			fs := lib.CreateOsFs()
+			context, err := lib.GetContext(fs, cmd)
+			if err != nil {
+				fmt.Println(styles.StyleError(err.Error()))
+				os.Exit(1)
+			}
+			lib.InitWorkflows(fs, context)
+		},
+	}
+}
+
 func newCheckWorkflowsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
