@@ -32,12 +32,7 @@ type gflowsContentCheckConfig struct {
 
 // GetContextConfig - finds and returns the GFlowsConfig
 func GetContextConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
-	data, err := fs.ReadFile(path)
-
-	if err != nil {
-		return nil, err
-	}
-
+	data, _ := fs.ReadFile(path)
 	return parseConfig(data)
 }
 

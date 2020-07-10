@@ -4,7 +4,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/maintainability)](https://codeclimate.com/github/jbrunton/gflows/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/test_coverage)](https://codeclimate.com/github/jbrunton/gflows/test_coverage)
 
-GFlows provides a templating mechanism for GitHub Workflows, using Jsonnet. It comprises a CLI tool that can:
+GFlows provides a templating mechanism for GitHub Workflows, using [Jsonnet](https://jsonnet.org/). It comprises a CLI tool that can:
 
 * Import existing workflows into GFlow templates.
 * Validate GitHub workflows are up to date with their source templates.
@@ -18,7 +18,7 @@ GFlows provides a templating mechanism for GitHub Workflows, using Jsonnet. It c
 
 ### Adding GFlows to a repository
 
-► First, you'll probably want to run the `init` command to bootstrap GFlows:
+First, you'll probably want to run the `init` command to bootstrap GFlows:
 
     $ gflows init
          create .gflows/workflows/common/steps.libsonnet
@@ -32,16 +32,16 @@ This generates:
 * A workflow called `gflows` defined in `gflows.libsonnet`, which will run against PRs and your main branch to ensure your workflows are kept up to date with their source templates.
 * Some common code factored out into libsonnet files in the `config/` and `common/` directories.
 
-► At this point, you should update the `config/git.libsonnet` file to reference the correct name of your main branch.
+At this point, you should update the `config/git.libsonnet` file to reference the correct name of your main branch.
 
-► Finally, run the `update` command to create the `gflows` workflow:
+Finally, run the `update` command to create the `gflows` workflow:
 
     $ gflows update
          create .github/workflows/gflows.yml (from .gflows/workflows/gflows.jsonnet)
 
 ### Importing existing workflows
 
-► If you want to import your existing workflows, you can use the `import` command:
+If you want to import your existing workflows, you can use the `import` command:
 
     $ gflows import
     Found workflow: .github/workflows/my-workflow.yml
@@ -50,7 +50,7 @@ This generates:
     Important: imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.
       ► Run "gflows update" to do this now
 
-► Because Jsonnet (very probably) renders yaml differently from your existing workflow, you'll need to run the `update` command to regenerate your workflows:
+Because Jsonnet (very probably) renders yaml differently from your existing workflow, you'll need to run the `update` command to regenerate your workflows:
 
     $ gflows update
          update .github/workflows/my-workflow.yml (from .gflows/workflows/my-workflow.jsonnet)
