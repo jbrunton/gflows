@@ -75,6 +75,10 @@ By default this command will check, for each workflow:
 * That the content of the generated workflow file in .github/workflows is up to date.
 * That the workflow is validated by the [github-workflow schema](https://json.schemastore.org/github-workflow) from [schemastore.org](https://www.schemastore.org/json/). (Note that this schema is comprehensive but may fail for occasional edge cases. You can disable schema validation on a per workflow basis if need be.)
 
+If it fails any of the validation checks, you'll see clear errors describing the problem:
+
+![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-diff.png)
+
 ## Refactoring Workflows
 
 One of the joys of Jsonnet is it gives you a whole host of options (including objects, functions and library files) for refactoring complex workflows.
