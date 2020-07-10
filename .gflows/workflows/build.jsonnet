@@ -7,7 +7,44 @@ local test_job = {
   'steps': [
       steps.checkout,
       steps.setup_go,
-      steps.run('go test ./...')
+      {
+        name: 'configure environment for pull request',
+        'if': "github.event_name == 'pull_request'",
+        env: {
+          HEAD_SHA: '${{ github.event.pull_request.head.sha }}'
+        },
+        run: |||
+          echo "::set-env name=GIT_BRANCH::$GITHUB_HEAD_REF"
+          echo "::set-env name=GIT_COMMIT_SHA::$HEAD_SHA"
+        |||
+      },
+      {
+        name: 'configure environment for push',
+        'if': "github.event_name == 'push'",
+        env: {
+          HEAD_SHA: '${{ github.event.pull_request.head.sha }}'
+        },
+        run: |||
+          echo "::set-env name=GIT_BRANCH::${GITHUB_REF#refs/heads/}"
+          echo "::set-env name=GIT_COMMIT_SHA::$GITHUB_SHA"
+        |||
+      },
+      {
+        name: 'prepare test reporter',
+        run: |||
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+        |||
+      },
+      steps.named('test', 'go test -coverprofile c.out ./...'),
+      {
+        name: 'upload coverage',
+        env: {
+          CC_TEST_REPORTER_ID: '${{ secrets.CC_TEST_REPORTER_ID }}'
+        },
+        run: './cc-test-reporter after-build --prefix github.com/jbrunton/gflows'
+      },
   ]
 };
 
