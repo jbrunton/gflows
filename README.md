@@ -7,7 +7,7 @@
 GFlows provides a templating mechanism for GitHub Workflows, using [Jsonnet](https://jsonnet.org/). It comprises a CLI tool that can:
 
 * Import existing workflows into GFlow templates.
-* Validate GitHub workflows are up to date with their source templates.
+* Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
 * Watch changes to the templates, so you can develop and refactor workflows with instant feedback on your changes.
 
 ## Installing
@@ -31,6 +31,7 @@ This generates:
 
 * A workflow called `gflows` defined in `gflows.libsonnet`, which will run against PRs and your main branch to ensure your workflows are kept up to date with their source templates.
 * Some common code factored out into libsonnet files in the `config/` and `common/` directories.
+* A `config.yml` file to customize build and validation options (see [Configuration](#configuration) for more details).
 
 At this point, you should update the `config/git.libsonnet` file to reference the correct name of your main branch.
 
@@ -80,7 +81,9 @@ To make the process of refactoring easier, you can run the `check` command with 
 
 ```
     $ gflows check --watch --show-diff
-    Checking gflows ... UP TO DATE
+    2020/07/10 18:43:56 Watching workflow templates
+      Watching .gflows/workflows/my-workflow.jsonnet
+      Watching .github/workflows/my-workflow.yml
     Checking my-workflow ... UP TO DATE
 ```
 
@@ -88,7 +91,7 @@ If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will
 
 ![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
 
-## Using remote templates
+## Using jsonnet-bundler
 
 If you want to extract templates into a separate repository then the recommended approach is to use [jsonnet-bundler](https://github.com/jsonnet-bundler/jsonnet-bundler).
 
@@ -124,6 +127,7 @@ defaults:
 
     content:
       # Whether or not to validate that the workflow in .github is up to date
+      # Default: true
       enabled: true
 
 # Overrides for specific workflows
