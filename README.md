@@ -99,3 +99,46 @@ jsonnet:
   jpath:
   - vendor
 ```
+
+## Configuration
+
+The config file (`.gflows/config.yml`) can be edited to configure validation and jsonnet options. The options look like this:
+
+```yaml
+# The .github directory. Set this if you put `gflows` in a different directory than the default.
+# Default: .github
+githubDir: .github
+
+# Default options for generating workflows
+defaults:
+  # The checks to conduct when running `gflows check`
+  checks:
+    schema:
+      # Whether or not to validate with a JSON schema.
+      # Default: true
+      enabled: true
+      
+      # The schema to use.
+      # Default: https://json.schemastore.org/github-workflow
+      uri: https://example.com/my-schema
+
+    content:
+      # Whether or not to validate that the workflow in .github is up to date
+      enabled: true
+
+# Overrides for specific workflows
+workflows:
+  # For example, this overrides the schema options for my-workflow
+  my-workflow:
+    checks:
+      schema:
+        enabled: false
+
+# Jsonnet options
+jsonnet:
+  # Additional paths to search for libraries. Useful if you use jsonnet-bundler.
+  # Default: <empty list>
+  jpath:
+  - vendor
+  - my-library
+```
