@@ -2,7 +2,7 @@ statik:
 	statik -m -src=static-content
 
 compile:
-	go build ./cmd/gflows
+	go build
 
 build: statik compile
 

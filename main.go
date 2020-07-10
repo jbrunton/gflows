@@ -16,9 +16,10 @@ limitations under the License.
 package main
 
 import (
-	_ "github.com/jbrunton/workflow-templates/statik"
+	"github.com/jbrunton/gflows/cmd"
+	_ "github.com/jbrunton/gflows/statik"
 )
 
 func main() {
-	Execute()
+	cmd.Execute()
 }

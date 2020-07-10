@@ -1,16 +1,16 @@
-package main
+package cmd
 
 import (
 	"fmt"
 	"os"
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
-	"github.com/jbrunton/workflow-templates/diff"
-	"github.com/jbrunton/workflow-templates/styles"
+	"github.com/jbrunton/gflows/diff"
+	"github.com/jbrunton/gflows/styles"
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/jbrunton/workflow-templates/lib"
+	"github.com/jbrunton/gflows/lib"
 	"github.com/spf13/cobra"
 )
 

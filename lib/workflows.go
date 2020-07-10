@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/workflow-templates/styles"
+	"github.com/jbrunton/gflows/styles"
 	"github.com/logrusorgru/aurora"
 
 	"github.com/google/go-jsonnet"

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/workflow-templates/jsonnet"
-	"github.com/jbrunton/workflow-templates/styles"
+	"github.com/jbrunton/gflows/jsonnet"
+	"github.com/jbrunton/gflows/styles"
 
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"

@@ -1,4 +1,4 @@
-module github.com/jbrunton/workflow-templates
+module github.com/jbrunton/gflows
 
 go 1.14
 

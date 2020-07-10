@@ -10,7 +10,7 @@
       "with":
         "go-version": "^1.14.4"
     - "name": "install gflows"
-      "run": "go get github.com/jbrunton/workflow-templates/cmd/gflows"
+      "run": "go get github.com/jbrunton/gflows"
     - "name": "validate workflows"
       "run": "gflows check"
 "name": "gflows-workflows"
