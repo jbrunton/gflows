@@ -120,7 +120,7 @@ func newCheckWorkflowsCmd() *cobra.Command {
 				panic(err)
 			}
 
-			showDiff, err := cmd.Flags().GetBool("show-diff")
+			showDiff, err := cmd.Flags().GetBool("show-diffs")
 			if err != nil {
 				panic(err)
 			}
@@ -135,7 +135,27 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
-	cmd.Flags().Bool("show-diff", false, "show diff with generated workflow (useful when refactoring)")
+	cmd.Flags().Bool("show-diffs", false, "show diff with generated workflow (useful when refactoring)")
+	return cmd
+}
+
+func newWatchWorkflowsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "watch",
+		Short: "Alias for check --watch --show-diffs",
+		Run: func(cmd *cobra.Command, args []string) {
+			fs := lib.CreateOsFs()
+			context, err := lib.GetContext(fs, cmd)
+			if err != nil {
+				fmt.Println(styles.StyleError(err.Error()))
+				os.Exit(1)
+			}
+
+			lib.WatchWorkflows(fs, context, func() {
+				checkWorkflows(fs, context, true, true)
+			})
+		},
+	}
 	return cmd
 }
 
