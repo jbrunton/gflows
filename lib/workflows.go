@@ -58,18 +58,21 @@ func getWorkflowName(workflowsDir string, filename string) string {
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
-// GetWorkflowDefinitions - get workflow definitions for the given context
-func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*WorkflowDefinition, error) {
+func createVM(context *GFlowsContext) *jsonnet.VM {
 	vm := jsonnet.MakeVM()
 	vm.Importer(&jsonnet.FileImporter{
 		JPaths: context.evalJPaths(),
 	})
 	vm.StringOutput = true
-	//vm.ErrorFormatter.SetColorFormatter(color.New(color.FgRed).Fprintf)
+	return vm
+}
 
+// GetWorkflowDefinitions - get workflow definitions for the given context
+func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*WorkflowDefinition, error) {
 	templates := getWorkflowTemplates(fs, context)
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
+		vm := createVM(context)
 		workflowName := getWorkflowName(context.WorkflowsDir, templatePath)
 		input, err := fs.ReadFile(templatePath)
 		if err != nil {
