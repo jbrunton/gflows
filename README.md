@@ -96,10 +96,10 @@ If it fails any of the validation checks, you'll see clear errors describing the
 
 One of the joys of Jsonnet is it gives you a whole host of options (including objects, functions and library files) for refactoring complex workflows.
 
-To make the process of refactoring easier, you can run the `check` command with `--watch` and `--diff` flags. While refactoring, you should see no changes to the generated workflow, so any changes indicate an error in the refactor: the diff output will quickly show you what it is.
+To make the process of refactoring easier, you can run the `watch` command (which is just an alias for `check --watch --show-diffs`). While refactoring, you should see no changes to the generated workflow, so any changes indicate an error in the refactor, and the diff output should quickly show you what it is.
 
 ```
-    $ gflows check --watch --show-diffs
+    $ gflows watch
     2020/07/10 18:43:56 Watching workflow templates
       Watching .gflows/workflows/my-workflow.jsonnet
       Watching .github/workflows/my-workflow.yml
@@ -179,5 +179,5 @@ jsonnet:
 
 ## Examples
 
-* [This PR](https://github.com/jbrunton/bechdel-lists/pull/190/files) from another project I was working on shows how I was able to break up two very awkward workflow files into multiple smaller ones (and also reduce the loc). It was a large refactor, but only took a few minutes with the feedback from `gflows check --watch --show-diffs`.
+* [This PR](https://github.com/jbrunton/bechdel-lists/pull/190/files) from another project I was working on shows how I was able to break up two very awkward workflow files into multiple smaller ones (and also reduce the loc). It was a large refactor, but only took a few minutes with the feedback from `gflows watch`.
 
