@@ -99,7 +99,7 @@ One of the joys of Jsonnet is it gives you a whole host of options (including ob
 To make the process of refactoring easier, you can run the `check` command with `--watch` and `--diff` flags. While refactoring, you should see no changes to the generated workflow, so any changes indicate an error in the refactor: the diff output will quickly show you what it is.
 
 ```
-    $ gflows check --watch --show-diff
+    $ gflows check --watch --show-diffs
     2020/07/10 18:43:56 Watching workflow templates
       Watching .gflows/workflows/my-workflow.jsonnet
       Watching .github/workflows/my-workflow.yml
