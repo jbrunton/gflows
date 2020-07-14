@@ -70,7 +70,11 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			lib.UpdateWorkflows(fs, context)
+			err = lib.UpdateWorkflows(fs, context)
+			if err != nil {
+				fmt.Println(styles.StyleError(err.Error()))
+				os.Exit(1)
+			}
 		},
 	}
 }
