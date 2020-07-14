@@ -89,9 +89,6 @@ func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*Workflo
 
 		workflow, err := vm.EvaluateSnippet(templatePath, string(input))
 		if err != nil {
-			// fmt.Println(styles.StyleError(fmt.Sprintf("Error processing %s", templatePath)))
-			// fmt.Println(err)
-			// os.Exit(1)
 			definition.Status.Valid = false
 			definition.Status.Errors = []string{strings.Trim(err.Error(), " \n\r")}
 		} else {
@@ -107,24 +104,48 @@ func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*Workflo
 	return definitions, nil
 }
 
+func printStatusErrors(status ValidationResult, firstLineOnly bool) {
+	for _, err := range status.Errors {
+		message := err
+		if firstLineOnly {
+			message = strings.Split(message, "\n")[0]
+		}
+		fmt.Printf("  ► %s\n", message)
+	}
+}
+
 // UpdateWorkflows - update workflow files for the given context
-func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) {
+func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
+	validator := NewWorkflowValidator(fs, context)
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
-		panic(err) // TODO: improve this
+		return err
 	}
+	valid := true
 	for _, definition := range definitions {
+		details := fmt.Sprintf("(from %s)", definition.Source)
 		if definition.Status.Valid {
-			updateFileContent(fs, definition.Destination, definition.Content, fmt.Sprintf("(from %s)", definition.Source))
+			schemaResult := validator.ValidateSchema(definition)
+			if schemaResult.Valid {
+				updateFileContent(fs, definition.Destination, definition.Content, details)
+			} else {
+				logUpdateError(definition.Destination, details, schemaResult)
+				valid = false
+			}
 		} else {
-			// TODO: warning
+			logUpdateError(definition.Destination, details, definition.Status)
+			valid = false
 		}
 	}
+	if !valid {
+		return errors.New("errors encountered generating workflows")
+	}
+	return nil
 }
 
 // ValidateWorkflows - returns an error if the workflows are out of date
 func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) error {
-	WorkflowValidator := NewWorkflowValidator(fs, context)
+	validator := NewWorkflowValidator(fs, context)
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
 		return err
@@ -136,24 +157,20 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 		if !definition.Status.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Error parsing template:")
-			for _, err := range definition.Status.Errors {
-				fmt.Printf("  ► %s\n\n", err)
-			}
+			printStatusErrors(definition.Status, false)
 			valid = false
 			continue
 		}
 
-		schemaResult := WorkflowValidator.ValidateSchema(definition)
+		schemaResult := validator.ValidateSchema(definition)
 		if !schemaResult.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
-			fmt.Println("  Workflow failed schema validation:")
-			for _, err := range schemaResult.Errors {
-				fmt.Printf("  ► %s\n", err)
-			}
+			fmt.Println("  Schema validation failed:")
+			printStatusErrors(schemaResult, false)
 			valid = false
 		}
 
-		contentResult := WorkflowValidator.ValidateContent(definition)
+		contentResult := validator.ValidateContent(definition)
 		if !contentResult.Valid {
 			if schemaResult.Valid { // otherwise we'll duplicate the failure message
 				fmt.Println(styles.StyleError("FAILED"))

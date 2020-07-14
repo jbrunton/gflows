@@ -69,7 +69,7 @@ func ExampleValidateWorkflows() {
 
 	// Output:
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
-	//   Workflow failed schema validation:
+	//   Schema validation failed:
 	//   ► (root): jobs is required
 	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
 	//   ► Run "gflows workflow update" to update

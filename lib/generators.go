@@ -21,27 +21,32 @@ type workflowGenerator struct {
 	sources []string
 }
 
+func logUpdateError(destination string, details string, status ValidationResult) {
+	fmt.Printf("%11v %s %s\n", "error", destination, details)
+	printStatusErrors(status, true)
+}
+
 func updateFileContent(fs *afero.Afero, destination string, content string, details string) {
 	var action string
 	exists, _ := fs.Exists(destination)
 	if exists {
 		actualContent, _ := fs.ReadFile(destination)
 		if string(actualContent) == content {
-			action = "  identical"
+			action = "identical"
 		} else {
-			action = "     update"
+			action = "update"
 		}
 	} else {
-		action = "     create"
+		action = "create"
 	}
 	err := safelyWriteFile(fs, destination, content)
 	if err != nil {
 		panic(err)
 	}
 	if details != "" {
-		fmt.Println(action, destination, details)
+		fmt.Printf("%11v %s %s\n", action, destination, details)
 	} else {
-		fmt.Println(action, destination)
+		fmt.Printf("%11v %s\n", action, destination)
 	}
 }
 
