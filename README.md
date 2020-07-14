@@ -4,13 +4,26 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/maintainability)](https://codeclimate.com/github/jbrunton/gflows/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/test_coverage)](https://codeclimate.com/github/jbrunton/gflows/test_coverage)
 
-GFlows provides a templating mechanism for GitHub Workflows, using [Jsonnet](https://jsonnet.org/). It comprises a CLI tool that can:
+GFlows is a CLI tool that makes templating GitHub Workflows easy. Built on [Jsonnet](https://jsonnet.org/), it can:
 
-* Import existing workflows into GFlow templates.
+* Import existing workflows into Jsonnet templates.
 * Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
-* Watch changes to the templates, so you can develop and refactor workflows with instant feedback on your changes.
+* Watch changes to the templates, so you can develop and refactor workflows with fast feedback on your changes.
 
 Note: this project is very new, so I expect there is room for improvement (especially around error handling). But I've used it comfortably in my own projects, and the risk of adoption is low since it mostly just builds on top of existing tooling (primarily Jsonnet). If you have any feedback I'd love to hear it!
+
+## Contents
+
+* [Installing](#installing)
+* [Getting Started](#getting-started)
+    * [Adding GFlows to a repository](#adding-gflows-to-a-repository)
+    * [Importing existing workflows](#importing-existing-workflows)
+* [Validating Workflows](#validating-workflows)
+* [Refactoring Workflows](#refactoring-workflows)
+* [Configuration](#configuration)
+* [Development Tips](#development-tips)
+* [Examples](#examples)
+
 
 ## Installing
 
@@ -60,7 +73,7 @@ Because Jsonnet (very probably) renders yaml differently from your existing work
 
 At this point you can commit and push your changes. If you create a PR against your main branch you should see the `gflows` workflow checking your workflows are up to date.
 
-## Validating your workflows
+## Validating Workflows
 
 You can validate and verify your workflows with the `check` command:
 
@@ -75,14 +88,18 @@ By default this command will check, for each workflow:
 * That the content of the generated workflow file in .github/workflows is up to date.
 * That the workflow is validated by the [github-workflow schema](https://json.schemastore.org/github-workflow) from [schemastore.org](https://www.schemastore.org/json/). (Note that this schema is comprehensive but may fail for occasional edge cases. You can disable schema validation on a per workflow basis if need be.)
 
+If it fails any of the validation checks, you'll see clear errors describing the problem:
+
+![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
+
 ## Refactoring Workflows
 
 One of the joys of Jsonnet is it gives you a whole host of options (including objects, functions and library files) for refactoring complex workflows.
 
-To make the process of refactoring easier, you can run the `check` command with `--watch` and `--diff` flags. While refactoring, you should see no changes to the generated workflow, so any changes indicate an error in the refactor: the diff output will quickly show you what it is.
+To make the process of refactoring easier, you can run the `watch` command (which is just an alias for `check --watch --show-diffs`). While refactoring, you should see no changes to the generated workflow, so any changes indicate an error in the refactor, and the diff output should quickly show you what it is.
 
 ```
-    $ gflows check --watch --show-diff
+    $ gflows watch
     2020/07/10 18:43:56 Watching workflow templates
       Watching .gflows/workflows/my-workflow.jsonnet
       Watching .github/workflows/my-workflow.yml
@@ -91,7 +108,7 @@ To make the process of refactoring easier, you can run the `check` command with 
 
 If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will include syntax highlighting. For example:
 
-![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
+![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-diff.png)
 
 ## Using jsonnet-bundler
 
@@ -149,7 +166,7 @@ jsonnet:
   - my-library
 ```
 
-## Development tips
+## Development Tips
 
 * You can get Jsonnet syntax highlighting and autocomplete in VS Code from the [Jsonnet Language Support](https://marketplace.visualstudio.com/items?itemName=liamdawson.jsonnet-language) extension.
 * You can get workflow schema validation directly in VS Code if you add the [YAML Language Support](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) extension and add the below to your settings.json:
@@ -162,5 +179,5 @@ jsonnet:
 
 ## Examples
 
-* [This PR](https://github.com/jbrunton/bechdel-lists/pull/190/files) from another project I was working on shows how I was able to break up two very awkward workflow files into multiple smaller ones (and also reduce the loc). It was a large refactor, but only took a few minutes with the feedback from `gflows check --watch --show-diffs`.
+* [This PR](https://github.com/jbrunton/bechdel-lists/pull/190/files) from another project I was working on shows how I was able to break up two very awkward workflow files into multiple smaller ones (and also reduce the loc). It was a large refactor, but only took a few minutes with the feedback from `gflows watch`.
 
