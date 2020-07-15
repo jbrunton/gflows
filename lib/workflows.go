@@ -221,5 +221,8 @@ func InitWorkflows(fs *afero.Afero, context *GFlowsContext) {
 		},
 	}
 	writer := NewContentWriter(fs, os.Stdout)
-	writer.ApplyGenerator(context, generator)
+	err := writer.ApplyGenerator(context, generator)
+	if err != nil {
+		fmt.Println(styles.StyleError(err.Error()))
+	}
 }

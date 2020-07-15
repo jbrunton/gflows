@@ -72,24 +72,24 @@ func (writer *ContentWriter) UpdateFileContent(destination string, content strin
 	}
 }
 
-func (writer *ContentWriter) ApplyGenerator(context *GFlowsContext, generator workflowGenerator) {
+func (writer *ContentWriter) ApplyGenerator(context *GFlowsContext, generator workflowGenerator) error {
 	sourceFs, err := statikFs.New()
 	if err != nil {
-		panic(err) // TODO: return this
+		return err
 	}
 
 	for _, sourcePath := range generator.sources {
 		file, err := sourceFs.Open(sourcePath)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1) // TODO: return this
+			return err
 		}
 		defer file.Close()
 		content, err := ioutil.ReadAll(file)
 		destinationPath := filepath.Join(context.Dir, sourcePath)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		writer.UpdateFileContent(destinationPath, string(content), "")
 	}
+	return nil
 }
