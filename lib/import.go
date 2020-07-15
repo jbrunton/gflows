@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -48,6 +49,7 @@ func getWorkflows(fs *afero.Afero, context *GFlowsContext) []GitWorkflow {
 func ImportWorkflows(fs *afero.Afero, context *GFlowsContext) {
 	imported := 0
 	workflows := getWorkflows(fs, context)
+	writer := NewContentWriter(fs, os.Stdout)
 	for _, workflow := range workflows {
 		fmt.Println("Found workflow:", workflow.path)
 		if workflow.definition == nil {
@@ -76,7 +78,7 @@ func ImportWorkflows(fs *afero.Afero, context *GFlowsContext) {
 			_, filename := filepath.Split(workflow.path)
 			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 			templatePath := filepath.Join(context.WorkflowsDir, templateName+".jsonnet")
-			safelyWriteFile(fs, templatePath, templateContent)
+			writer.SafelyWriteFile(templatePath, templateContent)
 			fmt.Println("  Imported template:", templatePath)
 			imported++
 		} else {

@@ -3,6 +3,7 @@ package lib
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/google/go-jsonnet"
+	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 )
 
@@ -104,19 +106,20 @@ func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*Workflo
 	return definitions, nil
 }
 
-func printStatusErrors(status ValidationResult, firstLineOnly bool) {
-	for _, err := range status.Errors {
+func printStatusErrors(out io.Writer, errors []string, firstLineOnly bool) {
+	for _, err := range errors {
 		message := err
 		if firstLineOnly {
 			message = strings.Split(message, "\n")[0]
 		}
-		fmt.Printf("  ► %s\n", message)
+		fmt.Fprintf(out, "  ► %s\n", message)
 	}
 }
 
 // UpdateWorkflows - update workflow files for the given context
 func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
 	validator := NewWorkflowValidator(fs, context)
+	writer := NewContentWriter(fs, os.Stdout)
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
 		return err
@@ -127,13 +130,13 @@ func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
 		if definition.Status.Valid {
 			schemaResult := validator.ValidateSchema(definition)
 			if schemaResult.Valid {
-				updateFileContent(fs, definition.Destination, definition.Content, details)
+				writer.UpdateFileContent(definition.Destination, definition.Content, details)
 			} else {
-				logUpdateError(definition.Destination, details, schemaResult)
+				writer.LogErrors(definition.Destination, details, schemaResult.Errors)
 				valid = false
 			}
 		} else {
-			logUpdateError(definition.Destination, details, definition.Status)
+			writer.LogErrors(definition.Destination, details, definition.Status.Errors)
 			valid = false
 		}
 	}
@@ -157,7 +160,7 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 		if !definition.Status.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Error parsing template:")
-			printStatusErrors(definition.Status, false)
+			printStatusErrors(os.Stdout, definition.Status.Errors, false)
 			valid = false
 			continue
 		}
@@ -166,7 +169,7 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 		if !schemaResult.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Schema validation failed:")
-			printStatusErrors(schemaResult, false)
+			printStatusErrors(os.Stdout, schemaResult.Errors, false)
 			valid = false
 		}
 
@@ -218,5 +221,12 @@ func InitWorkflows(fs *afero.Afero, context *GFlowsContext) {
 			"/config.yml",
 		},
 	}
-	applyGenerator(fs, context, generator)
+	writer := NewContentWriter(fs, os.Stdout)
+	sourceFs, err := statikFs.New()
+	if err != nil {
+		err = writer.ApplyGenerator(sourceFs, context, generator)
+	}
+	if err != nil {
+		fmt.Println(styles.StyleError(err.Error()))
+	}
 }
