@@ -14,6 +14,7 @@ import (
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/google/go-jsonnet"
+	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 )
 
@@ -221,7 +222,10 @@ func InitWorkflows(fs *afero.Afero, context *GFlowsContext) {
 		},
 	}
 	writer := NewContentWriter(fs, os.Stdout)
-	err := writer.ApplyGenerator(context, generator)
+	sourceFs, err := statikFs.New()
+	if err != nil {
+		err = writer.ApplyGenerator(sourceFs, context, generator)
+	}
 	if err != nil {
 		fmt.Println(styles.StyleError(err.Error()))
 	}

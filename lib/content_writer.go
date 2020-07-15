@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 
-	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 )
 
@@ -72,12 +72,7 @@ func (writer *ContentWriter) UpdateFileContent(destination string, content strin
 	}
 }
 
-func (writer *ContentWriter) ApplyGenerator(context *GFlowsContext, generator workflowGenerator) error {
-	sourceFs, err := statikFs.New()
-	if err != nil {
-		return err
-	}
-
+func (writer *ContentWriter) ApplyGenerator(sourceFs http.FileSystem, context *GFlowsContext, generator workflowGenerator) error {
 	for _, sourcePath := range generator.sources {
 		file, err := sourceFs.Open(sourcePath)
 		if err != nil {
