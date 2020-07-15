@@ -2,14 +2,10 @@ package lib
 
 import (
 	"bytes"
-	"net/http"
 	"strings"
 	"testing"
 
-	"archive/zip"
-
 	_ "github.com/jbrunton/gflows/statik"
-	statikFs "github.com/rakyll/statik/fs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -71,60 +67,34 @@ func TestUpdateFileContentIdentical(t *testing.T) {
 	assert.Equal(t, "  identical path/to/file (baz)\n", out.String())
 }
 
-type file struct {
-	Name string
-	Body string
-}
-
-func createTestFileSystem(files []file, assetNamespace string) http.FileSystem {
-	out := new(bytes.Buffer)
-	writer := zip.NewWriter(out)
-	for _, file := range files {
-		f, err := writer.Create(file.Name)
-		if err != nil {
-			panic(err)
-		}
-		_, err = f.Write([]byte(file.Body))
-		if err != nil {
-			panic(err)
-		}
-	}
-	err := writer.Close()
-	if err != nil {
-		panic(err)
-	}
-	asset := out.String()
-	statikFs.RegisterWithNamespace(assetNamespace, asset)
-	sourceFs, err := statikFs.NewWithNamespace("TestApplyGenerator")
-	if err != nil {
-		panic(err)
-	}
-	return sourceFs
-}
-
 func TestApplyGenerator(t *testing.T) {
+	// arrange
 	sourceFs := createTestFileSystem([]file{
 		{Name: "foo.txt", Body: "foo"},
 		{Name: "bar.txt", Body: "bar"},
 	}, "TestApplyGenerator")
-
-	fs, context := newTestContext(newTestCommand(), "")
-	out := new(bytes.Buffer)
-	writer := NewContentWriter(fs, out)
-	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
 	generator := workflowGenerator{
 		name:    "foo",
 		sources: []string{"/foo.txt", "/bar.txt"},
 	}
 
+	fs, context := newTestContext(newTestCommand(), "")
+	out := new(bytes.Buffer)
+	writer := NewContentWriter(fs, out)
+	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
+
+	// act
 	writer.ApplyGenerator(sourceFs, context, generator)
 
+	// assert
 	assert.Equal(t, strings.Join([]string{
 		"     create .gflows/foo.txt",
 		"     update .gflows/bar.txt\n",
 	}, "\n"), out.String())
+
 	fooContent, _ := fs.ReadFile(".gflows/foo.txt")
 	assert.Equal(t, "foo", string(fooContent))
+
 	barContent, _ := fs.ReadFile(".gflows/bar.txt")
 	assert.Equal(t, "bar", string(barContent))
 }
