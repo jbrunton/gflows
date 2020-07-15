@@ -3,6 +3,7 @@ package lib
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,20 +105,20 @@ func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*Workflo
 	return definitions, nil
 }
 
-func printStatusErrors(errors []string, firstLineOnly bool) {
+func printStatusErrors(out io.Writer, errors []string, firstLineOnly bool) {
 	for _, err := range errors {
 		message := err
 		if firstLineOnly {
 			message = strings.Split(message, "\n")[0]
 		}
-		fmt.Printf("  ► %s\n", message)
+		fmt.Fprintf(out, "  ► %s\n", message)
 	}
 }
 
 // UpdateWorkflows - update workflow files for the given context
 func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
 	validator := NewWorkflowValidator(fs, context)
-	writer := NewContentWriter(fs)
+	writer := NewContentWriter(fs, os.Stdout)
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
 		return err
@@ -158,7 +159,7 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 		if !definition.Status.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Error parsing template:")
-			printStatusErrors(definition.Status.Errors, false)
+			printStatusErrors(os.Stdout, definition.Status.Errors, false)
 			valid = false
 			continue
 		}
@@ -167,7 +168,7 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 		if !schemaResult.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Schema validation failed:")
-			printStatusErrors(schemaResult.Errors, false)
+			printStatusErrors(os.Stdout, schemaResult.Errors, false)
 			valid = false
 		}
 
@@ -219,6 +220,6 @@ func InitWorkflows(fs *afero.Afero, context *GFlowsContext) {
 			"/config.yml",
 		},
 	}
-	writer := NewContentWriter(fs)
+	writer := NewContentWriter(fs, os.Stdout)
 	writer.ApplyGenerator(context, generator)
 }

@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -16,12 +17,14 @@ type workflowGenerator struct {
 }
 
 type ContentWriter struct {
-	fs *afero.Afero
+	fs  *afero.Afero
+	out io.Writer
 }
 
-func NewContentWriter(fs *afero.Afero) *ContentWriter {
+func NewContentWriter(fs *afero.Afero, out io.Writer) *ContentWriter {
 	return &ContentWriter{
-		fs: fs,
+		fs:  fs,
+		out: out,
 	}
 }
 
@@ -41,8 +44,8 @@ func (writer *ContentWriter) SafelyWriteFile(destination string, content string)
 
 // LogErrors - prints an error message for the given destination file, together with any additional
 func (writer *ContentWriter) LogErrors(destination string, message string, errors []string) {
-	fmt.Printf("%11v %s %s\n", "error", destination, message)
-	printStatusErrors(errors, true)
+	fmt.Fprintf(writer.out, "%11v %s %s\n", "error", destination, message)
+	printStatusErrors(writer.out, errors, true)
 }
 
 func (writer *ContentWriter) UpdateFileContent(destination string, content string, details string) {
@@ -63,9 +66,9 @@ func (writer *ContentWriter) UpdateFileContent(destination string, content strin
 		panic(err)
 	}
 	if details != "" {
-		fmt.Printf("%11v %s %s\n", action, destination, details)
+		fmt.Fprintf(writer.out, "%11v %s %s\n", action, destination, details)
 	} else {
-		fmt.Printf("%11v %s\n", action, destination)
+		fmt.Fprintf(writer.out, "%11v %s\n", action, destination)
 	}
 }
 

@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -48,7 +49,7 @@ func getWorkflows(fs *afero.Afero, context *GFlowsContext) []GitWorkflow {
 func ImportWorkflows(fs *afero.Afero, context *GFlowsContext) {
 	imported := 0
 	workflows := getWorkflows(fs, context)
-	writer := NewContentWriter(fs)
+	writer := NewContentWriter(fs, os.Stdout)
 	for _, workflow := range workflows {
 		fmt.Println("Found workflow:", workflow.path)
 		if workflow.definition == nil {
