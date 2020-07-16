@@ -5,12 +5,12 @@ import (
 	"os"
 
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/fs"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/jbrunton/gflows/workflows"
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -19,14 +19,16 @@ func newListWorkflowsCmd() *cobra.Command {
 		Use:   "ls",
 		Short: "List workflows",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := fs.CreateOsFs()
+			container := di.NewContainer()
+			fs := container.FileSystem()
 			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
 
-			definitions, err := workflows.GetWorkflowDefinitions(fs, context)
+			workflowManager := workflows.NewWorkflowManager(container)
+			definitions, err := workflowManager.GetWorkflowDefinitions(context)
 			if err != nil {
 				panic(err)
 			}
@@ -66,13 +68,15 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Updates workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := fs.CreateOsFs()
+			container := di.NewContainer()
+			fs := container.FileSystem()
 			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			err = workflows.UpdateWorkflows(fs, context)
+			workflowManager := workflows.NewWorkflowManager(container)
+			err = workflowManager.UpdateWorkflows(context)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -97,8 +101,9 @@ func newInitCmd() *cobra.Command {
 	}
 }
 
-func checkWorkflows(fs *afero.Afero, context *config.GFlowsContext, watch bool, showDiff bool) {
-	err := workflows.ValidateWorkflows(fs, context, showDiff)
+func checkWorkflows(container *di.Container, context *config.GFlowsContext, watch bool, showDiff bool) {
+	workflowManager := workflows.NewWorkflowManager(container)
+	err := workflowManager.ValidateWorkflows(context, showDiff)
 	if err != nil {
 		fmt.Println(styles.StyleError(err.Error()))
 		if !watch {
@@ -114,7 +119,8 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		Use:   "check",
 		Short: "Check workflow files are up to date",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := fs.CreateOsFs()
+			container := di.NewContainer()
+			fs := container.FileSystem()
 			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
@@ -132,11 +138,11 @@ func newCheckWorkflowsCmd() *cobra.Command {
 			}
 
 			if watch {
-				workflows.WatchWorkflows(fs, context, func() {
-					checkWorkflows(fs, context, watch, showDiff)
+				workflows.WatchWorkflows(container, context, func() {
+					checkWorkflows(container, context, watch, showDiff)
 				})
 			} else {
-				checkWorkflows(fs, context, watch, showDiff)
+				checkWorkflows(container, context, watch, showDiff)
 			}
 		},
 	}
@@ -150,15 +156,16 @@ func newWatchWorkflowsCmd() *cobra.Command {
 		Use:   "watch",
 		Short: "Alias for check --watch --show-diffs",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := fs.CreateOsFs()
+			container := di.NewContainer()
+			fs := container.FileSystem()
 			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
 
-			workflows.WatchWorkflows(fs, context, func() {
-				checkWorkflows(fs, context, true, true)
+			workflows.WatchWorkflows(container, context, func() {
+				checkWorkflows(container, context, true, true)
 			})
 		},
 	}
@@ -170,13 +177,14 @@ func newImportWorkflowsCmd() *cobra.Command {
 		Use:   "import",
 		Short: "Import workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := fs.CreateOsFs()
+			container := di.NewContainer()
+			fs := container.FileSystem()
 			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			workflows.ImportWorkflows(fs, context)
+			workflows.ImportWorkflows(container, context)
 		},
 	}
 }

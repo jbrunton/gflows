@@ -13,10 +13,12 @@ func TestGetWorkflowName(t *testing.T) {
 }
 
 func TestGenerateWorkflowDefinitions(t *testing.T) {
-	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	container, _, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	workflowManager := NewWorkflowManager(container)
 
-	definitions, err := GetWorkflowDefinitions(fs, context)
+	definitions, err := workflowManager.GetWorkflowDefinitions(context)
 
 	assert.NoError(t, err)
 	assert.Len(t, definitions, 1)
@@ -26,47 +28,51 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 }
 
 func TestValidateWorkflows(t *testing.T) {
-	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	container, _, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs := container.FileSystem()
+	workflowManager := NewWorkflowManager(container)
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
-	err := ValidateWorkflows(fs, context, false)
+	err := workflowManager.ValidateWorkflows(context, false)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, missing workflow
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	err = ValidateWorkflows(fs, context, false)
+	err = workflowManager.ValidateWorkflows(context, false)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, out of date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte("incorrect content"), 0644)
-	err = ValidateWorkflows(fs, context, false)
+	err = workflowManager.ValidateWorkflows(context, false)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, up to date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
-	err = ValidateWorkflows(fs, context, false)
+	err = workflowManager.ValidateWorkflows(context, false)
 	assert.NoError(t, err)
 }
 
 func ExampleValidateWorkflows() {
-	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	container, _, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs := container.FileSystem()
+	workflowManager := NewWorkflowManager(container)
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
-	ValidateWorkflows(fs, context, false)
+	workflowManager.ValidateWorkflows(context, false)
 
 	// valid template, missing workflow
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	ValidateWorkflows(fs, context, false)
+	workflowManager.ValidateWorkflows(context, false)
 
 	// valid template, out of date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte("incorrect content"), 0644)
-	ValidateWorkflows(fs, context, false)
+	workflowManager.ValidateWorkflows(context, false)
 
 	// valid template, up to date workflow
 	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
-	ValidateWorkflows(fs, context, false)
+	workflowManager.ValidateWorkflows(context, false)
 
 	// Output:
 	// Checking [1mtest[0m ... [1;31mFAILED[0m
