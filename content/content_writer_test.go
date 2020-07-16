@@ -81,13 +81,13 @@ func TestApplyGenerator(t *testing.T) {
 		Sources: []string{"/foo.txt", "/bar.txt"},
 	}
 
-	container, out, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	container, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 	fs := container.FileSystem()
 	writer := NewWriter(fs, container.Logger())
 	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
 
 	// act
-	writer.ApplyGenerator(sourceFs, context, generator)
+	writer.ApplyGenerator(sourceFs, container.Context(), generator)
 
 	// assert
 	assert.Equal(t, strings.Join([]string{

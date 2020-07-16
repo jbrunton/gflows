@@ -19,20 +19,18 @@ func newListWorkflowsCmd() *cobra.Command {
 		Use:   "ls",
 		Short: "List workflows",
 		Run: func(cmd *cobra.Command, args []string) {
-			container := di.NewContainer()
-			fs := container.FileSystem()
-			context, err := config.GetContext(fs, cmd)
+			container, err := di.NewContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
 
 			workflowManager := workflows.NewWorkflowManager(container)
-			definitions, err := workflowManager.GetWorkflowDefinitions(context)
+			definitions, err := workflowManager.GetWorkflowDefinitions()
 			if err != nil {
 				panic(err)
 			}
-			validator := workflows.NewWorkflowValidator(fs, context)
+			validator := workflows.NewWorkflowValidator(container)
 
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})
@@ -68,15 +66,13 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Updates workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			container := di.NewContainer()
-			fs := container.FileSystem()
-			context, err := config.GetContext(fs, cmd)
+			container, err := di.NewContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
 			workflowManager := workflows.NewWorkflowManager(container)
-			err = workflowManager.UpdateWorkflows(context)
+			err = workflowManager.UpdateWorkflows()
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -101,9 +97,9 @@ func newInitCmd() *cobra.Command {
 	}
 }
 
-func checkWorkflows(container *di.Container, context *config.GFlowsContext, watch bool, showDiff bool) {
+func checkWorkflows(container *di.Container, watch bool, showDiff bool) {
 	workflowManager := workflows.NewWorkflowManager(container)
-	err := workflowManager.ValidateWorkflows(context, showDiff)
+	err := workflowManager.ValidateWorkflows(showDiff)
 	if err != nil {
 		fmt.Println(styles.StyleError(err.Error()))
 		if !watch {
@@ -119,9 +115,7 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		Use:   "check",
 		Short: "Check workflow files are up to date",
 		Run: func(cmd *cobra.Command, args []string) {
-			container := di.NewContainer()
-			fs := container.FileSystem()
-			context, err := config.GetContext(fs, cmd)
+			container, err := di.NewContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -138,11 +132,11 @@ func newCheckWorkflowsCmd() *cobra.Command {
 			}
 
 			if watch {
-				workflows.WatchWorkflows(container, context, func() {
-					checkWorkflows(container, context, watch, showDiff)
+				workflows.WatchWorkflows(container, func() {
+					checkWorkflows(container, watch, showDiff)
 				})
 			} else {
-				checkWorkflows(container, context, watch, showDiff)
+				checkWorkflows(container, watch, showDiff)
 			}
 		},
 	}
@@ -156,16 +150,14 @@ func newWatchWorkflowsCmd() *cobra.Command {
 		Use:   "watch",
 		Short: "Alias for check --watch --show-diffs",
 		Run: func(cmd *cobra.Command, args []string) {
-			container := di.NewContainer()
-			fs := container.FileSystem()
-			context, err := config.GetContext(fs, cmd)
+			container, err := di.NewContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
 
-			workflows.WatchWorkflows(container, context, func() {
-				checkWorkflows(container, context, true, true)
+			workflows.WatchWorkflows(container, func() {
+				checkWorkflows(container, true, true)
 			})
 		},
 	}
@@ -177,14 +169,12 @@ func newImportWorkflowsCmd() *cobra.Command {
 		Use:   "import",
 		Short: "Import workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			container := di.NewContainer()
-			fs := container.FileSystem()
-			context, err := config.GetContext(fs, cmd)
+			container, err := di.NewContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			workflows.ImportWorkflows(container, context)
+			workflows.ImportWorkflows(container)
 		},
 	}
 }

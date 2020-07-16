@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/jsonnet"
@@ -22,15 +21,15 @@ type GitWorkflow struct {
 	definition *WorkflowDefinition
 }
 
-func getWorkflows(container *di.Container, context *config.GFlowsContext) []GitWorkflow {
+func getWorkflows(container *di.Container) []GitWorkflow {
 	files := []string{}
-	files, err := afero.Glob(container.FileSystem(), filepath.Join(context.GitHubDir, "workflows/*.yml"))
+	files, err := afero.Glob(container.FileSystem(), filepath.Join(container.Context().GitHubDir, "workflows/*.yml"))
 	if err != nil {
 		panic(err)
 	}
 
 	workflowManager := NewWorkflowManager(container)
-	definitions, err := workflowManager.GetWorkflowDefinitions(context)
+	definitions, err := workflowManager.GetWorkflowDefinitions()
 	if err != nil {
 		panic(err) // TODO: improve handling
 	}
@@ -51,9 +50,9 @@ func getWorkflows(container *di.Container, context *config.GFlowsContext) []GitW
 	return workflows
 }
 
-func ImportWorkflows(container *di.Container, context *config.GFlowsContext) {
+func ImportWorkflows(container *di.Container) {
 	imported := 0
-	workflows := getWorkflows(container, context)
+	workflows := getWorkflows(container)
 	writer := content.NewWriter(container.FileSystem(), logs.NewLogger(os.Stdout))
 	for _, workflow := range workflows {
 		fmt.Println("Found workflow:", workflow.path)
@@ -82,7 +81,7 @@ func ImportWorkflows(container *di.Container, context *config.GFlowsContext) {
 
 			_, filename := filepath.Split(workflow.path)
 			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
-			templatePath := filepath.Join(context.WorkflowsDir, templateName+".jsonnet")
+			templatePath := filepath.Join(container.Context().WorkflowsDir, templateName+".jsonnet")
 			writer.SafelyWriteFile(templatePath, templateContent)
 			fmt.Println("  Imported template:", templatePath)
 			imported++

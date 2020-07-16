@@ -31,14 +31,18 @@ type WorkflowDefinition struct {
 }
 
 type WorkflowManager struct {
-	fs     *afero.Afero
-	logger *logs.Logger
+	fs        *afero.Afero
+	logger    *logs.Logger
+	validator *WorkflowValidator
+	context   *config.GFlowsContext
 }
 
 func NewWorkflowManager(container *di.Container) *WorkflowManager {
 	return &WorkflowManager{
-		fs:     container.FileSystem(),
-		logger: container.Logger(),
+		fs:        container.FileSystem(),
+		logger:    container.Logger(),
+		validator: NewWorkflowValidator(container),
+		context:   container.Context(),
 	}
 }
 
@@ -85,18 +89,18 @@ func createVM(context *config.GFlowsContext) *jsonnet.VM {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *WorkflowManager) GetWorkflowDefinitions(context *config.GFlowsContext) ([]*WorkflowDefinition, error) {
-	templates := manager.getWorkflowTemplates(context)
+func (manager *WorkflowManager) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
+	templates := manager.getWorkflowTemplates(manager.context)
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
-		vm := createVM(context)
-		workflowName := getWorkflowName(context.WorkflowsDir, templatePath)
+		vm := createVM(manager.context)
+		workflowName := getWorkflowName(manager.context.WorkflowsDir, templatePath)
 		input, err := manager.fs.ReadFile(templatePath)
 		if err != nil {
 			return []*WorkflowDefinition{}, err
 		}
 
-		destinationPath := filepath.Join(context.GitHubDir, "workflows/", workflowName+".yml")
+		destinationPath := filepath.Join(manager.context.GitHubDir, "workflows/", workflowName+".yml")
 		definition := &WorkflowDefinition{
 			Name:        workflowName,
 			Source:      templatePath,
@@ -122,10 +126,9 @@ func (manager *WorkflowManager) GetWorkflowDefinitions(context *config.GFlowsCon
 }
 
 // UpdateWorkflows - update workflow files for the given context
-func (manager *WorkflowManager) UpdateWorkflows(context *config.GFlowsContext) error {
-	validator := NewWorkflowValidator(manager.fs, context)
+func (manager *WorkflowManager) UpdateWorkflows() error {
 	writer := content.NewWriter(manager.fs, manager.logger)
-	definitions, err := manager.GetWorkflowDefinitions(context)
+	definitions, err := manager.GetWorkflowDefinitions()
 	if err != nil {
 		return err
 	}
@@ -133,7 +136,7 @@ func (manager *WorkflowManager) UpdateWorkflows(context *config.GFlowsContext) e
 	for _, definition := range definitions {
 		details := fmt.Sprintf("(from %s)", definition.Source)
 		if definition.Status.Valid {
-			schemaResult := validator.ValidateSchema(definition)
+			schemaResult := manager.validator.ValidateSchema(definition)
 			if schemaResult.Valid {
 				writer.UpdateFileContent(definition.Destination, definition.Content, details)
 			} else {
@@ -152,10 +155,9 @@ func (manager *WorkflowManager) UpdateWorkflows(context *config.GFlowsContext) e
 }
 
 // ValidateWorkflows - returns an error if the workflows are out of date
-func (manager *WorkflowManager) ValidateWorkflows(context *config.GFlowsContext, showDiff bool) error {
-	validator := NewWorkflowValidator(manager.fs, context)
+func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 	logger := logs.NewLogger(os.Stdout)
-	definitions, err := manager.GetWorkflowDefinitions(context)
+	definitions, err := manager.GetWorkflowDefinitions()
 	if err != nil {
 		return err
 	}
@@ -171,7 +173,7 @@ func (manager *WorkflowManager) ValidateWorkflows(context *config.GFlowsContext,
 			continue
 		}
 
-		schemaResult := validator.ValidateSchema(definition)
+		schemaResult := manager.validator.ValidateSchema(definition)
 		if !schemaResult.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Schema validation failed:")
@@ -179,7 +181,7 @@ func (manager *WorkflowManager) ValidateWorkflows(context *config.GFlowsContext,
 			valid = false
 		}
 
-		contentResult := validator.ValidateContent(definition)
+		contentResult := manager.validator.ValidateContent(definition)
 		if !contentResult.Valid {
 			if schemaResult.Valid { // otherwise we'll duplicate the failure message
 				fmt.Println(styles.StyleError("FAILED"))
