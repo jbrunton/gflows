@@ -4,22 +4,21 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
 
-func setupValidator(templateContent string, config string) (*afero.Afero, *config.GFlowsContext, *WorkflowValidator, *WorkflowDefinition) {
-	container, _, context := fixtures.NewTestContext(fixtures.NewTestCommand(), config)
+func setupValidator(templateContent string, config string) (*afero.Afero, *WorkflowValidator, *WorkflowDefinition) {
+	container, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), config)
 	fs := container.FileSystem()
 	WorkflowDefinition := newTestWorkflowDefinition("test", templateContent)
-	validator := NewWorkflowValidator(fs, context)
-	return fs, context, validator, WorkflowDefinition
+	validator := NewWorkflowValidator(container)
+	return fs, validator, WorkflowDefinition
 }
 
 func TestValidateContent(t *testing.T) {
-	fs, _, validator, definition := setupValidator(exampleTemplate, "")
+	fs, validator, definition := setupValidator(exampleTemplate, "")
 
 	fs.WriteFile(definition.Destination, []byte(exampleTemplate), 0644)
 	result := validator.ValidateContent(definition)
@@ -29,7 +28,7 @@ func TestValidateContent(t *testing.T) {
 }
 
 func TestValidateContentMissing(t *testing.T) {
-	_, _, validator, definition := setupValidator(exampleTemplate, "")
+	_, validator, definition := setupValidator(exampleTemplate, "")
 
 	result := validator.ValidateContent(definition)
 
@@ -38,7 +37,7 @@ func TestValidateContentMissing(t *testing.T) {
 }
 
 func TestValidateContentOutOfDate(t *testing.T) {
-	fs, _, validator, definition := setupValidator(exampleTemplate, "")
+	fs, validator, definition := setupValidator(exampleTemplate, "")
 
 	fs.WriteFile(definition.Destination, []byte("incorrect content"), 0644)
 	result := validator.ValidateContent(definition)
@@ -48,7 +47,7 @@ func TestValidateContentOutOfDate(t *testing.T) {
 }
 
 func TestValidateSchema(t *testing.T) {
-	_, _, validator, definition := setupValidator(exampleWorkflow, "")
+	_, validator, definition := setupValidator(exampleWorkflow, "")
 
 	result := validator.ValidateSchema(definition)
 
@@ -57,7 +56,7 @@ func TestValidateSchema(t *testing.T) {
 }
 
 func TestValidateSchemaMissingField(t *testing.T) {
-	_, _, validator, definition := setupValidator(invalidWorkflow, "")
+	_, validator, definition := setupValidator(invalidWorkflow, "")
 
 	result := validator.ValidateSchema(definition)
 
@@ -117,7 +116,7 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		_, _, validator, definition := setupValidator(invalidWorkflow, scenario.config)
+		_, validator, definition := setupValidator(invalidWorkflow, scenario.config)
 		result := validator.ValidateSchema(definition)
 		assert.Equal(t, scenario.expectedResult, result)
 	}

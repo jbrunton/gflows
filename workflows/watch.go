@@ -7,21 +7,21 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/inancgumus/screen"
-	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/di"
 )
 
-func getWatchFiles(container *di.Container, context *config.GFlowsContext) []string {
+func getWatchFiles(container *di.Container) []string {
+	context := container.Context()
 	workflowManager := NewWorkflowManager(container)
 	files := workflowManager.getWorkflowSources(context)
-	for _, workflow := range getWorkflows(container, context) {
+	for _, workflow := range getWorkflows(container) {
 		files = append(files, workflow.path)
 	}
 	return files
 }
 
 // WatchWorkflows - watch workflow files and invoke onChange on any changes
-func WatchWorkflows(container *di.Container, context *config.GFlowsContext, onChange func()) {
+func WatchWorkflows(container *di.Container, onChange func()) {
 	log.Println("Watching workflows")
 
 	watcher, err := fsnotify.NewWatcher()
@@ -57,7 +57,7 @@ func WatchWorkflows(container *di.Container, context *config.GFlowsContext, onCh
 	screen.MoveTopLeft()
 	log.Println("Watching workflow templates")
 
-	sources := getWatchFiles(container, context)
+	sources := getWatchFiles(container)
 
 	for _, source := range sources {
 		fmt.Println("  Watching", source)

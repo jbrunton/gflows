@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/di"
 	"github.com/spf13/afero"
 	"github.com/xeipuuv/gojsonschema"
 	"gopkg.in/yaml.v2"
@@ -24,16 +25,17 @@ type ValidationResult struct {
 }
 
 // NewWorkflowValidator - creates a new validator for the given filesystem
-func NewWorkflowValidator(fs *afero.Afero, context *config.GFlowsContext) *WorkflowValidator {
-	schemaLoader := gojsonschema.NewReferenceLoader(context.Config.Defaults.Checks.Schema.URI)
+func NewWorkflowValidator(container *di.Container) *WorkflowValidator {
+	config := container.Context().Config
+	schemaLoader := gojsonschema.NewReferenceLoader(config.Defaults.Checks.Schema.URI)
 	defaultSchema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
 		panic(err)
 	}
 	return &WorkflowValidator{
-		fs:            fs,
+		fs:            container.FileSystem(),
 		defaultSchema: defaultSchema,
-		config:        context.Config,
+		config:        config,
 	}
 }
 
