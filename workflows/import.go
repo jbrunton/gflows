@@ -1,4 +1,4 @@
-package lib
+package workflows
 
 import (
 	"fmt"
@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/jsonnet"
+	"github.com/jbrunton/gflows/logs"
 	"github.com/jbrunton/gflows/styles"
 
 	"github.com/spf13/afero"
@@ -18,7 +21,7 @@ type GitWorkflow struct {
 	definition *WorkflowDefinition
 }
 
-func getWorkflows(fs *afero.Afero, context *GFlowsContext) []GitWorkflow {
+func getWorkflows(fs *afero.Afero, context *config.GFlowsContext) []GitWorkflow {
 	files := []string{}
 	files, err := afero.Glob(fs, filepath.Join(context.GitHubDir, "workflows/*.yml"))
 	if err != nil {
@@ -46,10 +49,10 @@ func getWorkflows(fs *afero.Afero, context *GFlowsContext) []GitWorkflow {
 	return workflows
 }
 
-func ImportWorkflows(fs *afero.Afero, context *GFlowsContext) {
+func ImportWorkflows(fs *afero.Afero, context *config.GFlowsContext) {
 	imported := 0
 	workflows := getWorkflows(fs, context)
-	writer := NewContentWriter(fs, os.Stdout)
+	writer := content.NewWriter(fs, logs.NewLogger(os.Stdout))
 	for _, workflow := range workflows {
 		fmt.Println("Found workflow:", workflow.path)
 		if workflow.definition == nil {

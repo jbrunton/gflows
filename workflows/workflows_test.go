@@ -1,8 +1,9 @@
-package lib
+package workflows
 
 import (
 	"testing"
 
+	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +13,7 @@ func TestGetWorkflowName(t *testing.T) {
 }
 
 func TestGenerateWorkflowDefinitions(t *testing.T) {
-	fs, context := newTestContext(newTestCommand(), "")
+	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 
 	definitions, err := GetWorkflowDefinitions(fs, context)
@@ -25,7 +26,7 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 }
 
 func TestValidateWorkflows(t *testing.T) {
-	fs, context := newTestContext(newTestCommand(), "")
+	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
@@ -49,7 +50,7 @@ func TestValidateWorkflows(t *testing.T) {
 }
 
 func ExampleValidateWorkflows() {
-	fs, context := newTestContext(newTestCommand(), "")
+	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)

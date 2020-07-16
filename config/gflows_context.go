@@ -1,4 +1,4 @@
-package lib
+package config
 
 import (
 	"os"
@@ -75,7 +75,7 @@ func init() {
 	contextCache = make(map[*cobra.Command]*GFlowsContext)
 }
 
-func (context *GFlowsContext) evalJPaths() []string {
+func (context *GFlowsContext) EvalJPaths() []string {
 	var paths []string
 
 	for _, path := range context.Config.Jsonnet.JPath {

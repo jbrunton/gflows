@@ -1,34 +1,34 @@
-package lib
+package content
 
 import (
-	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/logs"
 	"github.com/spf13/afero"
 )
 
-type workflowGenerator struct {
-	name    string
-	sources []string
+type WorkflowGenerator struct {
+	Name    string
+	Sources []string
 }
 
-type ContentWriter struct {
-	fs  *afero.Afero
-	out io.Writer
+type Writer struct {
+	fs     *afero.Afero
+	logger *logs.Logger
 }
 
-func NewContentWriter(fs *afero.Afero, out io.Writer) *ContentWriter {
-	return &ContentWriter{
-		fs:  fs,
-		out: out,
+func NewWriter(fs *afero.Afero, logger *logs.Logger) *Writer {
+	return &Writer{
+		fs:     fs,
+		logger: logger,
 	}
 }
 
-func (writer *ContentWriter) SafelyWriteFile(destination string, content string) error {
+func (writer *Writer) SafelyWriteFile(destination string, content string) error {
 	dir := filepath.Dir(destination)
 	if _, err := writer.fs.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
@@ -43,12 +43,12 @@ func (writer *ContentWriter) SafelyWriteFile(destination string, content string)
 }
 
 // LogErrors - prints an error message for the given destination file, together with any additional
-func (writer *ContentWriter) LogErrors(destination string, message string, errors []string) {
-	fmt.Fprintf(writer.out, "%11v %s %s\n", "error", destination, message)
-	printStatusErrors(writer.out, errors, true)
+func (writer *Writer) LogErrors(destination string, message string, errors []string) {
+	writer.logger.Printfln("%11v %s %s", "error", destination, message)
+	writer.logger.PrintStatusErrors(errors, true)
 }
 
-func (writer *ContentWriter) UpdateFileContent(destination string, content string, details string) {
+func (writer *Writer) UpdateFileContent(destination string, content string, details string) {
 	var action string
 	exists, _ := writer.fs.Exists(destination)
 	if exists {
@@ -66,14 +66,14 @@ func (writer *ContentWriter) UpdateFileContent(destination string, content strin
 		panic(err)
 	}
 	if details != "" {
-		fmt.Fprintf(writer.out, "%11v %s %s\n", action, destination, details)
+		writer.logger.Printfln("%11v %s %s", action, destination, details)
 	} else {
-		fmt.Fprintf(writer.out, "%11v %s\n", action, destination)
+		writer.logger.Printfln("%11v %s", action, destination)
 	}
 }
 
-func (writer *ContentWriter) ApplyGenerator(sourceFs http.FileSystem, context *GFlowsContext, generator workflowGenerator) error {
-	for _, sourcePath := range generator.sources {
+func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.GFlowsContext, generator WorkflowGenerator) error {
+	for _, sourcePath := range generator.Sources {
 		file, err := sourceFs.Open(sourcePath)
 		if err != nil {
 			return err

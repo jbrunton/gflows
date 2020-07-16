@@ -1,4 +1,4 @@
-package lib
+package workflows
 
 import (
 	"fmt"
@@ -7,10 +7,11 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/inancgumus/screen"
+	"github.com/jbrunton/gflows/config"
 	"github.com/spf13/afero"
 )
 
-func getWatchFiles(fs *afero.Afero, context *GFlowsContext) []string {
+func getWatchFiles(fs *afero.Afero, context *config.GFlowsContext) []string {
 	files := getWorkflowSources(fs, context)
 	for _, workflow := range getWorkflows(fs, context) {
 		files = append(files, workflow.path)
@@ -19,7 +20,7 @@ func getWatchFiles(fs *afero.Afero, context *GFlowsContext) []string {
 }
 
 // WatchWorkflows - watch workflow files and invoke onChange on any changes
-func WatchWorkflows(fs *afero.Afero, context *GFlowsContext, onChange func()) {
+func WatchWorkflows(fs *afero.Afero, context *config.GFlowsContext, onChange func()) {
 	log.Println("Watching workflows")
 
 	watcher, err := fsnotify.NewWatcher()
