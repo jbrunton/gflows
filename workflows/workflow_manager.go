@@ -9,6 +9,7 @@ import (
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/diff"
 	"github.com/jbrunton/gflows/logs"
 	"github.com/jbrunton/gflows/styles"
@@ -29,9 +30,21 @@ type WorkflowDefinition struct {
 	Status      ValidationResult
 }
 
-func getWorkflowSources(fs *afero.Afero, context *config.GFlowsContext) []string {
+type WorkflowManager struct {
+	fs     *afero.Afero
+	logger *logs.Logger
+}
+
+func NewWorkflowManager(container *di.Container) *WorkflowManager {
+	return &WorkflowManager{
+		fs:     container.FileSystem(),
+		logger: container.Logger(),
+	}
+}
+
+func (manager *WorkflowManager) getWorkflowSources(context *config.GFlowsContext) []string {
 	files := []string{}
-	err := fs.Walk(context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
+	err := manager.fs.Walk(context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
 		ext := filepath.Ext(path)
 		if ext == ".jsonnet" || ext == ".libsonnet" {
 			files = append(files, path)
@@ -46,8 +59,8 @@ func getWorkflowSources(fs *afero.Afero, context *config.GFlowsContext) []string
 	return files
 }
 
-func getWorkflowTemplates(fs *afero.Afero, context *config.GFlowsContext) []string {
-	sources := getWorkflowSources(fs, context)
+func (manager *WorkflowManager) getWorkflowTemplates(context *config.GFlowsContext) []string {
+	sources := manager.getWorkflowSources(context)
 	var templates []string
 	for _, source := range sources {
 		if filepath.Ext(source) == ".jsonnet" {
@@ -72,13 +85,13 @@ func createVM(context *config.GFlowsContext) *jsonnet.VM {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func GetWorkflowDefinitions(fs *afero.Afero, context *config.GFlowsContext) ([]*WorkflowDefinition, error) {
-	templates := getWorkflowTemplates(fs, context)
+func (manager *WorkflowManager) GetWorkflowDefinitions(context *config.GFlowsContext) ([]*WorkflowDefinition, error) {
+	templates := manager.getWorkflowTemplates(context)
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
 		vm := createVM(context)
 		workflowName := getWorkflowName(context.WorkflowsDir, templatePath)
-		input, err := fs.ReadFile(templatePath)
+		input, err := manager.fs.ReadFile(templatePath)
 		if err != nil {
 			return []*WorkflowDefinition{}, err
 		}
@@ -109,10 +122,10 @@ func GetWorkflowDefinitions(fs *afero.Afero, context *config.GFlowsContext) ([]*
 }
 
 // UpdateWorkflows - update workflow files for the given context
-func UpdateWorkflows(fs *afero.Afero, context *config.GFlowsContext) error {
-	validator := NewWorkflowValidator(fs, context)
-	writer := content.NewWriter(fs, logs.NewLogger(os.Stdout))
-	definitions, err := GetWorkflowDefinitions(fs, context)
+func (manager *WorkflowManager) UpdateWorkflows(context *config.GFlowsContext) error {
+	validator := NewWorkflowValidator(manager.fs, context)
+	writer := content.NewWriter(manager.fs, manager.logger)
+	definitions, err := manager.GetWorkflowDefinitions(context)
 	if err != nil {
 		return err
 	}
@@ -139,10 +152,10 @@ func UpdateWorkflows(fs *afero.Afero, context *config.GFlowsContext) error {
 }
 
 // ValidateWorkflows - returns an error if the workflows are out of date
-func ValidateWorkflows(fs *afero.Afero, context *config.GFlowsContext, showDiff bool) error {
-	validator := NewWorkflowValidator(fs, context)
+func (manager *WorkflowManager) ValidateWorkflows(context *config.GFlowsContext, showDiff bool) error {
+	validator := NewWorkflowValidator(manager.fs, context)
 	logger := logs.NewLogger(os.Stdout)
-	definitions, err := GetWorkflowDefinitions(fs, context)
+	definitions, err := manager.GetWorkflowDefinitions(context)
 	if err != nil {
 		return err
 	}

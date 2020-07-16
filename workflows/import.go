@@ -8,6 +8,7 @@ import (
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/jsonnet"
 	"github.com/jbrunton/gflows/logs"
 	"github.com/jbrunton/gflows/styles"
@@ -21,14 +22,15 @@ type GitWorkflow struct {
 	definition *WorkflowDefinition
 }
 
-func getWorkflows(fs *afero.Afero, context *config.GFlowsContext) []GitWorkflow {
+func getWorkflows(container *di.Container, context *config.GFlowsContext) []GitWorkflow {
 	files := []string{}
-	files, err := afero.Glob(fs, filepath.Join(context.GitHubDir, "workflows/*.yml"))
+	files, err := afero.Glob(container.FileSystem(), filepath.Join(context.GitHubDir, "workflows/*.yml"))
 	if err != nil {
 		panic(err)
 	}
 
-	definitions, err := GetWorkflowDefinitions(fs, context)
+	workflowManager := NewWorkflowManager(container)
+	definitions, err := workflowManager.GetWorkflowDefinitions(context)
 	if err != nil {
 		panic(err) // TODO: improve handling
 	}
@@ -49,14 +51,14 @@ func getWorkflows(fs *afero.Afero, context *config.GFlowsContext) []GitWorkflow 
 	return workflows
 }
 
-func ImportWorkflows(fs *afero.Afero, context *config.GFlowsContext) {
+func ImportWorkflows(container *di.Container, context *config.GFlowsContext) {
 	imported := 0
-	workflows := getWorkflows(fs, context)
-	writer := content.NewWriter(fs, logs.NewLogger(os.Stdout))
+	workflows := getWorkflows(container, context)
+	writer := content.NewWriter(container.FileSystem(), logs.NewLogger(os.Stdout))
 	for _, workflow := range workflows {
 		fmt.Println("Found workflow:", workflow.path)
 		if workflow.definition == nil {
-			workflowContent, err := fs.ReadFile(workflow.path)
+			workflowContent, err := container.FileSystem().ReadFile(workflow.path)
 			if err != nil {
 				panic(err)
 			}

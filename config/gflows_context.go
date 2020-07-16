@@ -17,10 +17,7 @@ type GFlowsContext struct {
 	Config       *GFlowsConfig
 }
 
-var contextCache map[*cobra.Command]*GFlowsContext
-
-// NewContext - returns a context for the given config
-func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
+func newContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
 	contextDir := filepath.Dir(configPath)
 
 	config, err := GetContextConfig(fs, configPath)
@@ -51,11 +48,6 @@ func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
 
 // GetContext - returns the current command context
 func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
-	context := contextCache[cmd]
-	if context != nil {
-		return context, nil
-	}
-
 	configPath, err := cmd.Flags().GetString("config")
 	if err != nil {
 		panic(err)
@@ -68,11 +60,7 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 		configPath = ".gflows/config.yml"
 	}
 
-	return NewContext(fs, configPath)
-}
-
-func init() {
-	contextCache = make(map[*cobra.Command]*GFlowsContext)
+	return newContext(fs, configPath)
 }
 
 func (context *GFlowsContext) EvalJPaths() []string {

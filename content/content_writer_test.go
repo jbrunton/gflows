@@ -81,9 +81,9 @@ func TestApplyGenerator(t *testing.T) {
 		Sources: []string{"/foo.txt", "/bar.txt"},
 	}
 
-	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
-	out := new(bytes.Buffer)
-	writer := NewWriter(fs, logs.NewLogger(out))
+	container, out, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs := container.FileSystem()
+	writer := NewWriter(fs, container.Logger())
 	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
 
 	// act
