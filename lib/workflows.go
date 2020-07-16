@@ -3,12 +3,14 @@ package lib
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/diff"
+	"github.com/jbrunton/gflows/logs"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/logrusorgru/aurora"
 
@@ -27,7 +29,7 @@ type WorkflowDefinition struct {
 	Status      ValidationResult
 }
 
-func getWorkflowSources(fs *afero.Afero, context *GFlowsContext) []string {
+func getWorkflowSources(fs *afero.Afero, context *config.GFlowsContext) []string {
 	files := []string{}
 	err := fs.Walk(context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
 		ext := filepath.Ext(path)
@@ -44,7 +46,7 @@ func getWorkflowSources(fs *afero.Afero, context *GFlowsContext) []string {
 	return files
 }
 
-func getWorkflowTemplates(fs *afero.Afero, context *GFlowsContext) []string {
+func getWorkflowTemplates(fs *afero.Afero, context *config.GFlowsContext) []string {
 	sources := getWorkflowSources(fs, context)
 	var templates []string
 	for _, source := range sources {
@@ -60,17 +62,17 @@ func getWorkflowName(workflowsDir string, filename string) string {
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
-func createVM(context *GFlowsContext) *jsonnet.VM {
+func createVM(context *config.GFlowsContext) *jsonnet.VM {
 	vm := jsonnet.MakeVM()
 	vm.Importer(&jsonnet.FileImporter{
-		JPaths: context.evalJPaths(),
+		JPaths: context.EvalJPaths(),
 	})
 	vm.StringOutput = true
 	return vm
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*WorkflowDefinition, error) {
+func GetWorkflowDefinitions(fs *afero.Afero, context *config.GFlowsContext) ([]*WorkflowDefinition, error) {
 	templates := getWorkflowTemplates(fs, context)
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
@@ -106,20 +108,10 @@ func GetWorkflowDefinitions(fs *afero.Afero, context *GFlowsContext) ([]*Workflo
 	return definitions, nil
 }
 
-func printStatusErrors(out io.Writer, errors []string, firstLineOnly bool) {
-	for _, err := range errors {
-		message := err
-		if firstLineOnly {
-			message = strings.Split(message, "\n")[0]
-		}
-		fmt.Fprintf(out, "  ► %s\n", message)
-	}
-}
-
 // UpdateWorkflows - update workflow files for the given context
-func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
+func UpdateWorkflows(fs *afero.Afero, context *config.GFlowsContext) error {
 	validator := NewWorkflowValidator(fs, context)
-	writer := NewContentWriter(fs, os.Stdout)
+	writer := content.NewWriter(fs, logs.NewLogger(os.Stdout))
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
 		return err
@@ -147,8 +139,9 @@ func UpdateWorkflows(fs *afero.Afero, context *GFlowsContext) error {
 }
 
 // ValidateWorkflows - returns an error if the workflows are out of date
-func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) error {
+func ValidateWorkflows(fs *afero.Afero, context *config.GFlowsContext, showDiff bool) error {
 	validator := NewWorkflowValidator(fs, context)
+	logger := logs.NewLogger(os.Stdout)
 	definitions, err := GetWorkflowDefinitions(fs, context)
 	if err != nil {
 		return err
@@ -160,7 +153,7 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 		if !definition.Status.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Error parsing template:")
-			printStatusErrors(os.Stdout, definition.Status.Errors, false)
+			logger.PrintStatusErrors(definition.Status.Errors, false)
 			valid = false
 			continue
 		}
@@ -169,7 +162,7 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 		if !schemaResult.Valid {
 			fmt.Println(styles.StyleError("FAILED"))
 			fmt.Println("  Schema validation failed:")
-			printStatusErrors(os.Stdout, schemaResult.Errors, false)
+			logger.PrintStatusErrors(schemaResult.Errors, false)
 			valid = false
 		}
 
@@ -210,10 +203,10 @@ func ValidateWorkflows(fs *afero.Afero, context *GFlowsContext, showDiff bool) e
 }
 
 // InitWorkflows - copies g3ops workflow sources to context directory
-func InitWorkflows(fs *afero.Afero, context *GFlowsContext) {
-	generator := workflowGenerator{
-		name: "gflows",
-		sources: []string{
+func InitWorkflows(fs *afero.Afero, context *config.GFlowsContext) {
+	generator := content.WorkflowGenerator{
+		Name: "gflows",
+		Sources: []string{
 			"/workflows/common/steps.libsonnet",
 			"/workflows/common/workflows.libsonnet",
 			"/workflows/config/git.libsonnet",
@@ -221,7 +214,7 @@ func InitWorkflows(fs *afero.Afero, context *GFlowsContext) {
 			"/config.yml",
 		},
 	}
-	writer := NewContentWriter(fs, os.Stdout)
+	writer := content.NewWriter(fs, logs.NewLogger(os.Stdout))
 	sourceFs, err := statikFs.New()
 	if err != nil {
 		err = writer.ApplyGenerator(sourceFs, context, generator)

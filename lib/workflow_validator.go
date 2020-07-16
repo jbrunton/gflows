@@ -3,6 +3,7 @@ package lib
 import (
 	"fmt"
 
+	"github.com/jbrunton/gflows/config"
 	"github.com/spf13/afero"
 	"github.com/xeipuuv/gojsonschema"
 	"gopkg.in/yaml.v2"
@@ -12,7 +13,7 @@ import (
 type WorkflowValidator struct {
 	fs            *afero.Afero
 	defaultSchema *gojsonschema.Schema
-	config        *GFlowsConfig
+	config        *config.GFlowsConfig
 }
 
 // ValidationResult - validate result
@@ -23,7 +24,7 @@ type ValidationResult struct {
 }
 
 // NewWorkflowValidator - creates a new validator for the given filesystem
-func NewWorkflowValidator(fs *afero.Afero, context *GFlowsContext) *WorkflowValidator {
+func NewWorkflowValidator(fs *afero.Afero, context *config.GFlowsContext) *WorkflowValidator {
 	schemaLoader := gojsonschema.NewReferenceLoader(context.Config.Defaults.Checks.Schema.URI)
 	defaultSchema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
@@ -38,7 +39,7 @@ func NewWorkflowValidator(fs *afero.Afero, context *GFlowsContext) *WorkflowVali
 
 // ValidateSchema - validates the template for the definition generates a valid workflow
 func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinition) ValidationResult {
-	enabled := validator.getCheckEnabled(definition.Name, func(config gflowsWorkflowConfig) *bool {
+	enabled := validator.getCheckEnabled(definition.Name, func(config config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Schema.Enabled
 	})
 	if !enabled {
@@ -79,7 +80,7 @@ func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinitio
 
 // ValidateContent - validates the content at the destination in the definition is up to date
 func (validator *WorkflowValidator) ValidateContent(definition *WorkflowDefinition) ValidationResult {
-	enabled := validator.getCheckEnabled(definition.Name, func(config gflowsWorkflowConfig) *bool {
+	enabled := validator.getCheckEnabled(definition.Name, func(config config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Content.Enabled
 	})
 	if !enabled {
@@ -137,7 +138,7 @@ func (validator *WorkflowValidator) getWorkflowSchema(workflowName string) *gojs
 	return schema
 }
 
-func (validator *WorkflowValidator) getCheckEnabled(workflowName string, selector func(config gflowsWorkflowConfig) *bool) bool {
+func (validator *WorkflowValidator) getCheckEnabled(workflowName string, selector func(config config.GFlowsWorkflowConfig) *bool) bool {
 	workflowConfig := validator.config.Workflows[workflowName]
 	if workflowConfig != nil {
 		enabled := selector(*workflowConfig)

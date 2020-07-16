@@ -1,4 +1,4 @@
-package lib
+package config
 
 import (
 	"github.com/spf13/afero"
@@ -8,8 +8,8 @@ import (
 // GFlowsConfig - type of current gflows context
 type GFlowsConfig struct {
 	GithubDir string `yaml:"githubDir"`
-	Defaults  gflowsWorkflowConfig
-	Workflows map[string]*gflowsWorkflowConfig
+	Defaults  GFlowsWorkflowConfig
+	Workflows map[string]*GFlowsWorkflowConfig
 	Jsonnet   jsonnetConfig
 }
 
@@ -17,21 +17,21 @@ type jsonnetConfig struct {
 	JPath []string `yaml:"jpath"`
 }
 
-type gflowsWorkflowConfig struct {
-	Checks gflowsChecksConfig
+type GFlowsWorkflowConfig struct {
+	Checks GFlowsChecksConfig
 }
 
-type gflowsChecksConfig struct {
-	Schema  gflowsSchemaCheckConfig
-	Content gflowsContentCheckConfig
+type GFlowsChecksConfig struct {
+	Schema  GFlowsSchemaCheckConfig
+	Content GFlowsContentCheckConfig
 }
 
-type gflowsSchemaCheckConfig struct {
+type GFlowsSchemaCheckConfig struct {
 	Enabled *bool
 	URI     string `yaml:"uri"`
 }
 
-type gflowsContentCheckConfig struct {
+type GFlowsContentCheckConfig struct {
 	Enabled *bool
 }
 

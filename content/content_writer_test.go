@@ -1,17 +1,20 @@
-package lib
+package content
 
 import (
 	"bytes"
 	"strings"
 	"testing"
 
+	"github.com/jbrunton/gflows/fixtures"
+	"github.com/jbrunton/gflows/fs"
+	"github.com/jbrunton/gflows/logs"
 	_ "github.com/jbrunton/gflows/statik"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLogErrors(t *testing.T) {
 	out := new(bytes.Buffer)
-	writer := NewContentWriter(CreateMemFs(), out)
+	writer := NewWriter(fs.CreateMemFs(), logs.NewLogger(out))
 
 	writer.LogErrors("path/to/file", "error message", []string{"error details"})
 
@@ -20,8 +23,8 @@ func TestLogErrors(t *testing.T) {
 }
 
 func TestSafelyWriteFile(t *testing.T) {
-	fs := CreateMemFs()
-	writer := NewContentWriter(fs, new(bytes.Buffer))
+	fs := fs.CreateMemFs()
+	writer := NewWriter(fs, logs.NewLogger(new(bytes.Buffer)))
 
 	writer.SafelyWriteFile("path/to/file", "foobar")
 
@@ -30,9 +33,9 @@ func TestSafelyWriteFile(t *testing.T) {
 }
 
 func TestUpdateFileContentCreate(t *testing.T) {
-	fs := CreateMemFs()
+	fs := fs.CreateMemFs()
 	out := new(bytes.Buffer)
-	writer := NewContentWriter(fs, out)
+	writer := NewWriter(fs, logs.NewLogger(out))
 
 	writer.UpdateFileContent("path/to/file", "foobar", "(baz)")
 
@@ -42,9 +45,9 @@ func TestUpdateFileContentCreate(t *testing.T) {
 }
 
 func TestUpdateFileContentUpdate(t *testing.T) {
-	fs := CreateMemFs()
+	fs := fs.CreateMemFs()
 	out := new(bytes.Buffer)
-	writer := NewContentWriter(fs, out)
+	writer := NewWriter(fs, logs.NewLogger(out))
 
 	writer.SafelyWriteFile("path/to/file", "foo")
 	writer.UpdateFileContent("path/to/file", "foobar", "(baz)")
@@ -55,9 +58,9 @@ func TestUpdateFileContentUpdate(t *testing.T) {
 }
 
 func TestUpdateFileContentIdentical(t *testing.T) {
-	fs := CreateMemFs()
+	fs := fs.CreateMemFs()
 	out := new(bytes.Buffer)
-	writer := NewContentWriter(fs, out)
+	writer := NewWriter(fs, logs.NewLogger(out))
 
 	writer.SafelyWriteFile("path/to/file", "foobar")
 	writer.UpdateFileContent("path/to/file", "foobar", "(baz)")
@@ -69,18 +72,18 @@ func TestUpdateFileContentIdentical(t *testing.T) {
 
 func TestApplyGenerator(t *testing.T) {
 	// arrange
-	sourceFs := createTestFileSystem([]file{
+	sourceFs := fixtures.CreateTestFileSystem([]fixtures.File{
 		{Name: "foo.txt", Body: "foo"},
 		{Name: "bar.txt", Body: "bar"},
 	}, "TestApplyGenerator")
-	generator := workflowGenerator{
-		name:    "foo",
-		sources: []string{"/foo.txt", "/bar.txt"},
+	generator := WorkflowGenerator{
+		Name:    "foo",
+		Sources: []string{"/foo.txt", "/bar.txt"},
 	}
 
-	fs, context := newTestContext(newTestCommand(), "")
+	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 	out := new(bytes.Buffer)
-	writer := NewContentWriter(fs, out)
+	writer := NewWriter(fs, logs.NewLogger(out))
 	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
 
 	// act

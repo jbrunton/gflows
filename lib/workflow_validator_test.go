@@ -4,12 +4,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/fixtures"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
 
-func setupValidator(templateContent string, config string) (*afero.Afero, *GFlowsContext, *WorkflowValidator, *WorkflowDefinition) {
-	fs, context := newTestContext(newTestCommand(), config)
+func setupValidator(templateContent string, config string) (*afero.Afero, *config.GFlowsContext, *WorkflowValidator, *WorkflowDefinition) {
+	fs, context := fixtures.NewTestContext(fixtures.NewTestCommand(), config)
 	WorkflowDefinition := newTestWorkflowDefinition("test", templateContent)
 	validator := NewWorkflowValidator(fs, context)
 	return fs, context, validator, WorkflowDefinition

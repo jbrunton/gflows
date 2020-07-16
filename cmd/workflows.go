@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/fs"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/olekukonko/tablewriter"
 
@@ -17,8 +19,8 @@ func newListWorkflowsCmd() *cobra.Command {
 		Use:   "ls",
 		Short: "List workflows",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := lib.CreateOsFs()
-			context, err := lib.GetContext(fs, cmd)
+			fs := fs.CreateOsFs()
+			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -64,8 +66,8 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Updates workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := lib.CreateOsFs()
-			context, err := lib.GetContext(fs, cmd)
+			fs := fs.CreateOsFs()
+			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -84,8 +86,8 @@ func newInitCmd() *cobra.Command {
 		Use:   "init",
 		Short: "Setup config and templates for first time use",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := lib.CreateOsFs()
-			context, err := lib.GetContext(fs, cmd)
+			fs := fs.CreateOsFs()
+			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -95,7 +97,7 @@ func newInitCmd() *cobra.Command {
 	}
 }
 
-func checkWorkflows(fs *afero.Afero, context *lib.GFlowsContext, watch bool, showDiff bool) {
+func checkWorkflows(fs *afero.Afero, context *config.GFlowsContext, watch bool, showDiff bool) {
 	err := lib.ValidateWorkflows(fs, context, showDiff)
 	if err != nil {
 		fmt.Println(styles.StyleError(err.Error()))
@@ -112,8 +114,8 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		Use:   "check",
 		Short: "Check workflow files are up to date",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := lib.CreateOsFs()
-			context, err := lib.GetContext(fs, cmd)
+			fs := fs.CreateOsFs()
+			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -148,8 +150,8 @@ func newWatchWorkflowsCmd() *cobra.Command {
 		Use:   "watch",
 		Short: "Alias for check --watch --show-diffs",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := lib.CreateOsFs()
-			context, err := lib.GetContext(fs, cmd)
+			fs := fs.CreateOsFs()
+			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -168,8 +170,8 @@ func newImportWorkflowsCmd() *cobra.Command {
 		Use:   "import",
 		Short: "Import workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := lib.CreateOsFs()
-			context, err := lib.GetContext(fs, cmd)
+			fs := fs.CreateOsFs()
+			context, err := config.GetContext(fs, cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
