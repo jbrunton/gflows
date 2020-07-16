@@ -185,7 +185,7 @@ func ValidateWorkflows(fs *afero.Afero, context *config.GFlowsContext, showDiff 
 					fmt.Sprintf(`This diff shows what will happen to %s if you run "gflows update"`, definition.Destination),
 				}, "\n")
 				patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
-				PrettyPrintDiff(patch.Format())
+				logger.PrettyPrintDiff(patch.Format())
 			}
 		}
 
