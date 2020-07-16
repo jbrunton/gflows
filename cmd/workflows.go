@@ -7,9 +7,9 @@ import (
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/fs"
 	"github.com/jbrunton/gflows/styles"
+	"github.com/jbrunton/gflows/workflows"
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/jbrunton/gflows/lib"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -26,11 +26,11 @@ func newListWorkflowsCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			definitions, err := lib.GetWorkflowDefinitions(fs, context)
+			definitions, err := workflows.GetWorkflowDefinitions(fs, context)
 			if err != nil {
 				panic(err)
 			}
-			validator := lib.NewWorkflowValidator(fs, context)
+			validator := workflows.NewWorkflowValidator(fs, context)
 
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})
@@ -72,7 +72,7 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			err = lib.UpdateWorkflows(fs, context)
+			err = workflows.UpdateWorkflows(fs, context)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -92,13 +92,13 @@ func newInitCmd() *cobra.Command {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			lib.InitWorkflows(fs, context)
+			workflows.InitWorkflows(fs, context)
 		},
 	}
 }
 
 func checkWorkflows(fs *afero.Afero, context *config.GFlowsContext, watch bool, showDiff bool) {
-	err := lib.ValidateWorkflows(fs, context, showDiff)
+	err := workflows.ValidateWorkflows(fs, context, showDiff)
 	if err != nil {
 		fmt.Println(styles.StyleError(err.Error()))
 		if !watch {
@@ -132,7 +132,7 @@ func newCheckWorkflowsCmd() *cobra.Command {
 			}
 
 			if watch {
-				lib.WatchWorkflows(fs, context, func() {
+				workflows.WatchWorkflows(fs, context, func() {
 					checkWorkflows(fs, context, watch, showDiff)
 				})
 			} else {
@@ -157,7 +157,7 @@ func newWatchWorkflowsCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			lib.WatchWorkflows(fs, context, func() {
+			workflows.WatchWorkflows(fs, context, func() {
 				checkWorkflows(fs, context, true, true)
 			})
 		},
@@ -176,7 +176,7 @@ func newImportWorkflowsCmd() *cobra.Command {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			lib.ImportWorkflows(fs, context)
+			workflows.ImportWorkflows(fs, context)
 		},
 	}
 }
