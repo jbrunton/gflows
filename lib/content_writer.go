@@ -32,7 +32,7 @@ func (writer *ContentWriter) SafelyWriteFile(destination string, content string)
 	dir := filepath.Dir(destination)
 	if _, err := writer.fs.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(dir, os.ModePerm)
+			err = writer.fs.MkdirAll(dir, os.ModePerm)
 			if err != nil {
 				return err
 			}
