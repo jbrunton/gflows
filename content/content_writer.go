@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/logs"
 	"github.com/spf13/afero"
 )
@@ -21,10 +22,10 @@ type Writer struct {
 	logger *logs.Logger
 }
 
-func NewWriter(fs *afero.Afero, logger *logs.Logger) *Writer {
+func NewWriter(container *di.Container) *Writer {
 	return &Writer{
-		fs:     fs,
-		logger: logger,
+		fs:     container.FileSystem(),
+		logger: container.Logger(),
 	}
 }
 

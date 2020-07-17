@@ -31,18 +31,20 @@ type WorkflowDefinition struct {
 }
 
 type WorkflowManager struct {
-	fs        *afero.Afero
-	logger    *logs.Logger
-	validator *WorkflowValidator
-	context   *config.GFlowsContext
+	fs            *afero.Afero
+	logger        *logs.Logger
+	validator     *WorkflowValidator
+	context       *config.GFlowsContext
+	contentWriter *content.Writer
 }
 
 func NewWorkflowManager(container *di.Container) *WorkflowManager {
 	return &WorkflowManager{
-		fs:        container.FileSystem(),
-		logger:    container.Logger(),
-		validator: NewWorkflowValidator(container),
-		context:   container.Context(),
+		fs:            container.FileSystem(),
+		logger:        container.Logger(),
+		validator:     NewWorkflowValidator(container),
+		context:       container.Context(),
+		contentWriter: content.NewWriter(container),
 	}
 }
 
@@ -127,7 +129,6 @@ func (manager *WorkflowManager) GetWorkflowDefinitions() ([]*WorkflowDefinition,
 
 // UpdateWorkflows - update workflow files for the given context
 func (manager *WorkflowManager) UpdateWorkflows() error {
-	writer := content.NewWriter(manager.fs, manager.logger)
 	definitions, err := manager.GetWorkflowDefinitions()
 	if err != nil {
 		return err
@@ -138,13 +139,13 @@ func (manager *WorkflowManager) UpdateWorkflows() error {
 		if definition.Status.Valid {
 			schemaResult := manager.validator.ValidateSchema(definition)
 			if schemaResult.Valid {
-				writer.UpdateFileContent(definition.Destination, definition.Content, details)
+				manager.contentWriter.UpdateFileContent(definition.Destination, definition.Content, details)
 			} else {
-				writer.LogErrors(definition.Destination, details, schemaResult.Errors)
+				manager.contentWriter.LogErrors(definition.Destination, details, schemaResult.Errors)
 				valid = false
 			}
 		} else {
-			writer.LogErrors(definition.Destination, details, definition.Status.Errors)
+			manager.contentWriter.LogErrors(definition.Destination, details, definition.Status.Errors)
 			valid = false
 		}
 	}
@@ -218,7 +219,7 @@ func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 }
 
 // InitWorkflows - copies g3ops workflow sources to context directory
-func InitWorkflows(fs *afero.Afero, context *config.GFlowsContext) {
+func InitWorkflows(container *di.Container) {
 	generator := content.WorkflowGenerator{
 		Name: "gflows",
 		Sources: []string{
@@ -229,10 +230,10 @@ func InitWorkflows(fs *afero.Afero, context *config.GFlowsContext) {
 			"/config.yml",
 		},
 	}
-	writer := content.NewWriter(fs, logs.NewLogger(os.Stdout))
+	writer := content.NewWriter(container)
 	sourceFs, err := statikFs.New()
 	if err != nil {
-		err = writer.ApplyGenerator(sourceFs, context, generator)
+		err = writer.ApplyGenerator(sourceFs, container.Context(), generator)
 	}
 	if err != nil {
 		fmt.Println(styles.StyleError(err.Error()))

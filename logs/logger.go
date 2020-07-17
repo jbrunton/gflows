@@ -18,6 +18,10 @@ func NewLogger(out io.Writer) *Logger {
 	}
 }
 
+func (logger *Logger) Write(p []byte) (n int, err error) {
+	return logger.out.Write(p)
+}
+
 func (logger *Logger) Println(a ...interface{}) (n int, err error) {
 	return fmt.Fprintln(logger.out, a...)
 }

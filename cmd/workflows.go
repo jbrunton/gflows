@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/di"
-	"github.com/jbrunton/gflows/fs"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/jbrunton/gflows/workflows"
 	"github.com/olekukonko/tablewriter"
@@ -32,7 +30,7 @@ func newListWorkflowsCmd() *cobra.Command {
 			}
 			validator := workflows.NewWorkflowValidator(container)
 
-			table := tablewriter.NewWriter(os.Stdout)
+			table := tablewriter.NewWriter(container.Logger())
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})
 			for _, definition := range definitions {
 				colors := []tablewriter.Colors{
@@ -86,13 +84,12 @@ func newInitCmd() *cobra.Command {
 		Use:   "init",
 		Short: "Setup config and templates for first time use",
 		Run: func(cmd *cobra.Command, args []string) {
-			fs := fs.CreateOsFs()
-			context, err := config.GetContext(fs, cmd)
+			container, err := di.NewContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			workflows.InitWorkflows(fs, context)
+			workflows.InitWorkflows(container)
 		},
 	}
 }
