@@ -12,21 +12,6 @@ func TestGetWorkflowName(t *testing.T) {
 	assert.Equal(t, "my-workflow-2", getWorkflowName("/workflows", "/workflows/workflows/my-workflow-2.jsonnet"))
 }
 
-func TestGenerateWorkflowDefinitions(t *testing.T) {
-	container, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
-	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	workflowManager := NewWorkflowManager(container)
-
-	definitions, err := workflowManager.GetWorkflowDefinitions()
-
-	assert.NoError(t, err)
-	assert.Len(t, definitions, 1)
-	assert.Equal(t, ".gflows/workflows/test.jsonnet", definitions[0].Source)
-	assert.Equal(t, ".github/workflows/test.yml", definitions[0].Destination)
-	assert.Equal(t, definitions[0].Content, exampleWorkflow)
-}
-
 func TestValidateWorkflows(t *testing.T) {
 	container, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 	fs := container.FileSystem()
