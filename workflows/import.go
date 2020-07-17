@@ -2,14 +2,12 @@ package workflows
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/jsonnet"
-	"github.com/jbrunton/gflows/logs"
 	"github.com/jbrunton/gflows/styles"
 
 	"github.com/spf13/afero"
@@ -53,7 +51,7 @@ func getWorkflows(container *di.Container) []GitWorkflow {
 func ImportWorkflows(container *di.Container) {
 	imported := 0
 	workflows := getWorkflows(container)
-	writer := content.NewWriter(container.FileSystem(), logs.NewLogger(os.Stdout))
+	writer := content.NewWriter(container)
 	for _, workflow := range workflows {
 		fmt.Println("Found workflow:", workflow.path)
 		if workflow.definition == nil {
