@@ -13,7 +13,7 @@ import (
 func getWatchFiles(container *di.Container) []string {
 	context := container.Context()
 	workflowManager := NewWorkflowManager(container)
-	files := workflowManager.getWorkflowSources(context)
+	files := workflowManager.GetWorkflowSources(context)
 	for _, workflow := range getWorkflows(container) {
 		files = append(files, workflow.path)
 	}
