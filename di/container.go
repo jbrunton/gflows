@@ -3,16 +3,15 @@ package di
 import (
 	"os"
 
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/fs"
-	"github.com/jbrunton/gflows/logs"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
 type Container struct {
 	fileSystem *afero.Afero
-	logger     *logs.Logger
+	logger     *adapters.Logger
 	context    *config.GFlowsContext
 }
 
@@ -20,7 +19,7 @@ func (container *Container) FileSystem() *afero.Afero {
 	return container.fileSystem
 }
 
-func (container *Container) Logger() *logs.Logger {
+func (container *Container) Logger() *adapters.Logger {
 	return container.logger
 }
 
@@ -29,19 +28,19 @@ func (container *Container) Context() *config.GFlowsContext {
 }
 
 func NewContainer(cmd *cobra.Command) (*Container, error) {
-	fs := fs.CreateOsFs()
+	fs := adapters.CreateOsFs()
 	context, err := config.GetContext(fs, cmd)
 	if err != nil {
 		return nil, err
 	}
 	return BuildContainer(
 		fs,
-		logs.NewLogger(os.Stdout),
+		adapters.NewLogger(os.Stdout),
 		context,
 	), nil
 }
 
-func BuildContainer(fs *afero.Afero, logger *logs.Logger, context *config.GFlowsContext) *Container {
+func BuildContainer(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *Container {
 	return &Container{
 		fileSystem: fs,
 		logger:     logger,

@@ -3,15 +3,14 @@ package workflows
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/diff"
-	"github.com/jbrunton/gflows/logs"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/logrusorgru/aurora"
 
@@ -44,7 +43,7 @@ type TemplateManager interface {
 
 type WorkflowManager struct {
 	fs            *afero.Afero
-	logger        *logs.Logger
+	logger        *adapters.Logger
 	validator     *WorkflowValidator
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
@@ -139,38 +138,37 @@ func (manager *WorkflowManager) UpdateWorkflows() error {
 
 // ValidateWorkflows - returns an error if the workflows are out of date
 func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
-	logger := logs.NewLogger(os.Stdout)
 	definitions, err := manager.GetWorkflowDefinitions()
 	if err != nil {
 		return err
 	}
 	valid := true
 	for _, definition := range definitions {
-		fmt.Printf("Checking %s ... ", aurora.Bold(definition.Name))
+		manager.logger.Printf("Checking %s ... ", aurora.Bold(definition.Name))
 
 		if !definition.Status.Valid {
-			fmt.Println(styles.StyleError("FAILED"))
-			fmt.Println("  Error parsing template:")
-			logger.PrintStatusErrors(definition.Status.Errors, false)
+			manager.logger.Println(styles.StyleError("FAILED"))
+			manager.logger.Println("  Error parsing template:")
+			manager.logger.PrintStatusErrors(definition.Status.Errors, false)
 			valid = false
 			continue
 		}
 
 		schemaResult := manager.validator.ValidateSchema(definition)
 		if !schemaResult.Valid {
-			fmt.Println(styles.StyleError("FAILED"))
-			fmt.Println("  Schema validation failed:")
-			logger.PrintStatusErrors(schemaResult.Errors, false)
+			manager.logger.Println(styles.StyleError("FAILED"))
+			manager.logger.Println("  Schema validation failed:")
+			manager.logger.PrintStatusErrors(schemaResult.Errors, false)
 			valid = false
 		}
 
 		contentResult := manager.validator.ValidateContent(definition)
 		if !contentResult.Valid {
 			if schemaResult.Valid { // otherwise we'll duplicate the failure message
-				fmt.Println(styles.StyleError("FAILED"))
+				manager.logger.Println(styles.StyleError("FAILED"))
 			}
-			fmt.Println("  " + contentResult.Errors[0])
-			fmt.Println("  ► Run \"gflows workflow update\" to update")
+			manager.logger.Println("  " + contentResult.Errors[0])
+			manager.logger.Println("  ► Run \"gflows workflow update\" to update")
 			valid = false
 
 			if showDiff {
@@ -183,14 +181,14 @@ func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 					fmt.Sprintf(`This diff shows what will happen to %s if you run "gflows update"`, definition.Destination),
 				}, "\n")
 				patch := diff.NewPatch([]fdiff.FilePatch{fpatch}, message)
-				logger.PrettyPrintDiff(patch.Format())
+				manager.logger.PrettyPrintDiff(patch.Format())
 			}
 		}
 
 		if schemaResult.Valid && contentResult.Valid {
-			fmt.Println(styles.StyleOK("OK"))
+			manager.logger.Println(styles.StyleOK("OK"))
 			for _, err := range append(schemaResult.Errors, contentResult.Errors...) {
-				fmt.Printf("  Warning: %s\n", err)
+				manager.logger.Printf("  Warning: %s\n", err)
 			}
 		}
 	}

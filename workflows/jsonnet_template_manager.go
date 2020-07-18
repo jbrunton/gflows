@@ -6,15 +6,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/di"
-	"github.com/jbrunton/gflows/logs"
 	"github.com/spf13/afero"
 )
 
 type JsonnetTemplateManager struct {
 	fs      *afero.Afero
-	logger  *logs.Logger
+	logger  *adapters.Logger
 	context *config.GFlowsContext
 }
 
