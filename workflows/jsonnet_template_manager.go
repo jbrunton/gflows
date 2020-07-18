@@ -26,9 +26,9 @@ func NewJsonnetTemplateManager(container *di.Container) *JsonnetTemplateManager 
 	}
 }
 
-func (manager *JsonnetTemplateManager) GetWorkflowSources(context *config.GFlowsContext) []string {
+func (manager *JsonnetTemplateManager) GetWorkflowSources() []string {
 	files := []string{}
-	err := manager.fs.Walk(context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
+	err := manager.fs.Walk(manager.context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
 		ext := filepath.Ext(path)
 		if ext == ".jsonnet" || ext == ".libsonnet" {
 			files = append(files, path)
@@ -43,8 +43,8 @@ func (manager *JsonnetTemplateManager) GetWorkflowSources(context *config.GFlows
 	return files
 }
 
-func (manager *JsonnetTemplateManager) GetWorkflowTemplates(context *config.GFlowsContext) []string {
-	sources := manager.GetWorkflowSources(context)
+func (manager *JsonnetTemplateManager) GetWorkflowTemplates() []string {
+	sources := manager.GetWorkflowSources()
 	var templates []string
 	for _, source := range sources {
 		if filepath.Ext(source) == ".jsonnet" {
@@ -56,7 +56,7 @@ func (manager *JsonnetTemplateManager) GetWorkflowTemplates(context *config.GFlo
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
 func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
-	templates := manager.GetWorkflowTemplates(manager.context)
+	templates := manager.GetWorkflowTemplates()
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
 		vm := createVM(manager.context)

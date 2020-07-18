@@ -33,10 +33,10 @@ type WorkflowDefinition struct {
 type TemplateManager interface {
 	// GetWorkflowSources - returns a list of all the files (i.e. templates + library files) used
 	// to generate workflows.
-	GetWorkflowSources(context *config.GFlowsContext) []string
+	GetWorkflowSources() []string
 
 	// GetWorkflowTemplates - returns a list of all the templates used to generator workflows.
-	GetWorkflowTemplates(context *config.GFlowsContext) []string
+	GetWorkflowTemplates() []string
 
 	// GetWorkflowDefinitions - returns definitions generated from workflow templates.
 	GetWorkflowDefinitions() ([]*WorkflowDefinition, error)
@@ -49,6 +49,11 @@ type WorkflowManager struct {
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
 	TemplateManager
+}
+
+type GitHubWorkflow struct {
+	path       string
+	definition *WorkflowDefinition
 }
 
 func NewWorkflowManager(container *di.Container) *WorkflowManager {
@@ -74,6 +79,34 @@ func createVM(context *config.GFlowsContext) *jsonnet.VM {
 	})
 	vm.StringOutput = true
 	return vm
+}
+
+func (manager *WorkflowManager) GetWorkflows() []GitHubWorkflow {
+	files := []string{}
+	files, err := afero.Glob(manager.fs, filepath.Join(manager.context.GitHubDir, "workflows/*.yml"))
+	if err != nil {
+		panic(err)
+	}
+
+	definitions, err := manager.GetWorkflowDefinitions()
+	if err != nil {
+		panic(err) // TODO: improve handling
+	}
+
+	var workflows []GitHubWorkflow
+
+	for _, file := range files {
+		workflow := GitHubWorkflow{path: file}
+		for _, definition := range definitions {
+			if definition.Destination == file {
+				workflow.definition = definition
+				break
+			}
+		}
+		workflows = append(workflows, workflow)
+	}
+
+	return workflows
 }
 
 // UpdateWorkflows - update workflow files for the given context
