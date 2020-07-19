@@ -64,6 +64,47 @@ func TestValidateSchemaMissingField(t *testing.T) {
 	assert.Equal(t, []string{"(root): jobs is required"}, result.Errors)
 }
 
+func TestValidateContentEnabledFlags(t *testing.T) {
+	scenarios := []struct {
+		config         string
+		workflow       string
+		expectedResult ValidationResult
+	}{
+		{
+			config: strings.Join([]string{
+				"defaults:",
+				"  checks:",
+				"    content:",
+				"      enabled: false",
+			}, "\n"),
+			workflow: "",
+			expectedResult: ValidationResult{
+				Valid:  true,
+				Errors: []string{"Content checks disabled for test, skipping"},
+			},
+		},
+		{
+			config: strings.Join([]string{
+				"defaults:",
+				"  checks:",
+				"    content:",
+				"      enabled: true",
+			}, "\n"),
+			workflow: "",
+			expectedResult: ValidationResult{
+				Valid:  false,
+				Errors: []string{`Workflow missing for "test" (expected workflow at .github/workflows/test.yml)`},
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		_, validator, definition := setupValidator(exampleTemplate, scenario.config)
+		result := validator.ValidateContent(definition)
+		assert.Equal(t, scenario.expectedResult, result)
+	}
+}
+
 func TestValidateSchemaEnabledFlags(t *testing.T) {
 	scenarios := []struct {
 		config         string
