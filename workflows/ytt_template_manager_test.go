@@ -49,6 +49,7 @@ func TestGetYttWorkflowTemplates(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte("ignored"), 0644)
 	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte("ignored"), 0644)
 	fs.WriteFile(".gflows/workflows/another-workflow/config.yml", []byte("config"), 0644)
+	fs.WriteFile(".gflows/workflows/jsonnet/foo.jsonnet", []byte("jsonnet"), 0644)
 	templateManager := NewYttTemplateManager(fs, container.Logger(), context)
 
 	templates := templateManager.GetWorkflowTemplates()

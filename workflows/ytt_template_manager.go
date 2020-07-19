@@ -29,9 +29,9 @@ func NewYttTemplateManager(fs *afero.Afero, logger *adapters.Logger, context *co
 	}
 }
 
-func (manager *YttTemplateManager) GetWorkflowSources() []string {
+func (manager *YttTemplateManager) getWorkflowSourcesInDir(dir string) []string {
 	files := []string{}
-	err := manager.fs.Walk(manager.context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
+	err := manager.fs.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if filepath.Dir(path) == manager.context.WorkflowsDir {
 			// ignore files in the top level workflows dir, as we need them to be in a nested directory to infer the template name
 			return nil
@@ -48,6 +48,10 @@ func (manager *YttTemplateManager) GetWorkflowSources() []string {
 	}
 
 	return files
+}
+
+func (manager *YttTemplateManager) GetWorkflowSources() []string {
+	return manager.getWorkflowSourcesInDir(manager.context.WorkflowsDir)
 }
 
 func (manager *YttTemplateManager) GetWorkflowTemplates() []string {
@@ -70,7 +74,11 @@ func (manager *YttTemplateManager) GetWorkflowTemplates() []string {
 			panic(err)
 		}
 		if isDir {
-			templates = append(templates, path)
+			sources := manager.getWorkflowSourcesInDir(path)
+			if len(sources) > 0 {
+				// only add directories with genuine source files
+				templates = append(templates, path)
+			}
 		}
 	}
 	return templates
