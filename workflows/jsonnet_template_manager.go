@@ -60,7 +60,7 @@ func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefi
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
 		vm := createVM(manager.context)
-		workflowName := getWorkflowName(manager.context.WorkflowsDir, templatePath)
+		workflowName := manager.getWorkflowName(manager.context.WorkflowsDir, templatePath)
 		input, err := manager.fs.ReadFile(templatePath)
 		if err != nil {
 			return []*WorkflowDefinition{}, err
@@ -89,6 +89,11 @@ func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefi
 	}
 
 	return definitions, nil
+}
+
+func (manager *JsonnetTemplateManager) getWorkflowName(workflowsDir string, filename string) string {
+	_, templateFileName := filepath.Split(filename)
+	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
 func createVM(context *config.GFlowsContext) *jsonnet.VM {
