@@ -7,7 +7,6 @@ import (
 
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/di"
 	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/cobra"
 )
@@ -43,12 +42,16 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 	return sourceFs
 }
 
-func NewTestContext(cmd *cobra.Command, configString string) (*di.Container, *bytes.Buffer) {
-	out := new(bytes.Buffer)
+func NewTestContext(configString string) (*adapters.Container, *config.GFlowsContext, *bytes.Buffer) {
 	fs := adapters.CreateMemFs()
-	fs.WriteFile(".gflows/config.yml", []byte(configString), 0644)
-	context, _ := config.GetContext(fs, cmd)
-	return di.BuildContainer(fs, adapters.NewLogger(out), context), out
+	out := new(bytes.Buffer)
+	container := adapters.NewContainer(fs, adapters.NewLogger(out))
+
+	configPath := ".gflows/config.yml"
+	fs.WriteFile(configPath, []byte(configString), 0644)
+	context, _ := config.NewContext(fs, configPath)
+
+	return container, context, out
 }
 
 func NewTestCommand() *cobra.Command {
@@ -59,5 +62,5 @@ func NewTestCommand() *cobra.Command {
 
 // func NewTestContainer(context *config.GFlowsContext) (*di.Container, *bytes.Buffer) {
 // 	out := new(bytes.Buffer)
-// 	return di.BuildContainer(fs.CreateMemFs(), logs.NewLogger(out), context), out
+// 	return di.CreateContainer(fs.CreateMemFs(), logs.NewLogger(out), context), out
 // }

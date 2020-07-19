@@ -17,7 +17,7 @@ type GFlowsContext struct {
 	Config       *GFlowsConfig
 }
 
-func newContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
+func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
 	contextDir := filepath.Dir(configPath)
 
 	config, err := GetContextConfig(fs, configPath)
@@ -60,7 +60,7 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 		configPath = ".gflows/config.yml"
 	}
 
-	return newContext(fs, configPath)
+	return NewContext(fs, configPath)
 }
 
 func (context *GFlowsContext) EvalJPaths() []string {

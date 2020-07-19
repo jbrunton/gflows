@@ -8,10 +8,10 @@ import (
 )
 
 func TestGenerateWorkflowDefinitions(t *testing.T) {
-	container, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	container, context, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	templateManager := NewJsonnetTemplateManager(container)
+	templateManager := NewJsonnetTemplateManager(fs, container.Logger(), context)
 
 	definitions, err := templateManager.GetWorkflowDefinitions()
 

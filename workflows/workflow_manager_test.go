@@ -1,12 +1,34 @@
 package workflows
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
+	"github.com/jbrunton/gflows/content"
+	"github.com/spf13/afero"
+
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
 )
+
+func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
+	container, context, out := fixtures.NewTestContext("")
+	fs := container.FileSystem()
+	logger := adapters.NewLogger(out)
+	validator := NewWorkflowValidator(fs, context)
+	contentWriter := content.NewWriter(fs, logger)
+	templateManager := NewJsonnetTemplateManager(fs, logger, context)
+	return fs, out, NewWorkflowManager(
+		fs,
+		logger,
+		validator,
+		context,
+		contentWriter,
+		templateManager,
+	)
+}
 
 func TestGetWorkflowName(t *testing.T) {
 	assert.Equal(t, "my-workflow-1", getWorkflowName("/workflows", "/workflows/my-workflow-1.jsonnet"))
@@ -14,9 +36,7 @@ func TestGetWorkflowName(t *testing.T) {
 }
 
 func TestValidateWorkflows(t *testing.T) {
-	container, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
-	fs := container.FileSystem()
-	workflowManager := NewWorkflowManager(container)
+	fs, _, workflowManager := newTestWorkflowManager()
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
@@ -40,9 +60,7 @@ func TestValidateWorkflows(t *testing.T) {
 }
 
 func TestValidateWorkflowsOutput(t *testing.T) {
-	container, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
-	fs := container.FileSystem()
-	workflowManager := NewWorkflowManager(container)
+	fs, out, workflowManager := newTestWorkflowManager()
 
 	// invalid template
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
