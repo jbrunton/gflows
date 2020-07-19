@@ -194,10 +194,10 @@ func InitWorkflows(fs *afero.Afero, logger *adapters.Logger, context *config.GFl
 	generator := content.WorkflowGenerator{
 		Name: "gflows",
 		Sources: []string{
-			"/workflows/common/steps.libsonnet",
-			"/workflows/common/workflows.libsonnet",
-			"/workflows/config/git.libsonnet",
-			"/workflows/gflows.jsonnet",
+			"/jsonnet/workflows/common/steps.libsonnet",
+			"/jsonnet/workflows/common/workflows.libsonnet",
+			"/jsonnet/workflows/config/git.libsonnet",
+			"/jsonnet/workflows/gflows.jsonnet",
 			"/config.yml",
 		},
 	}
