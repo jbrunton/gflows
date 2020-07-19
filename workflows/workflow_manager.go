@@ -71,11 +71,6 @@ func NewWorkflowManager(
 	}
 }
 
-func getWorkflowName(workflowsDir string, filename string) string {
-	_, templateFileName := filepath.Split(filename)
-	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
-}
-
 func (manager *WorkflowManager) GetWorkflows() []GitHubWorkflow {
 	files := []string{}
 	files, err := afero.Glob(manager.fs, filepath.Join(manager.context.GitHubDir, "workflows/*.yml"))

@@ -9,18 +9,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupValidator(templateContent string, config string) (*afero.Afero, *WorkflowValidator, *WorkflowDefinition) {
+func setupValidator(workflowContent string, config string) (*afero.Afero, *WorkflowValidator, *WorkflowDefinition) {
 	container, context, _ := fixtures.NewTestContext(config)
 	fs := container.FileSystem()
-	WorkflowDefinition := newTestWorkflowDefinition("test", templateContent)
+	WorkflowDefinition := newTestWorkflowDefinition("test", workflowContent)
 	validator := NewWorkflowValidator(fs, context)
 	return fs, validator, WorkflowDefinition
 }
 
 func TestValidateContent(t *testing.T) {
-	fs, validator, definition := setupValidator(exampleTemplate, "")
+	workflowContent := exampleWorkflow("test")
+	fs, validator, definition := setupValidator(workflowContent, "")
 
-	fs.WriteFile(definition.Destination, []byte(exampleTemplate), 0644)
+	fs.WriteFile(definition.Destination, []byte(workflowContent), 0644)
 	result := validator.ValidateContent(definition)
 
 	assert.True(t, result.Valid)
@@ -28,7 +29,7 @@ func TestValidateContent(t *testing.T) {
 }
 
 func TestValidateContentMissing(t *testing.T) {
-	_, validator, definition := setupValidator(exampleTemplate, "")
+	_, validator, definition := setupValidator(exampleWorkflow("test"), "")
 
 	result := validator.ValidateContent(definition)
 
@@ -37,7 +38,7 @@ func TestValidateContentMissing(t *testing.T) {
 }
 
 func TestValidateContentOutOfDate(t *testing.T) {
-	fs, validator, definition := setupValidator(exampleTemplate, "")
+	fs, validator, definition := setupValidator(exampleWorkflow("test"), "")
 
 	fs.WriteFile(definition.Destination, []byte("incorrect content"), 0644)
 	result := validator.ValidateContent(definition)
@@ -99,7 +100,7 @@ func TestValidateContentEnabledFlags(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		_, validator, definition := setupValidator(exampleTemplate, scenario.config)
+		_, validator, definition := setupValidator(exampleWorkflow("test"), scenario.config)
 		result := validator.ValidateContent(definition)
 		assert.Equal(t, scenario.expectedResult, result)
 	}

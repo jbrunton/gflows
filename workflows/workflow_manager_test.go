@@ -30,11 +30,6 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	)
 }
 
-func TestGetWorkflowName(t *testing.T) {
-	assert.Equal(t, "my-workflow-1", getWorkflowName("/workflows", "/workflows/my-workflow-1.jsonnet"))
-	assert.Equal(t, "my-workflow-2", getWorkflowName("/workflows", "/workflows/workflows/my-workflow-2.jsonnet"))
-}
-
 func TestGetUnimportedWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
 	fs.WriteFile(".github/workflows/workflow.yml", []byte(exampleWorkflow("test")), 0644)
