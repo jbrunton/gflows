@@ -47,7 +47,7 @@ func TestValidateContentOutOfDate(t *testing.T) {
 }
 
 func TestValidateSchema(t *testing.T) {
-	_, validator, definition := setupValidator(exampleWorkflow, "")
+	_, validator, definition := setupValidator(exampleWorkflow("test"), "")
 
 	result := validator.ValidateSchema(definition)
 
