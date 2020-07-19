@@ -18,8 +18,7 @@ func newListWorkflowsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			container, err := buildContainer(cmd)
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
+				container.Logger().ExitWithError(err)
 			}
 
 			workflowManager := container.WorkflowManager()
@@ -65,14 +64,12 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			container, err := buildContainer(cmd)
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
+				container.Logger().ExitWithError(err)
 			}
 			workflowManager := container.WorkflowManager()
 			err = workflowManager.UpdateWorkflows()
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
+				container.Logger().ExitWithError(err)
 			}
 		},
 	}
@@ -85,8 +82,7 @@ func newInitCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			container, err := buildContainer(cmd)
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
+				container.Logger().ExitWithError(err)
 			}
 			workflows.InitWorkflows(container.FileSystem(), container.Logger(), container.Context())
 		},
@@ -112,8 +108,7 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			container, err := buildContainer(cmd)
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
+				container.Logger().ExitWithError(err)
 			}
 
 			watch, err := cmd.Flags().GetBool("watch")
@@ -149,8 +144,7 @@ func newWatchWorkflowsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			container, err := buildContainer(cmd)
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
+				container.Logger().ExitWithError(err)
 			}
 
 			workflowManager := container.WorkflowManager()
@@ -170,8 +164,7 @@ func newImportWorkflowsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			container, err := buildContainer(cmd)
 			if err != nil {
-				fmt.Println(styles.StyleError(err.Error()))
-				os.Exit(1)
+				container.Logger().ExitWithError(err)
 			}
 			manager := container.WorkflowManager()
 			manager.ImportWorkflows()
