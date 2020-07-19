@@ -1,0 +1,9 @@
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo Hello, World!
+"on":
+  push:
+    branches:
+    - develop

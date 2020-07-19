@@ -1,0 +1,11 @@
+#@ load("@ytt:data", "data")
+
+"jobs":
+  "test":
+    "runs-on": "ubuntu-latest"
+    "steps":
+    - "run": "echo Hello, World!"
+"on":
+  "push":
+    "branches":
+    - #@ data.values.main_branch

@@ -18,7 +18,7 @@ func (container *Container) Context() *config.GFlowsContext {
 
 func (container *Container) WorkflowManager() *WorkflowManager {
 	if container.workflowManager == nil {
-		templateManager := NewJsonnetTemplateManager(container.FileSystem(), container.Logger(), container.Context())
+		templateManager := NewYttTemplateManager(container.FileSystem(), container.Logger(), container.Context())
 		container.workflowManager = NewWorkflowManager(
 			container.FileSystem(),
 			container.Logger(),
