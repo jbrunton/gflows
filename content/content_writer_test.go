@@ -4,15 +4,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/fixtures"
 	_ "github.com/jbrunton/gflows/statik"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLogErrors(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext("")
-	writer := NewWriter(fs, adapters.NewLogger(out))
+	container, _, out := fixtures.NewTestContext("")
+	writer := NewWriter(container.FileSystem(), container.Logger())
 
 	writer.LogErrors("path/to/file", "error message", []string{"error details"})
 
@@ -21,46 +20,46 @@ func TestLogErrors(t *testing.T) {
 }
 
 func TestSafelyWriteFile(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext("")
-	writer := NewWriter(fs, adapters.NewLogger(out))
+	container, _, _ := fixtures.NewTestContext("")
+	writer := NewWriter(container.FileSystem(), container.Logger())
 
 	writer.SafelyWriteFile("path/to/file", "foobar")
 
-	actualContent, _ := fs.ReadFile("path/to/file")
+	actualContent, _ := container.FileSystem().ReadFile("path/to/file")
 	assert.Equal(t, "foobar", string(actualContent))
 }
 
 func TestUpdateFileContentCreate(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext("")
-	writer := NewWriter(fs, adapters.NewLogger(out))
+	container, _, out := fixtures.NewTestContext("")
+	writer := NewWriter(container.FileSystem(), container.Logger())
 
 	writer.UpdateFileContent("path/to/file", "foobar", "(baz)")
 
-	actualContent, _ := fs.ReadFile("path/to/file")
+	actualContent, _ := container.FileSystem().ReadFile("path/to/file")
 	assert.Equal(t, "foobar", string(actualContent))
 	assert.Equal(t, "     create path/to/file (baz)\n", out.String())
 }
 
 func TestUpdateFileContentUpdate(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext("")
-	writer := NewWriter(fs, adapters.NewLogger(out))
+	container, _, out := fixtures.NewTestContext("")
+	writer := NewWriter(container.FileSystem(), container.Logger())
 
 	writer.SafelyWriteFile("path/to/file", "foo")
 	writer.UpdateFileContent("path/to/file", "foobar", "(baz)")
 
-	actualContent, _ := fs.ReadFile("path/to/file")
+	actualContent, _ := container.FileSystem().ReadFile("path/to/file")
 	assert.Equal(t, "foobar", string(actualContent))
 	assert.Equal(t, "     update path/to/file (baz)\n", out.String())
 }
 
 func TestUpdateFileContentIdentical(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext("")
-	writer := NewWriter(fs, adapters.NewLogger(out))
+	container, _, out := fixtures.NewTestContext("")
+	writer := NewWriter(container.FileSystem(), container.Logger())
 
 	writer.SafelyWriteFile("path/to/file", "foobar")
 	writer.UpdateFileContent("path/to/file", "foobar", "(baz)")
 
-	actualContent, _ := fs.ReadFile("path/to/file")
+	actualContent, _ := container.FileSystem().ReadFile("path/to/file")
 	assert.Equal(t, "foobar", string(actualContent))
 	assert.Equal(t, "  identical path/to/file (baz)\n", out.String())
 }
@@ -76,8 +75,8 @@ func TestApplyGenerator(t *testing.T) {
 		Sources: []string{"/foo.txt", "/bar.txt"},
 	}
 
-	fs, context, out := fixtures.NewTestContext("")
-	writer := NewWriter(fs, adapters.NewLogger(out))
+	container, context, out := fixtures.NewTestContext("")
+	writer := NewWriter(container.FileSystem(), container.Logger())
 	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
 
 	// act
@@ -89,9 +88,9 @@ func TestApplyGenerator(t *testing.T) {
 		"     update .gflows/bar.txt\n",
 	}, "\n"), out.String())
 
-	fooContent, _ := fs.ReadFile(".gflows/foo.txt")
+	fooContent, _ := container.FileSystem().ReadFile(".gflows/foo.txt")
 	assert.Equal(t, "foo", string(fooContent))
 
-	barContent, _ := fs.ReadFile(".gflows/bar.txt")
+	barContent, _ := container.FileSystem().ReadFile(".gflows/bar.txt")
 	assert.Equal(t, "bar", string(barContent))
 }

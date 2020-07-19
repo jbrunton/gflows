@@ -8,7 +8,6 @@ import (
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	statikFs "github.com/rakyll/statik/fs"
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -43,13 +42,16 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 	return sourceFs
 }
 
-func NewTestContext(configString string) (*afero.Afero, *config.GFlowsContext, *bytes.Buffer) {
-	out := new(bytes.Buffer)
+func NewTestContext(configString string) (*adapters.Container, *config.GFlowsContext, *bytes.Buffer) {
 	fs := adapters.CreateMemFs()
+	out := new(bytes.Buffer)
+	container := adapters.NewContainer(fs, adapters.NewLogger(out))
+
 	configPath := ".gflows/config.yml"
 	fs.WriteFile(configPath, []byte(configString), 0644)
 	context, _ := config.NewContext(fs, configPath)
-	return fs, context, out
+
+	return container, context, out
 }
 
 func NewTestCommand() *cobra.Command {
