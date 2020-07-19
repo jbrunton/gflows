@@ -1,11 +1,25 @@
 #@ load("@ytt:data", "data")
 
-"jobs":
-  "test":
-    "runs-on": "ubuntu-latest"
-    "steps":
-    - "run": "echo Hello, World!"
+name: gflows
+
 "on":
-  "push":
-    "branches":
+  pull_request:
+    branches:
     - #@ data.values.main_branch
+  push:
+    branches:
+    - #@ data.values.main_branch
+
+jobs:
+  check_workflows:
+    name: check-workflows
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: "^1.14.4"
+    - name: install gflows
+      run: go get github.com/jbrunton/gflows
+    - name: validate workflows
+      run: gflows check
