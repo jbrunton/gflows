@@ -59,8 +59,3 @@ func NewTestCommand() *cobra.Command {
 	cmd.Flags().String("config", "", "")
 	return cmd
 }
-
-// func NewTestContainer(context *config.GFlowsContext) (*di.Container, *bytes.Buffer) {
-// 	out := new(bytes.Buffer)
-// 	return di.CreateContainer(fs.CreateMemFs(), logs.NewLogger(out), context), out
-// }

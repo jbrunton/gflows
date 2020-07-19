@@ -37,7 +37,7 @@ func TestGetWorkflowName(t *testing.T) {
 
 func TestGetUnimportedWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
-	fs.WriteFile(".github/workflows/workflow.yml", []byte(exampleWorkflow), 0644)
+	fs.WriteFile(".github/workflows/workflow.yml", []byte(exampleWorkflow("test")), 0644)
 
 	workflows := workflowManager.GetWorkflows()
 
@@ -47,7 +47,7 @@ func TestGetUnimportedWorkflows(t *testing.T) {
 func TestGetImportedWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test")), 0644)
 
 	workflows := workflowManager.GetWorkflows()
 
@@ -57,7 +57,7 @@ func TestGetImportedWorkflows(t *testing.T) {
 			Name:        "test",
 			Source:      ".gflows/workflows/test.jsonnet",
 			Destination: ".github/workflows/test.yml",
-			Content:     exampleWorkflow,
+			Content:     exampleWorkflow("test"),
 			Status:      ValidationResult{Valid: true},
 		},
 	}
@@ -83,7 +83,7 @@ func TestValidateWorkflows(t *testing.T) {
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, up to date workflow
-	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test")), 0644)
 	err = workflowManager.ValidateWorkflows(false)
 	assert.NoError(t, err)
 }
@@ -104,7 +104,7 @@ func TestValidateWorkflowsOutput(t *testing.T) {
 	workflowManager.ValidateWorkflows(false)
 
 	// valid template, up to date workflow
-	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test")), 0644)
 	workflowManager.ValidateWorkflows(false)
 
 	expected := `
@@ -122,4 +122,23 @@ Checking [1mtest[0m ... [1;31mFAILED[0m
 Checking [1mtest[0m ... [1;32mOK[0m
 `
 	assert.Equal(t, strings.TrimLeft(expected, "\n"), out.String())
+}
+
+func TestUpdateWorkflows(t *testing.T) {
+	fs, out, workflowManager := newTestWorkflowManager()
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test2.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte("out of date workflow"), 0644)
+
+	err := workflowManager.UpdateWorkflows()
+
+	assert.NoError(t, err)
+	assert.Equal(t, strings.Join([]string{
+		"     update .github/workflows/test.yml (from .gflows/workflows/test.jsonnet)",
+		"     create .github/workflows/test2.yml (from .gflows/workflows/test2.jsonnet)",
+	}, "\n")+"\n", out.String())
+	testContent, _ := fs.ReadFile(".github/workflows/test.yml")
+	assert.Equal(t, exampleWorkflow("test"), string(testContent))
+	test2Content, _ := fs.ReadFile(".github/workflows/test2.yml")
+	assert.Equal(t, exampleWorkflow("test2"), string(test2Content))
 }

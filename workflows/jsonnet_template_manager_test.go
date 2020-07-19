@@ -19,5 +19,5 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 	assert.Len(t, definitions, 1)
 	assert.Equal(t, ".gflows/workflows/test.jsonnet", definitions[0].Source)
 	assert.Equal(t, ".github/workflows/test.yml", definitions[0].Destination)
-	assert.Equal(t, definitions[0].Content, exampleWorkflow)
+	assert.Equal(t, definitions[0].Content, exampleWorkflow("test"))
 }
