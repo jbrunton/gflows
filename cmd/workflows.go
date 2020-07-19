@@ -16,7 +16,7 @@ func newListWorkflowsCmd() *cobra.Command {
 		Use:   "ls",
 		Short: "List workflows",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := BuildContainer(cmd)
+			container, err := CreateContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -63,7 +63,7 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Updates workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := BuildContainer(cmd)
+			container, err := CreateContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -83,7 +83,7 @@ func newInitCmd() *cobra.Command {
 		Use:   "init",
 		Short: "Setup config and templates for first time use",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := BuildContainer(cmd)
+			container, err := CreateContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -111,7 +111,7 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		Use:   "check",
 		Short: "Check workflow files are up to date",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := BuildContainer(cmd)
+			container, err := CreateContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -147,7 +147,7 @@ func newWatchWorkflowsCmd() *cobra.Command {
 		Use:   "watch",
 		Short: "Alias for check --watch --show-diffs",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := BuildContainer(cmd)
+			container, err := CreateContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -167,7 +167,7 @@ func newImportWorkflowsCmd() *cobra.Command {
 		Use:   "import",
 		Short: "Import workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := BuildContainer(cmd)
+			container, err := CreateContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)

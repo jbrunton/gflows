@@ -19,17 +19,16 @@ func (container *Container) Logger() *Logger {
 	return container.logger
 }
 
-func NewContainer() *Container {
-	fs := CreateOsFs()
-	return BuildContainer(
-		fs,
-		NewLogger(os.Stdout),
-	)
-}
-
-func BuildContainer(fs *afero.Afero, logger *Logger) *Container {
+func NewContainer(fs *afero.Afero, logger *Logger) *Container {
 	return &Container{
 		fileSystem: fs,
 		logger:     logger,
 	}
+}
+
+func CreateContainer() *Container {
+	return NewContainer(
+		CreateOsFs(),
+		NewLogger(os.Stdout),
+	)
 }

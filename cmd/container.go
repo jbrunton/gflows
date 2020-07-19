@@ -8,25 +8,15 @@ import (
 
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
 type Container struct {
-	fileSystem        *afero.Afero
-	logger            *adapters.Logger
+	*adapters.Container
 	context           *config.GFlowsContext
 	workflowManager   *workflows.WorkflowManager
 	workflowValidator *workflows.WorkflowValidator
 	watcher           *workflows.Watcher
-}
-
-func (container *Container) FileSystem() *afero.Afero {
-	return container.fileSystem
-}
-
-func (container *Container) Logger() *adapters.Logger {
-	return container.logger
 }
 
 func (container *Container) Context() *config.GFlowsContext {
@@ -45,7 +35,8 @@ func (container *Container) Watcher() *workflows.Watcher {
 	return container.watcher
 }
 
-func BuildContainer(cmd *cobra.Command) (*Container, error) {
+func CreateContainer(cmd *cobra.Command) (*Container, error) {
+	adaptersContainer := adapters.CreateContainer()
 	fs := adapters.CreateOsFs()
 	context, err := config.GetContext(fs, cmd)
 	if err != nil {
@@ -58,19 +49,10 @@ func BuildContainer(cmd *cobra.Command) (*Container, error) {
 	workflowManager := workflows.NewWorkflowManager(fs, logger, workflowValidator, context, contentWriter, templateManager)
 	watcher := workflows.NewWatcher(workflowManager, context)
 	return &Container{
-		fileSystem:        fs,
-		logger:            adapters.NewLogger(os.Stdout),
+		Container:         adaptersContainer,
 		context:           context,
 		workflowManager:   workflowManager,
 		workflowValidator: workflowValidator,
 		watcher:           watcher,
 	}, nil
 }
-
-// func BuildContainer(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *Container {
-// 	return &Container{
-// 		fileSystem: fs,
-// 		logger:     logger,
-// 		context:    context,
-// 	}
-// }
