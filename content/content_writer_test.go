@@ -11,7 +11,7 @@ import (
 )
 
 func TestLogErrors(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs, _, out := fixtures.NewTestContext("")
 	writer := NewWriter(fs, adapters.NewLogger(out))
 
 	writer.LogErrors("path/to/file", "error message", []string{"error details"})
@@ -21,7 +21,7 @@ func TestLogErrors(t *testing.T) {
 }
 
 func TestSafelyWriteFile(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs, _, out := fixtures.NewTestContext("")
 	writer := NewWriter(fs, adapters.NewLogger(out))
 
 	writer.SafelyWriteFile("path/to/file", "foobar")
@@ -31,7 +31,7 @@ func TestSafelyWriteFile(t *testing.T) {
 }
 
 func TestUpdateFileContentCreate(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs, _, out := fixtures.NewTestContext("")
 	writer := NewWriter(fs, adapters.NewLogger(out))
 
 	writer.UpdateFileContent("path/to/file", "foobar", "(baz)")
@@ -42,7 +42,7 @@ func TestUpdateFileContentCreate(t *testing.T) {
 }
 
 func TestUpdateFileContentUpdate(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs, _, out := fixtures.NewTestContext("")
 	writer := NewWriter(fs, adapters.NewLogger(out))
 
 	writer.SafelyWriteFile("path/to/file", "foo")
@@ -54,7 +54,7 @@ func TestUpdateFileContentUpdate(t *testing.T) {
 }
 
 func TestUpdateFileContentIdentical(t *testing.T) {
-	fs, _, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs, _, out := fixtures.NewTestContext("")
 	writer := NewWriter(fs, adapters.NewLogger(out))
 
 	writer.SafelyWriteFile("path/to/file", "foobar")
@@ -76,7 +76,7 @@ func TestApplyGenerator(t *testing.T) {
 		Sources: []string{"/foo.txt", "/bar.txt"},
 	}
 
-	fs, context, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs, context, out := fixtures.NewTestContext("")
 	writer := NewWriter(fs, adapters.NewLogger(out))
 	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
 

@@ -14,7 +14,7 @@ import (
 )
 
 func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
-	fs, context, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+	fs, context, out := fixtures.NewTestContext("")
 	logger := adapters.NewLogger(out)
 	validator := NewWorkflowValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)

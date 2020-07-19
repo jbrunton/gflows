@@ -43,11 +43,12 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 	return sourceFs
 }
 
-func NewTestContext(cmd *cobra.Command, configString string) (*afero.Afero, *config.GFlowsContext, *bytes.Buffer) {
+func NewTestContext(configString string) (*afero.Afero, *config.GFlowsContext, *bytes.Buffer) {
 	out := new(bytes.Buffer)
 	fs := adapters.CreateMemFs()
-	fs.WriteFile(".gflows/config.yml", []byte(configString), 0644)
-	context, _ := config.GetContext(fs, cmd)
+	configPath := ".gflows/config.yml"
+	fs.WriteFile(configPath, []byte(configString), 0644)
+	context, _ := config.NewContext(fs, configPath)
 	return fs, context, out
 }
 

@@ -10,7 +10,7 @@ import (
 )
 
 func setupValidator(templateContent string, config string) (*afero.Afero, *WorkflowValidator, *WorkflowDefinition) {
-	fs, context, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), config)
+	fs, context, _ := fixtures.NewTestContext(config)
 	WorkflowDefinition := newTestWorkflowDefinition("test", templateContent)
 	validator := NewWorkflowValidator(fs, context)
 	return fs, validator, WorkflowDefinition
