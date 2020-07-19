@@ -15,7 +15,6 @@ import (
 	"github.com/logrusorgru/aurora"
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
-	"github.com/google/go-jsonnet"
 	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 )
@@ -69,15 +68,6 @@ func NewWorkflowManager(container *di.Container) *WorkflowManager {
 func getWorkflowName(workflowsDir string, filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
-}
-
-func createVM(context *config.GFlowsContext) *jsonnet.VM {
-	vm := jsonnet.MakeVM()
-	vm.Importer(&jsonnet.FileImporter{
-		JPaths: context.EvalJPaths(),
-	})
-	vm.StringOutput = true
-	return vm
 }
 
 func (manager *WorkflowManager) GetWorkflows() []GitHubWorkflow {

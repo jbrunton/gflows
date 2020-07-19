@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/di"
@@ -89,4 +90,13 @@ func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefi
 	}
 
 	return definitions, nil
+}
+
+func createVM(context *config.GFlowsContext) *jsonnet.VM {
+	vm := jsonnet.MakeVM()
+	vm.Importer(&jsonnet.FileImporter{
+		JPaths: context.EvalJPaths(),
+	})
+	vm.StringOutput = true
+	return vm
 }
