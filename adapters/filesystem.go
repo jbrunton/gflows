@@ -1,4 +1,4 @@
-package fs
+package adapters
 
 import "github.com/spf13/afero"
 

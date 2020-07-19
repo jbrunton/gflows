@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/jbrunton/gflows/fixtures"
@@ -38,8 +39,8 @@ func TestValidateWorkflows(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func ExampleValidateWorkflows() {
-	container, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
+func TestValidateWorkflowsOutput(t *testing.T) {
+	container, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 	fs := container.FileSystem()
 	workflowManager := NewWorkflowManager(container)
 
@@ -59,17 +60,19 @@ func ExampleValidateWorkflows() {
 	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
 	workflowManager.ValidateWorkflows(false)
 
-	// Output:
-	// Checking [1mtest[0m ... [1;31mFAILED[0m
-	//   Schema validation failed:
-	//   ► (root): jobs is required
-	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
-	// Checking [1mtest[0m ... [1;31mFAILED[0m
-	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
-	// Checking [1mtest[0m ... [1;31mFAILED[0m
-	//   Content is out of date for "test" (.github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
-	// Checking [1mtest[0m ... [1;32mOK[0m
+	expected := `
+Checking [1mtest[0m ... [1;31mFAILED[0m
+  Schema validation failed:
+  ► (root): jobs is required
+  Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
+  ► Run "gflows workflow update" to update
+Checking [1mtest[0m ... [1;31mFAILED[0m
+  Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
+  ► Run "gflows workflow update" to update
+Checking [1mtest[0m ... [1;31mFAILED[0m
+  Content is out of date for "test" (.github/workflows/test.yml)
+  ► Run "gflows workflow update" to update
+Checking [1mtest[0m ... [1;32mOK[0m
+`
+	assert.Equal(t, strings.TrimLeft(expected, "\n"), out.String())
 }

@@ -6,15 +6,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/go-jsonnet"
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/di"
-	"github.com/jbrunton/gflows/logs"
 	"github.com/spf13/afero"
 )
 
 type JsonnetTemplateManager struct {
 	fs      *afero.Afero
-	logger  *logs.Logger
+	logger  *adapters.Logger
 	context *config.GFlowsContext
 }
 
@@ -26,9 +27,9 @@ func NewJsonnetTemplateManager(container *di.Container) *JsonnetTemplateManager 
 	}
 }
 
-func (manager *JsonnetTemplateManager) GetWorkflowSources(context *config.GFlowsContext) []string {
+func (manager *JsonnetTemplateManager) GetWorkflowSources() []string {
 	files := []string{}
-	err := manager.fs.Walk(context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
+	err := manager.fs.Walk(manager.context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
 		ext := filepath.Ext(path)
 		if ext == ".jsonnet" || ext == ".libsonnet" {
 			files = append(files, path)
@@ -43,8 +44,8 @@ func (manager *JsonnetTemplateManager) GetWorkflowSources(context *config.GFlows
 	return files
 }
 
-func (manager *JsonnetTemplateManager) GetWorkflowTemplates(context *config.GFlowsContext) []string {
-	sources := manager.GetWorkflowSources(context)
+func (manager *JsonnetTemplateManager) GetWorkflowTemplates() []string {
+	sources := manager.GetWorkflowSources()
 	var templates []string
 	for _, source := range sources {
 		if filepath.Ext(source) == ".jsonnet" {
@@ -56,7 +57,7 @@ func (manager *JsonnetTemplateManager) GetWorkflowTemplates(context *config.GFlo
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
 func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
-	templates := manager.GetWorkflowTemplates(manager.context)
+	templates := manager.GetWorkflowTemplates()
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
 		vm := createVM(manager.context)
@@ -89,4 +90,13 @@ func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefi
 	}
 
 	return definitions, nil
+}
+
+func createVM(context *config.GFlowsContext) *jsonnet.VM {
+	vm := jsonnet.MakeVM()
+	vm.Importer(&jsonnet.FileImporter{
+		JPaths: context.EvalJPaths(),
+	})
+	vm.StringOutput = true
+	return vm
 }

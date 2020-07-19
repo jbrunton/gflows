@@ -129,7 +129,9 @@ func newCheckWorkflowsCmd() *cobra.Command {
 			}
 
 			if watch {
-				workflows.WatchWorkflows(container, func() {
+				manager := workflows.NewWorkflowManager(container)
+				watcher := workflows.NewWatcher(manager, container.Context())
+				watcher.WatchWorkflows(func() {
 					checkWorkflows(container, watch, showDiff)
 				})
 			} else {
@@ -153,7 +155,9 @@ func newWatchWorkflowsCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			workflows.WatchWorkflows(container, func() {
+			manager := workflows.NewWorkflowManager(container)
+			watcher := workflows.NewWatcher(manager, container.Context())
+			watcher.WatchWorkflows(func() {
 				checkWorkflows(container, true, true)
 			})
 		},
@@ -171,7 +175,8 @@ func newImportWorkflowsCmd() *cobra.Command {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			workflows.ImportWorkflows(container)
+			manager := workflows.NewWorkflowManager(container)
+			manager.ImportWorkflows()
 		},
 	}
 }

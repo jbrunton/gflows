@@ -7,34 +7,44 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/inancgumus/screen"
-	"github.com/jbrunton/gflows/di"
+	"github.com/jbrunton/gflows/config"
 )
 
-func getWatchFiles(container *di.Container) []string {
-	context := container.Context()
-	workflowManager := NewWorkflowManager(container)
-	files := workflowManager.GetWorkflowSources(context)
-	for _, workflow := range getWorkflows(container) {
+type Watcher struct {
+	manager *WorkflowManager
+	context *config.GFlowsContext
+}
+
+func NewWatcher(manager *WorkflowManager, context *config.GFlowsContext) *Watcher {
+	return &Watcher{
+		manager: manager,
+		context: context,
+	}
+}
+
+func (watcher *Watcher) getWatchFiles() []string {
+	files := watcher.manager.GetWorkflowSources()
+	for _, workflow := range watcher.manager.GetWorkflows() {
 		files = append(files, workflow.path)
 	}
 	return files
 }
 
 // WatchWorkflows - watch workflow files and invoke onChange on any changes
-func WatchWorkflows(container *di.Container, onChange func()) {
+func (watcher *Watcher) WatchWorkflows(onChange func()) {
 	log.Println("Watching workflows")
 
-	watcher, err := fsnotify.NewWatcher()
+	fswatcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer watcher.Close()
+	defer fswatcher.Close()
 
 	done := make(chan bool)
 	go func() {
 		for {
 			select {
-			case event, ok := <-watcher.Events:
+			case event, ok := <-fswatcher.Events:
 				if !ok {
 					return
 				}
@@ -44,7 +54,7 @@ func WatchWorkflows(container *di.Container, onChange func()) {
 					log.Println("modified file:", event.Name)
 					onChange()
 				}
-			case err, ok := <-watcher.Errors:
+			case err, ok := <-fswatcher.Errors:
 				if !ok {
 					return
 				}
@@ -57,11 +67,11 @@ func WatchWorkflows(container *di.Container, onChange func()) {
 	screen.MoveTopLeft()
 	log.Println("Watching workflow templates")
 
-	sources := getWatchFiles(container)
+	sources := watcher.getWatchFiles()
 
 	for _, source := range sources {
 		fmt.Println("  Watching", source)
-		err = watcher.Add(source)
+		err = fswatcher.Add(source)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)

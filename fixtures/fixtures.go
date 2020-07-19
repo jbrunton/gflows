@@ -5,10 +5,9 @@ import (
 	"bytes"
 	"net/http"
 
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/di"
-	"github.com/jbrunton/gflows/fs"
-	"github.com/jbrunton/gflows/logs"
 	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/cobra"
 )
@@ -46,10 +45,10 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 
 func NewTestContext(cmd *cobra.Command, configString string) (*di.Container, *bytes.Buffer) {
 	out := new(bytes.Buffer)
-	fs := fs.CreateMemFs()
+	fs := adapters.CreateMemFs()
 	fs.WriteFile(".gflows/config.yml", []byte(configString), 0644)
 	context, _ := config.GetContext(fs, cmd)
-	return di.BuildContainer(fs, logs.NewLogger(out), context), out
+	return di.BuildContainer(fs, adapters.NewLogger(out), context), out
 }
 
 func NewTestCommand() *cobra.Command {

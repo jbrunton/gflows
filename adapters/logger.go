@@ -1,4 +1,4 @@
-package logs
+package adapters
 
 import (
 	"bytes"
@@ -24,6 +24,10 @@ func (logger *Logger) Write(p []byte) (n int, err error) {
 
 func (logger *Logger) Println(a ...interface{}) (n int, err error) {
 	return fmt.Fprintln(logger.out, a...)
+}
+
+func (logger *Logger) Printf(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(logger.out, format, a...)
 }
 
 func (logger *Logger) Printfln(format string, a ...interface{}) (n int, err error) {
