@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/jbrunton/gflows/workflows"
 	"github.com/olekukonko/tablewriter"
@@ -17,18 +16,18 @@ func newListWorkflowsCmd() *cobra.Command {
 		Use:   "ls",
 		Short: "List workflows",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := di.NewContainer(cmd)
+			container, err := BuildContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
 
-			workflowManager := workflows.NewWorkflowManager(container)
+			workflowManager := container.WorkflowManager()
 			definitions, err := workflowManager.GetWorkflowDefinitions()
 			if err != nil {
 				panic(err)
 			}
-			validator := workflows.NewWorkflowValidator(container)
+			validator := container.WorkflowValidator()
 
 			table := tablewriter.NewWriter(container.Logger())
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})
@@ -64,12 +63,12 @@ func newUpdateWorkflowsCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Updates workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := di.NewContainer(cmd)
+			container, err := BuildContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			workflowManager := workflows.NewWorkflowManager(container)
+			workflowManager := container.WorkflowManager()
 			err = workflowManager.UpdateWorkflows()
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
@@ -84,18 +83,18 @@ func newInitCmd() *cobra.Command {
 		Use:   "init",
 		Short: "Setup config and templates for first time use",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := di.NewContainer(cmd)
+			container, err := BuildContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			workflows.InitWorkflows(container)
+			workflows.InitWorkflows(container.FileSystem(), container.Logger(), container.Context())
 		},
 	}
 }
 
-func checkWorkflows(container *di.Container, watch bool, showDiff bool) {
-	workflowManager := workflows.NewWorkflowManager(container)
+func checkWorkflows(container *Container, watch bool, showDiff bool) {
+	workflowManager := container.WorkflowManager()
 	err := workflowManager.ValidateWorkflows(showDiff)
 	if err != nil {
 		fmt.Println(styles.StyleError(err.Error()))
@@ -112,7 +111,7 @@ func newCheckWorkflowsCmd() *cobra.Command {
 		Use:   "check",
 		Short: "Check workflow files are up to date",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := di.NewContainer(cmd)
+			container, err := BuildContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
@@ -129,8 +128,7 @@ func newCheckWorkflowsCmd() *cobra.Command {
 			}
 
 			if watch {
-				manager := workflows.NewWorkflowManager(container)
-				watcher := workflows.NewWatcher(manager, container.Context())
+				watcher := container.Watcher()
 				watcher.WatchWorkflows(func() {
 					checkWorkflows(container, watch, showDiff)
 				})
@@ -149,14 +147,13 @@ func newWatchWorkflowsCmd() *cobra.Command {
 		Use:   "watch",
 		Short: "Alias for check --watch --show-diffs",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := di.NewContainer(cmd)
+			container, err := BuildContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
 
-			manager := workflows.NewWorkflowManager(container)
-			watcher := workflows.NewWatcher(manager, container.Context())
+			watcher := container.Watcher()
 			watcher.WatchWorkflows(func() {
 				checkWorkflows(container, true, true)
 			})
@@ -170,12 +167,12 @@ func newImportWorkflowsCmd() *cobra.Command {
 		Use:   "import",
 		Short: "Import workflow files",
 		Run: func(cmd *cobra.Command, args []string) {
-			container, err := di.NewContainer(cmd)
+			container, err := BuildContainer(cmd)
 			if err != nil {
 				fmt.Println(styles.StyleError(err.Error()))
 				os.Exit(1)
 			}
-			manager := workflows.NewWorkflowManager(container)
+			manager := container.WorkflowManager()
 			manager.ImportWorkflows()
 		},
 	}

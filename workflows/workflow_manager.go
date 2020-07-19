@@ -9,7 +9,6 @@ import (
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
-	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/diff"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/logrusorgru/aurora"
@@ -54,14 +53,21 @@ type GitHubWorkflow struct {
 	definition *WorkflowDefinition
 }
 
-func NewWorkflowManager(container *di.Container) *WorkflowManager {
+func NewWorkflowManager(
+	fs *afero.Afero,
+	logger *adapters.Logger,
+	validator *WorkflowValidator,
+	context *config.GFlowsContext,
+	contentWriter *content.Writer,
+	templateManager TemplateManager,
+) *WorkflowManager {
 	return &WorkflowManager{
-		fs:              container.FileSystem(),
-		logger:          container.Logger(),
-		validator:       NewWorkflowValidator(container),
-		context:         container.Context(),
-		contentWriter:   content.NewWriter(container),
-		TemplateManager: NewJsonnetTemplateManager(container),
+		fs:              fs,
+		logger:          logger,
+		validator:       validator,
+		context:         context,
+		contentWriter:   contentWriter,
+		TemplateManager: templateManager,
 	}
 }
 
@@ -189,7 +195,7 @@ func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 }
 
 // InitWorkflows - copies g3ops workflow sources to context directory
-func InitWorkflows(container *di.Container) {
+func InitWorkflows(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) {
 	generator := content.WorkflowGenerator{
 		Name: "gflows",
 		Sources: []string{
@@ -200,12 +206,12 @@ func InitWorkflows(container *di.Container) {
 			"/config.yml",
 		},
 	}
-	writer := content.NewWriter(container)
+	writer := content.NewWriter(fs, logger)
 	sourceFs, err := statikFs.New()
 	if err != nil {
-		err = writer.ApplyGenerator(sourceFs, container.Context(), generator)
+		err = writer.ApplyGenerator(sourceFs, context, generator)
 	}
 	if err != nil {
-		fmt.Println(styles.StyleError(err.Error()))
+		logger.Println(styles.StyleError(err.Error()))
 	}
 }

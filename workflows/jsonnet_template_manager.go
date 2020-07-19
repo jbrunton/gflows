@@ -9,7 +9,6 @@ import (
 	"github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/di"
 	"github.com/spf13/afero"
 )
 
@@ -19,11 +18,11 @@ type JsonnetTemplateManager struct {
 	context *config.GFlowsContext
 }
 
-func NewJsonnetTemplateManager(container *di.Container) *JsonnetTemplateManager {
+func NewJsonnetTemplateManager(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *JsonnetTemplateManager {
 	return &JsonnetTemplateManager{
-		fs:      container.FileSystem(),
-		logger:  container.Logger(),
-		context: container.Context(),
+		fs:      fs,
+		logger:  logger,
+		context: context,
 	}
 }
 

@@ -3,15 +3,15 @@ package workflows
 import (
 	"testing"
 
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateWorkflowDefinitions(t *testing.T) {
-	container, _ := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
-	fs := container.FileSystem()
+	fs, context, out := fixtures.NewTestContext(fixtures.NewTestCommand(), "")
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	templateManager := NewJsonnetTemplateManager(container)
+	templateManager := NewJsonnetTemplateManager(fs, adapters.NewLogger(out), context)
 
 	definitions, err := templateManager.GetWorkflowDefinitions()
 
