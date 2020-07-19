@@ -60,32 +60,19 @@ func TestValidateWorkflowsOutput(t *testing.T) {
 	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
 	workflowManager.ValidateWorkflows(false)
 
-	assert.Equal(t, strings.Join([]string{
-		`Checking [1mtest[0m ... [1;31mFAILED[0m`,
-		`  Schema validation failed:`,
-		`  ► (root): jobs is required`,
-		`  Workflow missing for "test" (expected workflow at .github/workflows/test.yml)`,
-		`  ► Run "gflows workflow update" to update`,
-		`Checking [1mtest[0m ... [1;31mFAILED[0m`,
-		`  Workflow missing for "test" (expected workflow at .github/workflows/test.yml)`,
-		`  ► Run "gflows workflow update" to update`,
-		`Checking [1mtest[0m ... [1;31mFAILED[0m`,
-		`  Content is out of date for "test" (.github/workflows/test.yml)`,
-		`  ► Run "gflows workflow update" to update`,
-		`Checking [1mtest[0m ... [1;32mOK[0m`,
-	}, "\n")+"\n", out.String())
-
-	// Output:
-	// Checking [1mtest[0m ... [1;31mFAILED[0m
-	//   Schema validation failed:
-	//   ► (root): jobs is required
-	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
-	// Checking [1mtest[0m ... [1;31mFAILED[0m
-	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
-	// Checking [1mtest[0m ... [1;31mFAILED[0m
-	//   Content is out of date for "test" (.github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
-	// Checking [1mtest[0m ... [1;32mOK[0m
+	expected := `
+Checking [1mtest[0m ... [1;31mFAILED[0m
+  Schema validation failed:
+  ► (root): jobs is required
+  Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
+  ► Run "gflows workflow update" to update
+Checking [1mtest[0m ... [1;31mFAILED[0m
+  Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
+  ► Run "gflows workflow update" to update
+Checking [1mtest[0m ... [1;31mFAILED[0m
+  Content is out of date for "test" (.github/workflows/test.yml)
+  ► Run "gflows workflow update" to update
+Checking [1mtest[0m ... [1;32mOK[0m
+`
+	assert.Equal(t, strings.TrimLeft(expected, "\n"), out.String())
 }
