@@ -12,11 +12,9 @@ import (
 )
 
 type Container struct {
-	*adapters.Container
-	context           *config.GFlowsContext
-	workflowManager   *workflows.WorkflowManager
-	workflowValidator *workflows.WorkflowValidator
-	watcher           *workflows.Watcher
+	*content.Container
+	context         *config.GFlowsContext
+	workflowManager *workflows.WorkflowManager
 }
 
 func (container *Container) Context() *config.GFlowsContext {
@@ -24,19 +22,29 @@ func (container *Container) Context() *config.GFlowsContext {
 }
 
 func (container *Container) WorkflowManager() *workflows.WorkflowManager {
+	if container.workflowManager == nil {
+		templateManager := workflows.NewJsonnetTemplateManager(container.FileSystem(), container.Logger(), container.Context())
+		container.workflowManager = workflows.NewWorkflowManager(
+			container.FileSystem(),
+			container.Logger(),
+			container.WorkflowValidator(),
+			container.Context(),
+			container.ContentWriter(),
+			templateManager)
+	}
 	return container.workflowManager
 }
 
 func (container *Container) WorkflowValidator() *workflows.WorkflowValidator {
-	return container.workflowValidator
+	return workflows.NewWorkflowValidator(container.FileSystem(), container.Context())
 }
 
 func (container *Container) Watcher() *workflows.Watcher {
-	return container.watcher
+	return workflows.NewWatcher(container.WorkflowManager(), container.Context())
 }
 
 func CreateContainer(cmd *cobra.Command) (*Container, error) {
-	adaptersContainer := adapters.CreateContainer()
+	parentContainer := content.CreateContainer()
 	fs := adapters.CreateOsFs()
 	context, err := config.GetContext(fs, cmd)
 	if err != nil {
@@ -47,12 +55,9 @@ func CreateContainer(cmd *cobra.Command) (*Container, error) {
 	templateManager := workflows.NewJsonnetTemplateManager(fs, logger, context)
 	workflowValidator := workflows.NewWorkflowValidator(fs, context)
 	workflowManager := workflows.NewWorkflowManager(fs, logger, workflowValidator, context, contentWriter, templateManager)
-	watcher := workflows.NewWatcher(workflowManager, context)
 	return &Container{
-		Container:         adaptersContainer,
-		context:           context,
-		workflowManager:   workflowManager,
-		workflowValidator: workflowValidator,
-		watcher:           watcher,
+		Container:       parentContainer,
+		context:         context,
+		workflowManager: workflowManager,
 	}, nil
 }
