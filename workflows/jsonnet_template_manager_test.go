@@ -13,13 +13,30 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 	templateManager := NewJsonnetTemplateManager(fs, container.Logger(), context)
 
-	definitions, err := templateManager.GetWorkflowDefinitions()
+	definitions, _ := templateManager.GetWorkflowDefinitions()
 
-	assert.NoError(t, err)
-	assert.Len(t, definitions, 1)
-	assert.Equal(t, ".gflows/workflows/test.jsonnet", definitions[0].Source)
-	assert.Equal(t, ".github/workflows/test.yml", definitions[0].Destination)
-	assert.Equal(t, definitions[0].Content, exampleWorkflow("test"))
+	expectedDefinition := WorkflowDefinition{
+		Name:        "test",
+		Source:      ".gflows/workflows/test.jsonnet",
+		Destination: ".github/workflows/test.yml",
+		Content:     exampleWorkflow("test"),
+		Status:      ValidationResult{Valid: true},
+	}
+	assert.Equal(t, []*WorkflowDefinition{&expectedDefinition}, definitions)
+}
+
+func TestGetWorkflowSources(t *testing.T) {
+	container, context, _ := fixtures.NewTestContext("")
+	fs := container.FileSystem()
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(exampleTemplate), 0644)
+	templateManager := NewJsonnetTemplateManager(fs, container.Logger(), context)
+
+	sources := templateManager.GetWorkflowSources()
+	templates := templateManager.GetWorkflowTemplates()
+
+	assert.Equal(t, []string{".gflows/workflows/test.jsonnet", ".gflows/workflows/test.libsonnet"}, sources)
+	assert.Equal(t, []string{".gflows/workflows/test.jsonnet"}, templates)
 }
 
 func TestGetWorkflowName(t *testing.T) {
