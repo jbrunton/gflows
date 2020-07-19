@@ -30,6 +30,7 @@ func TestGetWorkflowSources(t *testing.T) {
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
 	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(exampleTemplate), 0644)
 	templateManager := NewJsonnetTemplateManager(fs, container.Logger(), context)
 
 	sources := templateManager.GetWorkflowSources()
