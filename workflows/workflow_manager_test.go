@@ -35,6 +35,35 @@ func TestGetWorkflowName(t *testing.T) {
 	assert.Equal(t, "my-workflow-2", getWorkflowName("/workflows", "/workflows/workflows/my-workflow-2.jsonnet"))
 }
 
+func TestGetUnimportedWorkflows(t *testing.T) {
+	fs, _, workflowManager := newTestWorkflowManager()
+	fs.WriteFile(".github/workflows/workflow.yml", []byte(exampleWorkflow), 0644)
+
+	workflows := workflowManager.GetWorkflows()
+
+	assert.Equal(t, []GitHubWorkflow{GitHubWorkflow{path: ".github/workflows/workflow.yml"}}, workflows)
+}
+
+func TestGetImportedWorkflows(t *testing.T) {
+	fs, _, workflowManager := newTestWorkflowManager()
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow), 0644)
+
+	workflows := workflowManager.GetWorkflows()
+
+	expectedWorflow := GitHubWorkflow{
+		path: ".github/workflows/test.yml",
+		definition: &WorkflowDefinition{
+			Name:        "test",
+			Source:      ".gflows/workflows/test.jsonnet",
+			Destination: ".github/workflows/test.yml",
+			Content:     exampleWorkflow,
+			Status:      ValidationResult{Valid: true},
+		},
+	}
+	assert.Equal(t, []GitHubWorkflow{expectedWorflow}, workflows)
+}
+
 func TestValidateWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
 
