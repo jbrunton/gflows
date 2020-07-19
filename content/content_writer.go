@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
@@ -80,7 +81,7 @@ func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.G
 		}
 		defer file.Close()
 		content, err := ioutil.ReadAll(file)
-		destinationPath := filepath.Join(context.Dir, sourcePath)
+		destinationPath := filepath.Join(context.Dir, strings.TrimPrefix(sourcePath, "/jsonnet"))
 		if err != nil {
 			return err
 		}

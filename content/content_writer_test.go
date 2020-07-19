@@ -68,11 +68,11 @@ func TestApplyGenerator(t *testing.T) {
 	// arrange
 	sourceFs := fixtures.CreateTestFileSystem([]fixtures.File{
 		{Name: "foo.txt", Body: "foo"},
-		{Name: "bar.txt", Body: "bar"},
+		{Name: "jsonnet/bar.txt", Body: "bar"},
 	}, "TestApplyGenerator")
 	generator := WorkflowGenerator{
 		Name:    "foo",
-		Sources: []string{"/foo.txt", "/bar.txt"},
+		Sources: []string{"/foo.txt", "/jsonnet/bar.txt"},
 	}
 
 	container, context, out := fixtures.NewTestContext("")
