@@ -15,6 +15,7 @@ type GFlowsContext struct {
 	GitHubDir    string
 	WorkflowsDir string
 	Config       *GFlowsConfig
+	EnableColors bool
 }
 
 func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
@@ -41,6 +42,7 @@ func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
 		GitHubDir:    githubDir,
 		WorkflowsDir: workflowsDir,
 		Dir:          contextDir,
+		EnableColors: true,
 	}
 
 	return context, nil
