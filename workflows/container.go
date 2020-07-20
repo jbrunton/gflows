@@ -22,6 +22,7 @@ func (container *Container) WorkflowManager() *WorkflowManager {
 		container.workflowManager = NewWorkflowManager(
 			container.FileSystem(),
 			container.Logger(),
+			container.Styles(),
 			container.WorkflowValidator(),
 			container.Context(),
 			container.ContentWriter(),

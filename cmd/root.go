@@ -19,33 +19,36 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	rootCmd := NewRootCommand()
+	rootCmd := NewRootCommand(buildContainer)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Println(aurora.Red(err.Error()).Bold())
 		os.Exit(1)
 	}
 }
 
 // NewRootCommand creates a new root command
-func NewRootCommand() *cobra.Command {
+func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "gflows",
-		Short: "Generate GitHub workflows from jsonnet templates",
+		Use:           "gflows",
+		Short:         "Generate GitHub workflows from jsonnet templates",
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")
 
-	cmd.AddCommand(newListWorkflowsCmd())
-	cmd.AddCommand(newUpdateWorkflowsCmd())
-	cmd.AddCommand(newCheckWorkflowsCmd())
-	cmd.AddCommand(newWatchWorkflowsCmd())
-	cmd.AddCommand(newImportWorkflowsCmd())
-	cmd.AddCommand(newInitCmd())
+	cmd.AddCommand(newListWorkflowsCmd(containerFunc))
+	cmd.AddCommand(newUpdateWorkflowsCmd(containerFunc))
+	cmd.AddCommand(newCheckWorkflowsCmd(containerFunc))
+	cmd.AddCommand(newWatchWorkflowsCmd(containerFunc))
+	cmd.AddCommand(newImportWorkflowsCmd(containerFunc))
+	cmd.AddCommand(newInitCmd(containerFunc))
 
 	return cmd
 }
