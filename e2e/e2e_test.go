@@ -2,12 +2,12 @@ package e2e
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/jbrunton/gflows/styles"
+	"gopkg.in/yaml.v2"
 
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
@@ -18,7 +18,6 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/jbrunton/gflows/adapters"
 	_ "github.com/jbrunton/gflows/statik"
@@ -52,12 +51,22 @@ type e2eTestRunner struct {
 	test     *e2eTest
 }
 
-func newE2eTestRunner(testPath string, test *e2eTest) *e2eTestRunner {
+func newE2eTestRunner(osFs *afero.Afero, testPath string) *e2eTestRunner {
+	test := e2eTest{}
+	input, err := osFs.ReadFile(testPath)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(input, &test)
+	if err != nil {
+		panic(err)
+	}
+
 	return &e2eTestRunner{
 		testPath: testPath,
 		out:      new(bytes.Buffer),
 		fs:       adapters.CreateMemFs(),
-		test:     test,
+		test:     &test,
 	}
 }
 
@@ -135,28 +144,36 @@ func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*workflows.Cont
 	return workflows.NewContainer(contentContainer, context), nil
 }
 
-func TestE2e(t *testing.T) {
+func runTests(t *testing.T, glob string) {
 	osFs := adapters.CreateOsFs()
 
-	testFiles, err := afero.Glob(osFs, "./*/*.yml")
+	testFiles, err := afero.Glob(osFs, glob)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, testFile := range testFiles {
-		fmt.Printf("Starting test run for %s\n", testFile)
-
-		test := e2eTest{}
-		input, err := osFs.ReadFile(testFile)
-		if err != nil {
-			panic(err)
-		}
-		err = yaml.Unmarshal(input, &test)
-		if err != nil {
-			panic(err)
-		}
-
-		runner := newE2eTestRunner(testFile, &test)
+		runner := newE2eTestRunner(osFs, testFile)
 		runner.run(t)
 	}
+}
+
+func TestCheckCommand(t *testing.T) {
+	runTests(t, "./check/*.yml")
+}
+
+func TestImportCommand(t *testing.T) {
+	runTests(t, "./import/*.yml")
+}
+
+func TestInitCommand(t *testing.T) {
+	runTests(t, "./init/*.yml")
+}
+
+func TestListCommand(t *testing.T) {
+	runTests(t, "./ls/*.yml")
+}
+
+func TestUpdateCommand(t *testing.T) {
+	runTests(t, "./update/*.yml")
 }
