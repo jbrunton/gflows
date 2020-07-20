@@ -2,12 +2,12 @@ package e2e
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/jbrunton/gflows/styles"
+	"gopkg.in/yaml.v2"
 
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
@@ -18,7 +18,6 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/jbrunton/gflows/adapters"
 	_ "github.com/jbrunton/gflows/statik"
@@ -46,24 +45,47 @@ type e2eTest struct {
 }
 
 type e2eTestRunner struct {
-	testPath string
-	out      *bytes.Buffer
-	fs       *afero.Afero
-	test     *e2eTest
+	testPath  string
+	test      *e2eTest
+	useMemFs  bool
+	out       *bytes.Buffer
+	container *content.Container
 }
 
-func newE2eTestRunner(testPath string, test *e2eTest) *e2eTestRunner {
+func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool) *e2eTestRunner {
+	test := e2eTest{}
+	input, err := osFs.ReadFile(testPath)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(input, &test)
+	if err != nil {
+		panic(err)
+	}
+
+	var fs *afero.Afero
+	if useMemFs {
+		fs = adapters.CreateMemFs()
+	} else {
+		fs = osFs
+	}
+
+	out := new(bytes.Buffer)
+	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(out), styles.NewStyles(false))
+	contentContainer := content.NewContainer(adaptersContainer)
+
 	return &e2eTestRunner{
-		testPath: testPath,
-		out:      new(bytes.Buffer),
-		fs:       adapters.CreateMemFs(),
-		test:     test,
+		testPath:  testPath,
+		test:      &test,
+		useMemFs:  useMemFs,
+		out:       out,
+		container: contentContainer,
 	}
 }
 
 func (runner *e2eTestRunner) setup() error {
 	for _, file := range runner.test.Setup.Files {
-		err := runner.fs.WriteFile(file.Path, []byte(file.Content), 0644)
+		err := runner.container.ContentWriter().SafelyWriteFile(file.Path, file.Content)
 		if err != nil {
 			return err
 		}
@@ -72,6 +94,22 @@ func (runner *e2eTestRunner) setup() error {
 }
 
 func (runner *e2eTestRunner) run(t *testing.T) {
+	fs := runner.container.FileSystem()
+	if !runner.useMemFs {
+		tmpDir, err := fs.TempDir("", "gflows-e2e")
+		if err != nil {
+			panic(err)
+		}
+		defer fs.RemoveAll(tmpDir)
+
+		cd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		os.Chdir(tmpDir)
+		defer os.Chdir(cd)
+	}
+
 	err := runner.setup()
 	if err != nil {
 		panic(err)
@@ -89,21 +127,21 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	assert.Equal(t, runner.test.Expect.Output, runner.out.String(), "Unexpected output (%s)", runner.testPath)
 	if len(runner.test.Expect.Files) > 0 {
 		for _, expectedFile := range runner.test.Expect.Files {
-			exists, err := runner.fs.Exists(expectedFile.Path)
+			exists, err := fs.Exists(expectedFile.Path)
 			if err != nil {
 				panic(err)
 			}
 			assert.True(t, exists, "Expected file %s to exist (%s)", expectedFile.Path, runner.testPath)
 			if exists && expectedFile.Content != "" {
-				actualContent, err := runner.fs.ReadFile(expectedFile.Path)
+				actualContent, err := fs.ReadFile(expectedFile.Path)
 				if err != nil {
 					panic(err)
 				}
 				assert.Equal(t, expectedFile.Content, string(actualContent), "Unexpected content for file %s (%s)", expectedFile.Path, runner.testPath)
 			}
 		}
-		runner.fs.Walk(".", func(path string, info os.FileInfo, err error) error {
-			dir, err := runner.fs.IsDir(path)
+		fs.Walk(".", func(path string, info os.FileInfo, err error) error {
+			dir, err := fs.IsDir(path)
 			if err != nil {
 				panic(err)
 			}
@@ -123,40 +161,50 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 }
 
 func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*workflows.Container, error) {
-	adaptersContainer := adapters.NewContainer(runner.fs, adapters.NewLogger(runner.out), styles.NewStyles(false))
-	contentContainer := content.NewContainer(adaptersContainer)
-
-	context, err := config.GetContext(adaptersContainer.FileSystem(), cmd)
+	context, err := config.GetContext(runner.container.FileSystem(), cmd)
 	context.EnableColors = false
 	if err != nil {
 		return nil, err
 	}
 
-	return workflows.NewContainer(contentContainer, context), nil
+	container := workflows.NewContainer(runner.container, context)
+	return container, nil
 }
 
-func TestE2e(t *testing.T) {
+func runTests(t *testing.T, glob string, useMemFs bool) {
 	osFs := adapters.CreateOsFs()
 
-	testFiles, err := afero.Glob(osFs, "./*/*.yml")
+	testFiles, err := afero.Glob(osFs, glob)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, testFile := range testFiles {
-		fmt.Printf("Starting test run for %s\n", testFile)
-
-		test := e2eTest{}
-		input, err := osFs.ReadFile(testFile)
-		if err != nil {
-			panic(err)
-		}
-		err = yaml.Unmarshal(input, &test)
-		if err != nil {
-			panic(err)
-		}
-
-		runner := newE2eTestRunner(testFile, &test)
+		runner := newE2eTestRunner(osFs, testFile, useMemFs)
 		runner.run(t)
 	}
+}
+
+func TestCheckCommand(t *testing.T) {
+	runTests(t, "./check/*.yml", true)
+}
+
+func TestImportCommand(t *testing.T) {
+	runTests(t, "./import/*.yml", true)
+}
+
+func TestInitCommand(t *testing.T) {
+	runTests(t, "./init/*.yml", true)
+}
+
+func TestListCommand(t *testing.T) {
+	runTests(t, "./ls/*.yml", true)
+}
+
+func TestUpdateCommand(t *testing.T) {
+	runTests(t, "./update/*.yml", true)
+}
+
+func TestJPath(t *testing.T) {
+	runTests(t, "./jpath/*.yml", false)
 }
