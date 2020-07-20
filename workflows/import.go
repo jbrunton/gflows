@@ -14,7 +14,7 @@ func (manager *WorkflowManager) ImportWorkflows() {
 	imported := 0
 	workflows := manager.GetWorkflows()
 	for _, workflow := range workflows {
-		fmt.Println("Found workflow:", workflow.path)
+		manager.logger.Println("Found workflow:", workflow.path)
 		if workflow.definition == nil {
 			workflowContent, err := manager.fs.ReadFile(workflow.path)
 			if err != nil {
@@ -42,10 +42,10 @@ func (manager *WorkflowManager) ImportWorkflows() {
 			templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 			templatePath := filepath.Join(manager.context.WorkflowsDir, templateName+".jsonnet")
 			manager.contentWriter.SafelyWriteFile(templatePath, templateContent)
-			fmt.Println("  Imported template:", templatePath)
+			manager.logger.Println("  Imported template:", templatePath)
 			imported++
 		} else {
-			fmt.Println("  Exists:", workflow.definition.Source)
+			manager.logger.Println("  Exists:", workflow.definition.Source)
 		}
 	}
 
