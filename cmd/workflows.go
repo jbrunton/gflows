@@ -26,23 +26,40 @@ func newListWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 
 			table := tablewriter.NewWriter(container.Logger())
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})
+			context := container.Context()
 			for _, definition := range definitions {
 				colors := []tablewriter.Colors{
-					tablewriter.Colors{tablewriter.FgGreenColor},
-					tablewriter.Colors{tablewriter.FgYellowColor},
-					tablewriter.Colors{tablewriter.FgYellowColor},
+					tablewriter.Colors{},
+					tablewriter.Colors{},
+					tablewriter.Colors{},
 					tablewriter.Colors{},
 				}
+				if context.EnableColors {
+					colors[0] = tablewriter.Colors{tablewriter.FgGreenColor}
+					colors[1] = tablewriter.Colors{tablewriter.FgYellowColor}
+					colors[2] = tablewriter.Colors{tablewriter.FgYellowColor}
+				}
 				var status string
-				if !validator.ValidateSchema(definition).Valid {
+				if !definition.Status.Valid {
+					status = "TEMPLATE ERROR"
+					if context.EnableColors {
+						colors[3] = tablewriter.Colors{tablewriter.FgRedColor}
+					}
+				} else if !validator.ValidateSchema(definition).Valid {
 					status = "INVALID SCHEMA"
-					colors[3] = tablewriter.Colors{tablewriter.FgRedColor}
+					if context.EnableColors {
+						colors[3] = tablewriter.Colors{tablewriter.FgRedColor}
+					}
 				} else if !validator.ValidateContent(definition).Valid {
 					status = "OUT OF DATE"
-					colors[3] = tablewriter.Colors{tablewriter.FgRedColor}
+					if context.EnableColors {
+						colors[3] = tablewriter.Colors{tablewriter.FgRedColor}
+					}
 				} else {
 					status = "UP TO DATE"
-					colors[3] = tablewriter.Colors{tablewriter.FgGreenColor}
+					if context.EnableColors {
+						colors[3] = tablewriter.Colors{tablewriter.FgGreenColor}
+					}
 				}
 
 				row := []string{definition.Name, definition.Source, definition.Destination, status}

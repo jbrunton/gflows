@@ -82,24 +82,24 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	err = cmd.Execute()
 
 	if runner.test.Expect.Error == "" {
-		assert.NoError(t, err)
+		assert.NoError(t, err, "Unexpected error (%s)", runner.testPath)
 	} else {
-		assert.EqualError(t, err, runner.test.Expect.Error)
+		assert.EqualError(t, err, runner.test.Expect.Error, "Unexpected error (%s)", runner.testPath)
 	}
-	assert.Equal(t, runner.test.Expect.Output, runner.out.String())
+	assert.Equal(t, runner.test.Expect.Output, runner.out.String(), "Unexpected output (%s)", runner.testPath)
 	if len(runner.test.Expect.Files) > 0 {
 		for _, expectedFile := range runner.test.Expect.Files {
 			exists, err := runner.fs.Exists(expectedFile.Path)
 			if err != nil {
 				panic(err)
 			}
-			assert.True(t, exists, "Expected file %s to exist", expectedFile.Path)
+			assert.True(t, exists, "Expected file %s to exist (%s)", expectedFile.Path, runner.testPath)
 			if exists && expectedFile.Content != "" {
 				actualContent, err := runner.fs.ReadFile(expectedFile.Path)
 				if err != nil {
 					panic(err)
 				}
-				assert.Equal(t, expectedFile.Content, string(actualContent), "Unexpected content for file %s", expectedFile.Path)
+				assert.Equal(t, expectedFile.Content, string(actualContent), "Unexpected content for file %s (%s)", expectedFile.Path, runner.testPath)
 			}
 		}
 		runner.fs.Walk(".", func(path string, info os.FileInfo, err error) error {
@@ -116,7 +116,7 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 					expected = true
 				}
 			}
-			assert.True(t, expected, "File %s was not expected", path)
+			assert.True(t, expected, "File %s was not expected (%s)", path, runner.testPath)
 			return nil
 		})
 	}
@@ -127,6 +127,7 @@ func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*workflows.Cont
 	contentContainer := content.NewContainer(adaptersContainer)
 
 	context, err := config.GetContext(adaptersContainer.FileSystem(), cmd)
+	context.EnableColors = false
 	if err != nil {
 		return nil, err
 	}
