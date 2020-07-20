@@ -13,3 +13,6 @@ expect:
   - path: .gflows/workflows/config/git.libsonnet
   - path: .gflows/workflows/gflows.jsonnet
   - path: .gflows/config.yml
+    content: |
+      # Config file for GFlows.
+      # See https://github.com/jbrunton/gflows#configuration for options.
