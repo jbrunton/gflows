@@ -3,6 +3,7 @@ package e2e
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -20,6 +21,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/jbrunton/gflows/adapters"
+	_ "github.com/jbrunton/gflows/statik"
 )
 
 type e2eTestFile struct {
@@ -34,6 +36,7 @@ type e2eTestSetup struct {
 type e2eTestExpect struct {
 	Output string
 	Error  string
+	Files  []e2eTestFile
 }
 
 type e2eTest struct {
@@ -83,7 +86,40 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	} else {
 		assert.EqualError(t, err, runner.test.Expect.Error)
 	}
-	assert.Equal(t, strings.TrimSpace(runner.test.Expect.Output), strings.TrimSpace(runner.out.String()))
+	assert.Equal(t, runner.test.Expect.Output, runner.out.String())
+	if len(runner.test.Expect.Files) > 0 {
+		for _, expectedFile := range runner.test.Expect.Files {
+			exists, err := runner.fs.Exists(expectedFile.Path)
+			if err != nil {
+				panic(err)
+			}
+			assert.True(t, exists, "Expected file %s to exist", expectedFile.Path)
+			if exists && expectedFile.Content != "" {
+				actualContent, err := runner.fs.ReadFile(expectedFile.Path)
+				if err != nil {
+					panic(err)
+				}
+				assert.Equal(t, expectedFile.Content, string(actualContent), "Unexpected content for file %s", expectedFile.Path)
+			}
+		}
+		runner.fs.Walk(".", func(path string, info os.FileInfo, err error) error {
+			dir, err := runner.fs.IsDir(path)
+			if err != nil {
+				panic(err)
+			}
+			if dir {
+				return nil
+			}
+			expected := false
+			for _, expectedFile := range runner.test.Expect.Files {
+				if expectedFile.Path == path {
+					expected = true
+				}
+			}
+			assert.True(t, expected, "File %s was not expected", path)
+			return nil
+		})
+	}
 }
 
 func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*workflows.Container, error) {
