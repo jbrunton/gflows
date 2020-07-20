@@ -9,66 +9,72 @@ import (
 
 var flagsRegex, argNameRegex *regexp.Regexp
 
+// Styles - wraps Aurora instance with some convenience functions
+type Styles struct {
+	au aurora.Aurora
+}
+
+// NewStyles - construct a new Styles instance
+func NewStyles(enableColors bool) *Styles {
+	au := aurora.NewAurora(enableColors)
+	return &Styles{au}
+}
+
+// Bold - apply bold style
+func (styles *Styles) Bold(s string) aurora.Value {
+	return styles.au.Bold(s)
+}
+
 // StyleError - highlight errors in red
-func StyleError(s string) string {
-	return aurora.Red(s).Bold().String()
+func (styles *Styles) StyleError(s string) string {
+	return styles.au.Red(s).Bold().String()
 }
 
 // StyleEnumOption - styles an enum option
-func StyleEnumOption(s string) string {
-	return aurora.BgGreen(s).Black().Bold().String()
+func (styles *Styles) StyleEnumOption(s string) string {
+	return styles.au.BgGreen(s).Black().Bold().String()
 }
 
 // StyleEnumOptions - enumerate valid enum options
-func StyleEnumOptions(opts []string) string {
+func (styles *Styles) StyleEnumOptions(opts []string) string {
 	var styledOptions []string
 	for _, opt := range opts {
-		styledOptions = append(styledOptions, StyleEnumOption(opt))
+		styledOptions = append(styledOptions, styles.StyleEnumOption(opt))
 	}
 	return strings.Join(styledOptions, ", ")
 }
 
 // StyleHeading - style headings
-func StyleHeading(s string) aurora.Value {
-	return aurora.Bold(s)
+func (styles *Styles) StyleHeading(s string) aurora.Value {
+	return styles.au.Bold(s)
 }
 
 // StyleCommand - style commands
-func StyleCommand(s string) aurora.Value {
-	return aurora.Green(s).Bold()
+func (styles *Styles) StyleCommand(s string) aurora.Value {
+	return styles.au.Green(s).Bold()
 }
 
 // StyleOK - style ok logs
-func StyleOK(s string) aurora.Value {
-	return aurora.Green(s).Bold()
+func (styles *Styles) StyleOK(s string) aurora.Value {
+	return styles.au.Green(s).Bold()
 }
 
 // StyleWarning - style warning logs
-func StyleWarning(s string) aurora.Value {
-	return aurora.Yellow(s).Bold()
-}
-
-// StyleCommandUsage - style command usage examples
-func StyleCommandUsage(s string) string {
-	styledCommand := StyleCommand(s).String()
-	styledCommand = strings.ReplaceAll(styledCommand, "[flags]", StyleOptions("[flags]").String())
-	styledCommand = argNameRegex.ReplaceAllStringFunc(styledCommand, func(argName string) string {
-		return StyleOptions(argName).String()
-	})
-	return styledCommand
+func (styles *Styles) StyleWarning(s string) aurora.Value {
+	return styles.au.Yellow(s).Bold()
 }
 
 // StyleOptions - style command options and flags
-func StyleOptions(s string) aurora.Value {
-	return aurora.Yellow(s).Bold()
+func (styles *Styles) StyleOptions(s string) aurora.Value {
+	return styles.au.Yellow(s).Bold()
 }
 
 // StyleFlags - style flag usage examples
-func StyleFlags(s string) string {
+func (styles *Styles) StyleFlags(s string) string {
 	var styledUsages []string
 	for _, flagUsage := range strings.Split(s, "\n") {
 		styledUsage := flagsRegex.ReplaceAllStringFunc(flagUsage, func(flag string) string {
-			return StyleOptions(flag).String()
+			return styles.StyleOptions(flag).String()
 		})
 		styledUsages = append(styledUsages, styledUsage)
 	}

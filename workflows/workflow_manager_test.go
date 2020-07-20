@@ -17,12 +17,14 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	container, context, out := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	logger := adapters.NewLogger(out)
+	styles := container.Styles()
 	validator := NewWorkflowValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)
 	templateManager := NewJsonnetTemplateManager(fs, logger, context)
 	return fs, out, NewWorkflowManager(
 		fs,
 		logger,
+		styles,
 		validator,
 		context,
 		contentWriter,
@@ -103,18 +105,18 @@ func TestValidateWorkflowsOutput(t *testing.T) {
 	workflowManager.ValidateWorkflows(false)
 
 	expected := `
-Checking [1mtest[0m ... [1;31mFAILED[0m
+Checking test ... FAILED
   Schema validation failed:
   ► (root): jobs is required
   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
   ► Run "gflows workflow update" to update
-Checking [1mtest[0m ... [1;31mFAILED[0m
+Checking test ... FAILED
   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
   ► Run "gflows workflow update" to update
-Checking [1mtest[0m ... [1;31mFAILED[0m
+Checking test ... FAILED
   Content is out of date for "test" (.github/workflows/test.yml)
   ► Run "gflows workflow update" to update
-Checking [1mtest[0m ... [1;32mOK[0m
+Checking test ... OK
 `
 	assert.Equal(t, strings.TrimLeft(expected, "\n"), out.String())
 }

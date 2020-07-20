@@ -7,6 +7,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ContainerBuilderFunc - factory function to create a new container for the given command
+type ContainerBuilderFunc func(cmd *cobra.Command) (*workflows.Container, error)
+
 func buildContainer(cmd *cobra.Command) (*workflows.Container, error) {
 	contentContainer := content.CreateContainer()
 	context, err := config.GetContext(contentContainer.FileSystem(), cmd)

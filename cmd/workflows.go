@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/jbrunton/gflows/styles"
 	"github.com/jbrunton/gflows/workflows"
@@ -11,20 +10,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newListWorkflowsCmd() *cobra.Command {
+func newListWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   "ls",
 		Short: "List workflows",
-		Run: func(cmd *cobra.Command, args []string) {
-			container, err := buildContainer(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			container, err := containerFunc(cmd)
 			if err != nil {
-				container.Logger().ExitWithError(err)
+				return err
 			}
 
 			workflowManager := container.WorkflowManager()
 			definitions, err := workflowManager.GetWorkflowDefinitions()
 			if err != nil {
-				panic(err)
+				return err
 			}
 			validator := container.WorkflowValidator()
 
@@ -53,86 +52,84 @@ func newListWorkflowsCmd() *cobra.Command {
 				table.Rich(row, colors)
 			}
 			table.Render()
+			return nil
 		},
 	}
 }
 
-func newUpdateWorkflowsCmd() *cobra.Command {
+func newUpdateWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   "update",
 		Short: "Updates workflow files",
-		Run: func(cmd *cobra.Command, args []string) {
-			container, err := buildContainer(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			container, err := containerFunc(cmd)
 			if err != nil {
-				container.Logger().ExitWithError(err)
+				return err
 			}
 			workflowManager := container.WorkflowManager()
 			err = workflowManager.UpdateWorkflows()
 			if err != nil {
-				container.Logger().ExitWithError(err)
+				return err
 			}
+			return nil
 		},
 	}
 }
 
-func newInitCmd() *cobra.Command {
+func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   "init",
 		Short: "Setup config and templates for first time use",
-		Run: func(cmd *cobra.Command, args []string) {
-			container, err := buildContainer(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			container, err := containerFunc(cmd)
 			if err != nil {
-				container.Logger().ExitWithError(err)
+				return err
 			}
 			err = workflows.InitWorkflows(container.FileSystem(), container.Logger(), container.Context())
-			if err != nil {
-				container.Logger().ExitWithError(err)
-			}
+			return err
 		},
 	}
 }
 
-func checkWorkflows(workflowManager *workflows.WorkflowManager, watch bool, showDiff bool) {
+func checkWorkflows(workflowManager *workflows.WorkflowManager, styles *styles.Styles, watch bool, showDiff bool) error {
 	err := workflowManager.ValidateWorkflows(showDiff)
 	if err != nil {
-		fmt.Println(styles.StyleError(err.Error()))
-		if !watch {
-			os.Exit(1)
-		}
-	} else {
-		fmt.Println(styles.StyleCommand("Workflows up to date"))
+		return err
 	}
+	fmt.Println(styles.StyleCommand("Workflows up to date"))
+	return nil
 }
 
-func newCheckWorkflowsCmd() *cobra.Command {
+func newCheckWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
 		Short: "Check workflow files are up to date",
-		Run: func(cmd *cobra.Command, args []string) {
-			container, err := buildContainer(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			container, err := containerFunc(cmd)
 			if err != nil {
-				container.Logger().ExitWithError(err)
+				return err
 			}
 
 			watch, err := cmd.Flags().GetBool("watch")
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			showDiff, err := cmd.Flags().GetBool("show-diffs")
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			workflowManager := container.WorkflowManager()
 			if watch {
 				watcher := container.Watcher()
 				watcher.WatchWorkflows(func() {
-					checkWorkflows(workflowManager, watch, showDiff)
+					checkWorkflows(workflowManager, container.Styles(), watch, showDiff)
 				})
 			} else {
-				checkWorkflows(workflowManager, watch, showDiff)
+				err = checkWorkflows(workflowManager, container.Styles(), watch, showDiff)
 			}
+			return err
 		},
 	}
 	cmd.Flags().BoolP("watch", "w", false, "watch workflow templates for changes")
@@ -140,37 +137,39 @@ func newCheckWorkflowsCmd() *cobra.Command {
 	return cmd
 }
 
-func newWatchWorkflowsCmd() *cobra.Command {
+func newWatchWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "watch",
 		Short: "Alias for check --watch --show-diffs",
-		Run: func(cmd *cobra.Command, args []string) {
-			container, err := buildContainer(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			container, err := containerFunc(cmd)
 			if err != nil {
-				container.Logger().ExitWithError(err)
+				return err
 			}
 
 			workflowManager := container.WorkflowManager()
 			watcher := container.Watcher()
 			watcher.WatchWorkflows(func() {
-				checkWorkflows(workflowManager, true, true)
+				checkWorkflows(workflowManager, container.Styles(), true, true)
 			})
+			return nil
 		},
 	}
 	return cmd
 }
 
-func newImportWorkflowsCmd() *cobra.Command {
+func newImportWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   "import",
 		Short: "Import workflow files",
-		Run: func(cmd *cobra.Command, args []string) {
-			container, err := buildContainer(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			container, err := containerFunc(cmd)
 			if err != nil {
-				container.Logger().ExitWithError(err)
+				return err
 			}
 			manager := container.WorkflowManager()
 			manager.ImportWorkflows()
+			return nil
 		},
 	}
 }

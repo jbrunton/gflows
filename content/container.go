@@ -10,8 +10,10 @@ func (container *Container) ContentWriter() *Writer {
 	return NewWriter(container.FileSystem(), container.Logger())
 }
 
+func NewContainer(parentContainer *adapters.Container) *Container {
+	return &Container{parentContainer}
+}
+
 func CreateContainer() *Container {
-	return &Container{
-		adapters.CreateContainer(),
-	}
+	return NewContainer(adapters.CreateContainer())
 }

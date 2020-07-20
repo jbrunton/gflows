@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/jbrunton/gflows/styles"
 )
 
 type Logger struct {
@@ -45,12 +42,6 @@ func (logger *Logger) PrintStatusErrors(errors []string, firstLineOnly bool) {
 		}
 		logger.Printfln("  ► %s", message)
 	}
-}
-
-// ExitWithError - prints the error then terminates the process with exit code 1
-func (logger *Logger) ExitWithError(err error) {
-	logger.Println(styles.StyleError(err.Error()))
-	os.Exit(1)
 }
 
 // PrettyPrintDiff - highlights the given patch if pygmentize is available

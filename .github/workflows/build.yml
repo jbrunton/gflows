@@ -37,12 +37,14 @@
         curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
         chmod +x ./cc-test-reporter
         ./cc-test-reporter before-build
-    - "name": "test"
-      "run": "go test -coverprofile c.out ./..."
+    - "name": "unit test"
+      "run": "go test -coverprofile c.out $(go list ./... | grep -v /e2e)"
     - "env":
         "CC_TEST_REPORTER_ID": "${{ secrets.CC_TEST_REPORTER_ID }}"
       "name": "upload coverage"
       "run": "./cc-test-reporter after-build --prefix github.com/jbrunton/gflows"
+    - "name": "e2e test"
+      "run": "go test ./e2e"
 "name": "build"
 "on":
   "pull_request":

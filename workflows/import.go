@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/jsonnet"
-	"github.com/jbrunton/gflows/styles"
 
 	"gopkg.in/yaml.v2"
 )
@@ -52,7 +51,7 @@ func (manager *WorkflowManager) ImportWorkflows() {
 
 	if imported > 0 {
 		fmt.Println()
-		fmt.Println(styles.StyleWarning("Important:"), "imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.")
+		fmt.Println(manager.styles.StyleWarning("Important:"), "imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.")
 		fmt.Println("  ► Run \"gflows update\" to do this now")
 	}
 }
