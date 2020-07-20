@@ -94,6 +94,13 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 				panic(err)
 			}
 			assert.True(t, exists, "Expected file %s to exist", expectedFile.Path)
+			if exists && expectedFile.Content != "" {
+				actualContent, err := runner.fs.ReadFile(expectedFile.Path)
+				if err != nil {
+					panic(err)
+				}
+				assert.Equal(t, expectedFile.Content, string(actualContent), "Unexpected content for file %s", expectedFile.Path)
+			}
 		}
 		runner.fs.Walk(".", func(path string, info os.FileInfo, err error) error {
 			dir, err := runner.fs.IsDir(path)
