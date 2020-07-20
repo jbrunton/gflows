@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"net/http"
 
+	"github.com/jbrunton/gflows/styles"
+
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	statikFs "github.com/rakyll/statik/fs"
@@ -45,7 +47,7 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 func NewTestContext(configString string) (*adapters.Container, *config.GFlowsContext, *bytes.Buffer) {
 	fs := adapters.CreateMemFs()
 	out := new(bytes.Buffer)
-	container := adapters.NewContainer(fs, adapters.NewLogger(out))
+	container := adapters.NewContainer(fs, adapters.NewLogger(out), styles.NewStyles(false))
 
 	configPath := ".gflows/config.yml"
 	fs.WriteFile(configPath, []byte(configString), 0644)

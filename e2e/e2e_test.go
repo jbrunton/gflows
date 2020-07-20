@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -42,16 +43,18 @@ type e2eTest struct {
 }
 
 type e2eTestRunner struct {
-	out  *bytes.Buffer
-	fs   *afero.Afero
-	test *e2eTest
+	testPath string
+	out      *bytes.Buffer
+	fs       *afero.Afero
+	test     *e2eTest
 }
 
-func newE2eTestRunner(test *e2eTest) *e2eTestRunner {
+func newE2eTestRunner(testPath string, test *e2eTest) *e2eTestRunner {
 	return &e2eTestRunner{
-		out:  new(bytes.Buffer),
-		fs:   adapters.CreateMemFs(),
-		test: test,
+		testPath: testPath,
+		out:      new(bytes.Buffer),
+		fs:       adapters.CreateMemFs(),
+		test:     test,
 	}
 }
 
@@ -72,7 +75,7 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	}
 
 	cmd := cmd.NewRootCommand(runner.buildContainer)
-	cmd.SetArgs([]string{"check"})
+	cmd.SetArgs(strings.Split(runner.test.Run, " "))
 	err = cmd.Execute()
 
 	if runner.test.Expect.Error == "" {
@@ -104,6 +107,8 @@ func TestE2e(t *testing.T) {
 	}
 
 	for _, testFile := range testFiles {
+		fmt.Printf("Starting test run for %s\n", testFile)
+
 		test := e2eTest{}
 		input, err := osFs.ReadFile(testFile)
 		if err != nil {
@@ -114,7 +119,7 @@ func TestE2e(t *testing.T) {
 			panic(err)
 		}
 
-		runner := newE2eTestRunner(&test)
+		runner := newE2eTestRunner(testFile, &test)
 		runner.run(t)
 	}
 }
