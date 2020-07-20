@@ -1,9 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/jbrunton/gflows/styles"
 	"github.com/jbrunton/gflows/workflows"
 	"github.com/olekukonko/tablewriter"
 
@@ -91,12 +88,12 @@ func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	}
 }
 
-func checkWorkflows(workflowManager *workflows.WorkflowManager, styles *styles.Styles, watch bool, showDiff bool) error {
+func checkWorkflows(workflowManager *workflows.WorkflowManager, container *workflows.Container, watch bool, showDiff bool) error {
 	err := workflowManager.ValidateWorkflows(showDiff)
 	if err != nil {
 		return err
 	}
-	fmt.Println(styles.StyleCommand("Workflows up to date"))
+	container.Logger().Println(container.Styles().StyleCommand("Workflows up to date"))
 	return nil
 }
 
@@ -124,10 +121,10 @@ func newCheckWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 			if watch {
 				watcher := container.Watcher()
 				watcher.WatchWorkflows(func() {
-					checkWorkflows(workflowManager, container.Styles(), watch, showDiff)
+					checkWorkflows(workflowManager, container, watch, showDiff)
 				})
 			} else {
-				err = checkWorkflows(workflowManager, container.Styles(), watch, showDiff)
+				err = checkWorkflows(workflowManager, container, watch, showDiff)
 			}
 			return err
 		},
@@ -150,7 +147,7 @@ func newWatchWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 			workflowManager := container.WorkflowManager()
 			watcher := container.Watcher()
 			watcher.WatchWorkflows(func() {
-				checkWorkflows(workflowManager, container.Styles(), true, true)
+				checkWorkflows(workflowManager, container, true, true)
 			})
 			return nil
 		},
