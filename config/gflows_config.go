@@ -37,20 +37,6 @@ type GFlowsTemplateConfig struct {
 	}
 }
 
-// type GFlowsChecksConfig struct {
-// 	Schema  GFlowsSchemaCheckConfig
-// 	Content GFlowsContentCheckConfig
-// }
-
-// type GFlowsSchemaCheckConfig struct {
-// 	Enabled *bool
-// 	URI     string `yaml:"uri"`
-// }
-
-// type GFlowsContentCheckConfig struct {
-// 	Enabled *bool
-// }
-
 // LoadConfig - finds and returns the GFlowsConfig
 func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	exists, err := fs.Exists(path)
@@ -89,6 +75,16 @@ func (config *GFlowsConfig) GetWorkflowBoolProperty(workflowName string, default
 		return *value
 	}
 	return defaultValue
+}
+
+func (config *GFlowsConfig) GetTemplateArrayProperty(workflowName string, selector func(config *GFlowsTemplateConfig) []string) []string {
+	var values []string
+	workflowConfig := config.Templates.Overrides[workflowName]
+	if workflowConfig != nil {
+		values = selector(workflowConfig)
+	}
+	values = append(values, selector(&config.Templates.Defaults)...)
+	return values
 }
 
 func parseConfig(input []byte) (*GFlowsConfig, error) {

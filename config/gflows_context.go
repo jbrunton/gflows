@@ -65,11 +65,13 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 	return NewContext(fs, configPath)
 }
 
-func (context *GFlowsContext) EvalJPaths() []string {
+func (context *GFlowsContext) EvalJPaths(workflowName string) []string {
 	var paths []string
+	configJPaths := context.Config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
+		return config.Jsonnet.JPath
+	})
 
-	// TODO: merge in overrides
-	for _, path := range context.Config.Templates.Defaults.Jsonnet.JPath {
+	for _, path := range configJPaths {
 		if filepath.IsAbs(path) {
 			paths = append(paths, path)
 		} else {
