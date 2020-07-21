@@ -11,9 +11,9 @@ func TestGenerateYttWorkflowDefinitions(t *testing.T) {
 	container, context, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test/config.yml", []byte(""), 0644)
-	templateManager := NewYttTemplateManager(fs, container.Logger(), context)
+	templateEngine := NewYttTemplateEngine(fs, container.Logger(), context)
 
-	definitions, _ := templateManager.GetWorkflowDefinitions()
+	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
 	expectedDefinition := WorkflowDefinition{
 		Name:        "test",
@@ -33,9 +33,9 @@ func TestGetYttWorkflowSources(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/my-workflow/config3.txt", []byte("config3"), 0644)
 	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte("ignored"), 0644)
 	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte("ignored"), 0644)
-	templateManager := NewYttTemplateManager(fs, container.Logger(), context)
+	templateEngine := NewYttTemplateEngine(fs, container.Logger(), context)
 
-	sources := templateManager.GetWorkflowSources()
+	sources := templateEngine.GetWorkflowSources()
 
 	assert.Equal(t, []string{".gflows/workflows/my-workflow/config1.yml", ".gflows/workflows/my-workflow/config2.yaml", ".gflows/workflows/my-workflow/config3.txt"}, sources)
 }
@@ -50,9 +50,9 @@ func TestGetYttWorkflowTemplates(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte("ignored"), 0644)
 	fs.WriteFile(".gflows/workflows/another-workflow/config.yml", []byte("config"), 0644)
 	fs.WriteFile(".gflows/workflows/jsonnet/foo.jsonnet", []byte("jsonnet"), 0644)
-	templateManager := NewYttTemplateManager(fs, container.Logger(), context)
+	templateEngine := NewYttTemplateEngine(fs, container.Logger(), context)
 
-	templates := templateManager.GetWorkflowTemplates()
+	templates := templateEngine.GetWorkflowTemplates()
 
 	assert.Equal(t, []string{".gflows/workflows/another-workflow", ".gflows/workflows/my-workflow"}, templates)
 }

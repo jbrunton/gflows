@@ -26,7 +26,7 @@ type WorkflowDefinition struct {
 	Status      ValidationResult
 }
 
-type TemplateManager interface {
+type TemplateEngine interface {
 	// GetWorkflowSources - returns a list of all the files (i.e. templates + library files) used
 	// to generate workflows.
 	GetWorkflowSources() []string
@@ -45,7 +45,7 @@ type WorkflowManager struct {
 	validator     *WorkflowValidator
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
-	TemplateManager
+	TemplateEngine
 }
 
 type GitHubWorkflow struct {
@@ -60,16 +60,16 @@ func NewWorkflowManager(
 	validator *WorkflowValidator,
 	context *config.GFlowsContext,
 	contentWriter *content.Writer,
-	templateManager TemplateManager,
+	templateEngine TemplateEngine,
 ) *WorkflowManager {
 	return &WorkflowManager{
-		fs:              fs,
-		logger:          logger,
-		styles:          styles,
-		validator:       validator,
-		context:         context,
-		contentWriter:   contentWriter,
-		TemplateManager: templateManager,
+		fs:             fs,
+		logger:         logger,
+		styles:         styles,
+		validator:      validator,
+		context:        context,
+		contentWriter:  contentWriter,
+		TemplateEngine: templateEngine,
 	}
 }
 

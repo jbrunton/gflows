@@ -15,21 +15,21 @@ import (
 	"github.com/spf13/afero"
 )
 
-type YttTemplateManager struct {
+type YttTemplateEngine struct {
 	fs      *afero.Afero
 	logger  *adapters.Logger
 	context *config.GFlowsContext
 }
 
-func NewYttTemplateManager(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *YttTemplateManager {
-	return &YttTemplateManager{
+func NewYttTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *YttTemplateEngine {
+	return &YttTemplateEngine{
 		fs:      fs,
 		logger:  logger,
 		context: context,
 	}
 }
 
-func (manager *YttTemplateManager) getWorkflowSourcesInDir(dir string) []string {
+func (manager *YttTemplateEngine) getWorkflowSourcesInDir(dir string) []string {
 	files := []string{}
 	err := manager.fs.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if filepath.Dir(path) == manager.context.WorkflowsDir {
@@ -50,11 +50,11 @@ func (manager *YttTemplateManager) getWorkflowSourcesInDir(dir string) []string 
 	return files
 }
 
-func (manager *YttTemplateManager) GetWorkflowSources() []string {
+func (manager *YttTemplateEngine) GetWorkflowSources() []string {
 	return manager.getWorkflowSourcesInDir(manager.context.WorkflowsDir)
 }
 
-func (manager *YttTemplateManager) GetWorkflowTemplates() []string {
+func (manager *YttTemplateEngine) GetWorkflowTemplates() []string {
 	templates := []string{}
 	paths, err := afero.Glob(manager.fs, filepath.Join(manager.context.WorkflowsDir, "/*"))
 	if err != nil {
@@ -112,7 +112,7 @@ func (s FileSource) RelativePath() (string, error) {
 
 func (s FileSource) Bytes() ([]byte, error) { return s.fs.ReadFile(s.path) }
 
-func (manager *YttTemplateManager) getInput() cmdtpl.TemplateInput {
+func (manager *YttTemplateEngine) getInput() cmdtpl.TemplateInput {
 	var in cmdtpl.TemplateInput
 	for _, sourcePath := range manager.GetWorkflowSources() {
 		source := NewFileSource(manager.fs, sourcePath, filepath.Dir(sourcePath))
@@ -125,7 +125,7 @@ func (manager *YttTemplateManager) getInput() cmdtpl.TemplateInput {
 	return in
 }
 
-func (manager *YttTemplateManager) apply() (string, error) {
+func (manager *YttTemplateEngine) apply() (string, error) {
 	ui := cmdcore.NewPlainUI(false)
 	in := manager.getInput()
 	rootLibrary := workspace.NewRootLibrary(in.Files)
@@ -158,7 +158,7 @@ func (manager *YttTemplateManager) apply() (string, error) {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *YttTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
+func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
 	templates := manager.GetWorkflowTemplates()
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
@@ -188,7 +188,7 @@ func (manager *YttTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefiniti
 	return definitions, nil
 }
 
-func (manager *YttTemplateManager) getWorkflowName(workflowsDir string, filename string) string {
+func (manager *YttTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }

@@ -12,21 +12,21 @@ import (
 	"github.com/spf13/afero"
 )
 
-type JsonnetTemplateManager struct {
+type JsonnetTemplateEngine struct {
 	fs      *afero.Afero
 	logger  *adapters.Logger
 	context *config.GFlowsContext
 }
 
-func NewJsonnetTemplateManager(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *JsonnetTemplateManager {
-	return &JsonnetTemplateManager{
+func NewJsonnetTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *JsonnetTemplateEngine {
+	return &JsonnetTemplateEngine{
 		fs:      fs,
 		logger:  logger,
 		context: context,
 	}
 }
 
-func (manager *JsonnetTemplateManager) GetWorkflowSources() []string {
+func (manager *JsonnetTemplateEngine) GetWorkflowSources() []string {
 	files := []string{}
 	err := manager.fs.Walk(manager.context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
 		ext := filepath.Ext(path)
@@ -43,7 +43,7 @@ func (manager *JsonnetTemplateManager) GetWorkflowSources() []string {
 	return files
 }
 
-func (manager *JsonnetTemplateManager) GetWorkflowTemplates() []string {
+func (manager *JsonnetTemplateEngine) GetWorkflowTemplates() []string {
 	sources := manager.GetWorkflowSources()
 	var templates []string
 	for _, source := range sources {
@@ -55,7 +55,7 @@ func (manager *JsonnetTemplateManager) GetWorkflowTemplates() []string {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
+func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
 	templates := manager.GetWorkflowTemplates()
 	definitions := []*WorkflowDefinition{}
 	for _, templatePath := range templates {
@@ -91,7 +91,7 @@ func (manager *JsonnetTemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefi
 	return definitions, nil
 }
 
-func (manager *JsonnetTemplateManager) getWorkflowName(workflowsDir string, filename string) string {
+func (manager *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
