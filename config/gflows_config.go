@@ -13,6 +13,7 @@ type GFlowsConfig struct {
 		Overrides map[string]*GFlowsWorkflowConfig
 	}
 	Templates struct {
+		Engine    string
 		Defaults  GFlowsTemplateConfig
 		Overrides map[string]*GFlowsTemplateConfig
 	}
@@ -31,7 +32,6 @@ type GFlowsWorkflowConfig struct {
 }
 
 type GFlowsTemplateConfig struct {
-	Engine  string
 	Jsonnet struct {
 		JPath []string `yaml:"jpath"`
 	}
@@ -97,8 +97,8 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 	if config.Workflows.Defaults.Checks.Schema.URI == "" {
 		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
 	}
-	if config.Templates.Defaults.Engine == "" {
-		config.Templates.Defaults.Engine = "jsonnet"
+	if config.Templates.Engine == "" {
+		config.Templates.Engine = "jsonnet"
 	}
 
 	return &config, nil

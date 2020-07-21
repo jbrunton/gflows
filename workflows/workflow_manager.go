@@ -38,6 +38,19 @@ type TemplateEngine interface {
 	GetWorkflowDefinitions() ([]*WorkflowDefinition, error)
 }
 
+func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) TemplateEngine {
+	var templateEngine TemplateEngine
+	switch engine := context.Config.Templates.Engine; engine {
+	case "jsonnet":
+		templateEngine = NewJsonnetTemplateEngine(fs, logger, context)
+	case "ytt":
+		templateEngine = NewYttTemplateEngine(fs, logger, context)
+	default:
+		panic(fmt.Errorf("Unexpected engine: %s", engine))
+	}
+	return templateEngine
+}
+
 type WorkflowManager struct {
 	fs            *afero.Afero
 	logger        *adapters.Logger
@@ -45,7 +58,7 @@ type WorkflowManager struct {
 	validator     *WorkflowValidator
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
-	*TemplateManager
+	TemplateEngine
 }
 
 type GitHubWorkflow struct {
@@ -60,16 +73,16 @@ func NewWorkflowManager(
 	validator *WorkflowValidator,
 	context *config.GFlowsContext,
 	contentWriter *content.Writer,
-	templateManager *TemplateManager,
+	templateEngine TemplateEngine,
 ) *WorkflowManager {
 	return &WorkflowManager{
-		fs:              fs,
-		logger:          logger,
-		styles:          styles,
-		validator:       validator,
-		context:         context,
-		contentWriter:   contentWriter,
-		TemplateManager: templateManager,
+		fs:             fs,
+		logger:         logger,
+		styles:         styles,
+		validator:      validator,
+		context:        context,
+		contentWriter:  contentWriter,
+		TemplateEngine: templateEngine,
 	}
 }
 
