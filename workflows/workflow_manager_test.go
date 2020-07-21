@@ -139,5 +139,5 @@ func TestUpdateWorkflows(t *testing.T) {
 	testContent, _ := fs.ReadFile(".github/workflows/test.yml")
 	assert.Equal(t, exampleWorkflow("test.jsonnet"), string(testContent))
 	test2Content, _ := fs.ReadFile(".github/workflows/test2.yml")
-	assert.Equal(t, exampleWorkflow("test2"), string(test2Content))
+	assert.Equal(t, exampleWorkflow("test2.jsonnet"), string(test2Content))
 }
