@@ -21,7 +21,7 @@ type GFlowsContext struct {
 func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
 	contextDir := filepath.Dir(configPath)
 
-	config, err := GetContextConfig(fs, configPath)
+	config, err := LoadConfig(fs, configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +65,13 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 	return NewContext(fs, configPath)
 }
 
-func (context *GFlowsContext) EvalJPaths() []string {
+func (context *GFlowsContext) EvalJPaths(workflowName string) []string {
 	var paths []string
+	configJPaths := context.Config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
+		return config.Jsonnet.JPath
+	})
 
-	for _, path := range context.Config.Jsonnet.JPath {
+	for _, path := range configJPaths {
 		if filepath.IsAbs(path) {
 			paths = append(paths, path)
 		} else {

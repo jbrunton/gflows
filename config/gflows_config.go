@@ -8,35 +8,37 @@ import (
 // GFlowsConfig - type of current gflows context
 type GFlowsConfig struct {
 	GithubDir string `yaml:"githubDir"`
-	Defaults  GFlowsWorkflowConfig
-	Workflows map[string]*GFlowsWorkflowConfig
-	Jsonnet   jsonnetConfig
-}
-
-type jsonnetConfig struct {
-	JPath []string `yaml:"jpath"`
+	Workflows struct {
+		Defaults  GFlowsWorkflowConfig
+		Overrides map[string]*GFlowsWorkflowConfig
+	}
+	Templates struct {
+		Defaults  GFlowsTemplateConfig
+		Overrides map[string]*GFlowsTemplateConfig
+	}
 }
 
 type GFlowsWorkflowConfig struct {
-	Checks GFlowsChecksConfig
+	Checks struct {
+		Schema struct {
+			Enabled *bool
+			URI     string `yaml:"uri"`
+		}
+		Content struct {
+			Enabled *bool
+		}
+	}
 }
 
-type GFlowsChecksConfig struct {
-	Schema  GFlowsSchemaCheckConfig
-	Content GFlowsContentCheckConfig
+type GFlowsTemplateConfig struct {
+	Engine  string
+	Jsonnet struct {
+		JPath []string `yaml:"jpath"`
+	}
 }
 
-type GFlowsSchemaCheckConfig struct {
-	Enabled *bool
-	URI     string `yaml:"uri"`
-}
-
-type GFlowsContentCheckConfig struct {
-	Enabled *bool
-}
-
-// GetContextConfig - finds and returns the GFlowsConfig
-func GetContextConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
+// LoadConfig - finds and returns the GFlowsConfig
+func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	exists, err := fs.Exists(path)
 	if !exists {
 		return &GFlowsConfig{}, nil
@@ -49,10 +51,40 @@ func GetContextConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	return parseConfig(data)
 }
 
-// GFlowsService - type of current gflows context
-type GFlowsService struct {
-	Name    string
-	Version string
+func (config *GFlowsConfig) GetWorkflowStringProperty(workflowName string, selector func(config *GFlowsWorkflowConfig) string) string {
+	workflowConfig := config.Workflows.Overrides[workflowName]
+	if workflowConfig != nil {
+		value := selector(workflowConfig)
+		if value != "" {
+			return value
+		}
+	}
+	return selector(&config.Workflows.Defaults)
+}
+
+func (config *GFlowsConfig) GetWorkflowBoolProperty(workflowName string, defaultValue bool, selector func(config *GFlowsWorkflowConfig) *bool) bool {
+	workflowConfig := config.Workflows.Overrides[workflowName]
+	if workflowConfig != nil {
+		value := selector(workflowConfig)
+		if value != nil {
+			return *value
+		}
+	}
+	value := selector(&config.Workflows.Defaults)
+	if value != nil {
+		return *value
+	}
+	return defaultValue
+}
+
+func (config *GFlowsConfig) GetTemplateArrayProperty(workflowName string, selector func(config *GFlowsTemplateConfig) []string) []string {
+	var values []string
+	workflowConfig := config.Templates.Overrides[workflowName]
+	if workflowConfig != nil {
+		values = selector(workflowConfig)
+	}
+	values = append(values, selector(&config.Templates.Defaults)...)
+	return values
 }
 
 func parseConfig(input []byte) (*GFlowsConfig, error) {
@@ -62,8 +94,8 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 		panic(err)
 	}
 
-	if config.Defaults.Checks.Schema.URI == "" {
-		config.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+	if config.Workflows.Defaults.Checks.Schema.URI == "" {
+		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
 	}
 
 	return &config, nil

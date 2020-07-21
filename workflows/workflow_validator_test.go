@@ -73,10 +73,11 @@ func TestValidateContentEnabledFlags(t *testing.T) {
 	}{
 		{
 			config: strings.Join([]string{
-				"defaults:",
-				"  checks:",
-				"    content:",
-				"      enabled: false",
+				"workflows:",
+				"  defaults:",
+				"    checks:",
+				"      content:",
+				"        enabled: false",
 			}, "\n"),
 			workflow: "",
 			expectedResult: ValidationResult{
@@ -86,10 +87,11 @@ func TestValidateContentEnabledFlags(t *testing.T) {
 		},
 		{
 			config: strings.Join([]string{
-				"defaults:",
-				"  checks:",
-				"    content:",
-				"      enabled: true",
+				"workflows:",
+				"  defaults:",
+				"    checks:",
+				"      content:",
+				"        enabled: true",
 			}, "\n"),
 			workflow: "",
 			expectedResult: ValidationResult{
@@ -114,27 +116,11 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 	}{
 		{
 			config: strings.Join([]string{
-				"defaults:",
-				"  checks:",
-				"    schema:",
-				"      enabled: false",
-			}, "\n"),
-			workflow: "",
-			expectedResult: ValidationResult{
-				Valid:  true,
-				Errors: []string{"Schema checks disabled for test, skipping"},
-			},
-		},
-		{
-			config: strings.Join([]string{
-				"defaults:",
-				"  checks:",
-				"    schema:",
-				"      enabled: false",
 				"workflows:",
-				"  checks:",
-				"    test:",
-				"      enabled: true",
+				"  defaults:",
+				"    checks:",
+				"      schema:",
+				"        enabled: false",
 			}, "\n"),
 			workflow: "",
 			expectedResult: ValidationResult{
@@ -145,9 +131,28 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 		{
 			config: strings.Join([]string{
 				"workflows:",
-				"  checks:",
-				"    test:",
-				"      enabled: false",
+				"  defaults:",
+				"    checks:",
+				"      schema:",
+				"        enabled: false",
+				"  overrides:",
+				"    checks:",
+				"      test:",
+				"        enabled: true",
+			}, "\n"),
+			workflow: "",
+			expectedResult: ValidationResult{
+				Valid:  true,
+				Errors: []string{"Schema checks disabled for test, skipping"},
+			},
+		},
+		{
+			config: strings.Join([]string{
+				"workflows:",
+				"  defaults:",
+				"    checks:",
+				"      test:",
+				"        enabled: false",
 			}, "\n"),
 			workflow: "",
 			expectedResult: ValidationResult{
