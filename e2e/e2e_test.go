@@ -43,6 +43,7 @@ func TestListCommand(t *testing.T) {
 
 func TestUpdateCommand(t *testing.T) {
 	runTests(t, "./update/jsonnet/*.yml", true)
+	runTests(t, "./update/ytt/*.yml", true)
 }
 
 func TestJPath(t *testing.T) {
