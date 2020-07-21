@@ -4,7 +4,7 @@ setup:
       content: |
         templates:
           engine: ytt
-    - path: .gflows/workflows/test.jsonnet
+    - path: .gflows/workflows/test/config.yml
       content: |
         'on':
           push:
