@@ -42,6 +42,7 @@ func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 		SilenceUsage:  true,
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")
+	cmd.PersistentFlags().Bool("disable-colors", false, "Disable colors in output")
 
 	cmd.AddCommand(newListWorkflowsCmd(containerFunc))
 	cmd.AddCommand(newUpdateWorkflowsCmd(containerFunc))
