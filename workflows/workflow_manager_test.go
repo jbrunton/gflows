@@ -48,14 +48,17 @@ func TestGetImportedWorkflows(t *testing.T) {
 
 	workflows := workflowManager.GetWorkflows()
 
+	expectedContent := exampleWorkflow("test.jsonnet")
+	expectedJson, _ := YamlToJson(expectedContent)
 	expectedWorflow := GitHubWorkflow{
 		path: ".github/workflows/test.yml",
 		definition: &WorkflowDefinition{
 			Name:        "test",
 			Source:      ".gflows/workflows/test.jsonnet",
 			Destination: ".github/workflows/test.yml",
-			Content:     exampleWorkflow("test.jsonnet"),
+			Content:     expectedContent,
 			Status:      ValidationResult{Valid: true},
+			JSON:        expectedJson,
 		},
 	}
 	assert.Equal(t, []GitHubWorkflow{expectedWorflow}, workflows)

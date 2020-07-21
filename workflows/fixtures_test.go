@@ -58,10 +58,12 @@ func exampleWorkflow(sourceFileName string) string {
 }
 
 func newTestWorkflowDefinition(name string, content string) *WorkflowDefinition {
+	json, _ := YamlToJson(content)
 	return &WorkflowDefinition{
 		Name:        name,
 		Source:      fmt.Sprintf(".gflows/workflows/%s.jsonnet", name),
 		Destination: fmt.Sprintf(".github/workflows/%s.yml", name),
 		Content:     content,
+		JSON:        json,
 	}
 }

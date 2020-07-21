@@ -15,12 +15,15 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
+	expectedContent := exampleWorkflow("test.jsonnet")
+	expectedJson, _ := YamlToJson(expectedContent)
 	expectedDefinition := WorkflowDefinition{
 		Name:        "test",
 		Source:      ".gflows/workflows/test.jsonnet",
 		Destination: ".github/workflows/test.yml",
-		Content:     exampleWorkflow("test.jsonnet"),
+		Content:     expectedContent,
 		Status:      ValidationResult{Valid: true},
+		JSON:        expectedJson,
 	}
 	assert.Equal(t, []*WorkflowDefinition{&expectedDefinition}, definitions)
 }

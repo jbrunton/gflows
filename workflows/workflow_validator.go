@@ -6,7 +6,6 @@ import (
 	"github.com/jbrunton/gflows/config"
 	"github.com/spf13/afero"
 	"github.com/xeipuuv/gojsonschema"
-	"gopkg.in/yaml.v2"
 )
 
 // WorkflowValidator - validates a workflow definition
@@ -48,18 +47,7 @@ func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinitio
 		}
 	}
 
-	var yamlData map[interface{}]interface{}
-	err := yaml.Unmarshal([]byte(definition.Content), &yamlData)
-	if err != nil {
-		panic(err)
-	}
-
-	jsonData, err := convertToStringKeysRecursive(yamlData, "")
-	if err != nil {
-		panic(err)
-	}
-
-	loader := gojsonschema.NewGoLoader(jsonData)
+	loader := gojsonschema.NewGoLoader(definition.JSON)
 	schema := validator.getWorkflowSchema(definition.Name)
 	result, err := schema.Validate(loader)
 	if err != nil {
