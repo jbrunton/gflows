@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -67,8 +66,6 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("disableColors:", disableColors)
 
 	if os.Getenv("GFLOWS_DISABLE_COLORS") == "true" {
 		disableColors = true
