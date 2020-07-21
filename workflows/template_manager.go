@@ -15,12 +15,26 @@ type TemplateManager struct {
 	definitionsCache map[string]*[]*WorkflowDefinition
 }
 
+type TemplateOverride struct {
+	workflowName   string
+	templateConfig *config.GFlowsTemplateConfig
+}
+
 func (manager *TemplateManager) GetWorkflowSources() []string {
 	return manager.getWorkflowSourcesForEngine(manager.defaultEngine)
 }
 
 func (manager *TemplateManager) GetWorkflowTemplates() []string {
-	return manager.getWorkflowTemplatesForEngine(manager.defaultEngine)
+	templates := manager.getWorkflowTemplatesForEngine(manager.defaultEngine)
+	overrides := manager.getTemplateEngineOverrides()
+	for _, override := range overrides {
+		definition, err := manager.getWorkflowDefinition(override.workflowName, override.templateConfig.Engine)
+		if err != nil {
+			panic(err)
+		}
+		templates = append(templates, definition.Source)
+	}
+	return templates
 }
 
 func (manager *TemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
@@ -70,6 +84,16 @@ func (manager *TemplateManager) getWorkflowDefinition(workflowName string, engin
 		}
 	}
 	return nil, nil
+}
+
+func (manager *TemplateManager) getTemplateEngineOverrides() []TemplateOverride {
+	var overrides []TemplateOverride
+	for workflowName, override := range manager.context.Config.Templates.Overrides {
+		if override.Engine != "" {
+			overrides = append(overrides, TemplateOverride{workflowName: workflowName, templateConfig: override})
+		}
+	}
+	return overrides
 }
 
 func (manager *TemplateManager) validateEngine(engine string) {
