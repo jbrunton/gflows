@@ -18,7 +18,9 @@ func (container *Container) Context() *config.GFlowsContext {
 
 func (container *Container) WorkflowManager() *WorkflowManager {
 	if container.workflowManager == nil {
-		templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), container.Context())
+		jsonnetEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), container.Context())
+		yttEngine := NewYttTemplateEngine(container.FileSystem(), container.Logger(), container.Context())
+		templateManager := NewTemplateManager(container.Context(), jsonnetEngine, yttEngine)
 		container.workflowManager = NewWorkflowManager(
 			container.FileSystem(),
 			container.Logger(),
@@ -26,7 +28,7 @@ func (container *Container) WorkflowManager() *WorkflowManager {
 			container.WorkflowValidator(),
 			container.Context(),
 			container.ContentWriter(),
-			templateEngine)
+			templateManager)
 	}
 	return container.workflowManager
 }

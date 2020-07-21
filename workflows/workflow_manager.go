@@ -45,7 +45,7 @@ type WorkflowManager struct {
 	validator     *WorkflowValidator
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
-	TemplateEngine
+	*TemplateManager
 }
 
 type GitHubWorkflow struct {
@@ -60,16 +60,16 @@ func NewWorkflowManager(
 	validator *WorkflowValidator,
 	context *config.GFlowsContext,
 	contentWriter *content.Writer,
-	templateEngine TemplateEngine,
+	templateManager *TemplateManager,
 ) *WorkflowManager {
 	return &WorkflowManager{
-		fs:             fs,
-		logger:         logger,
-		styles:         styles,
-		validator:      validator,
-		context:        context,
-		contentWriter:  contentWriter,
-		TemplateEngine: templateEngine,
+		fs:              fs,
+		logger:          logger,
+		styles:          styles,
+		validator:       validator,
+		context:         context,
+		contentWriter:   contentWriter,
+		TemplateManager: templateManager,
 	}
 }
 
