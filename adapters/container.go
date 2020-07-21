@@ -1,8 +1,6 @@
 package adapters
 
 import (
-	"os"
-
 	"github.com/jbrunton/gflows/styles"
 	"github.com/spf13/afero"
 )
@@ -33,10 +31,10 @@ func NewContainer(fs *afero.Afero, logger *Logger, styles *styles.Styles) *Conta
 	}
 }
 
-func CreateContainer() *Container {
-	return NewContainer(
-		CreateOsFs(),
-		NewLogger(os.Stdout),
-		styles.NewStyles(true),
-	)
-}
+// func CreateContainer(enableColors bool) *Container {
+// 	return NewContainer(
+// 		CreateOsFs(),
+// 		NewLogger(os.Stdout),
+// 		styles.NewStyles(enableColors),
+// 	)
+// }

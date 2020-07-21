@@ -14,6 +14,6 @@ func NewContainer(parentContainer *adapters.Container) *Container {
 	return &Container{parentContainer}
 }
 
-func CreateContainer() *Container {
-	return NewContainer(adapters.CreateContainer())
-}
+// func CreateContainer(enableColors bool) *Container {
+// 	return NewContainer(adapters.CreateContainer(enableColors))
+// }

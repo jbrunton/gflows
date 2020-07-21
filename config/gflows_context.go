@@ -18,7 +18,7 @@ type GFlowsContext struct {
 	EnableColors bool
 }
 
-func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
+func NewContext(fs *afero.Afero, configPath string, enableColors bool) (*GFlowsContext, error) {
 	contextDir := filepath.Dir(configPath)
 
 	config, err := LoadConfig(fs, configPath)
@@ -42,7 +42,7 @@ func NewContext(fs *afero.Afero, configPath string) (*GFlowsContext, error) {
 		GitHubDir:    githubDir,
 		WorkflowsDir: workflowsDir,
 		Dir:          contextDir,
-		EnableColors: true,
+		EnableColors: enableColors,
 	}
 
 	return context, nil
@@ -62,7 +62,16 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 		configPath = ".gflows/config.yml"
 	}
 
-	return NewContext(fs, configPath)
+	disableColors, err := cmd.Flags().GetBool("disable-colors")
+	if err != nil {
+		panic(err)
+	}
+
+	if os.Getenv("GFLOWS_DISABLE_COLORS") == "true" {
+		disableColors = true
+	}
+
+	return NewContext(fs, configPath, !disableColors)
 }
 
 func (context *GFlowsContext) EvalJPaths(workflowName string) []string {

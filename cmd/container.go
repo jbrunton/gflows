@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"os"
+
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/styles"
 	"github.com/jbrunton/gflows/workflows"
 	"github.com/spf13/cobra"
 )
@@ -11,8 +15,10 @@ import (
 type ContainerBuilderFunc func(cmd *cobra.Command) (*workflows.Container, error)
 
 func buildContainer(cmd *cobra.Command) (*workflows.Container, error) {
-	contentContainer := content.CreateContainer()
-	context, err := config.GetContext(contentContainer.FileSystem(), cmd)
+	fs := adapters.CreateOsFs()
+	context, err := config.GetContext(fs, cmd)
+	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(os.Stdout), styles.NewStyles(context.EnableColors))
+	contentContainer := content.NewContainer(adaptersContainer)
 	if err != nil {
 		return nil, err
 	}

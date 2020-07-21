@@ -51,7 +51,7 @@ func NewTestContext(configString string) (*adapters.Container, *config.GFlowsCon
 
 	configPath := ".gflows/config.yml"
 	fs.WriteFile(configPath, []byte(configString), 0644)
-	context, _ := config.NewContext(fs, configPath)
+	context, _ := config.NewContext(fs, configPath, false)
 
 	return container, context, out
 }
