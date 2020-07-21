@@ -25,6 +25,7 @@ func runTests(t *testing.T, glob string, useMemFs bool) {
 
 func TestCheckCommand(t *testing.T) {
 	runTests(t, "./check/jsonnet/*.yml", true)
+	runTests(t, "./check/ytt/*.yml", true)
 }
 
 func TestImportCommand(t *testing.T) {
@@ -37,6 +38,7 @@ func TestInitCommand(t *testing.T) {
 
 func TestListCommand(t *testing.T) {
 	runTests(t, "./ls/jsonnet/*.yml", true)
+	runTests(t, "./ls/ytt/*.yml", true)
 }
 
 func TestUpdateCommand(t *testing.T) {
