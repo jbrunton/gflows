@@ -28,6 +28,7 @@ func (manager *TemplateManager) GetWorkflowDefinitions() ([]*WorkflowDefinition,
 }
 
 func (manager *TemplateManager) getWorkflowSourcesForEngine(engine string) []string {
+	manager.validateEngine(engine)
 	if manager.sourcesCache[engine] == nil {
 		sources := manager.engines[engine].GetWorkflowSources()
 		manager.sourcesCache[engine] = &sources
@@ -36,6 +37,7 @@ func (manager *TemplateManager) getWorkflowSourcesForEngine(engine string) []str
 }
 
 func (manager *TemplateManager) getWorkflowTemplatesForEngine(engine string) []string {
+	manager.validateEngine(engine)
 	if manager.templatesCache[engine] == nil {
 		templates := manager.engines[engine].GetWorkflowTemplates()
 		manager.templatesCache[engine] = &templates
@@ -44,6 +46,7 @@ func (manager *TemplateManager) getWorkflowTemplatesForEngine(engine string) []s
 }
 
 func (manager *TemplateManager) getWorkflowDefinitionsForEngine(engine string) ([]*WorkflowDefinition, error) {
+	manager.validateEngine(engine)
 	if manager.definitionsCache[engine] == nil {
 		definitions, err := manager.engines[engine].GetWorkflowDefinitions()
 		if err != nil {
@@ -67,6 +70,16 @@ func (manager *TemplateManager) getWorkflowDefinition(workflowName string, engin
 		}
 	}
 	return nil, nil
+}
+
+func (manager *TemplateManager) validateEngine(engine string) {
+	for candidateEngine, _ := range manager.engines {
+		if candidateEngine == engine {
+			return
+		}
+	}
+
+	panic(fmt.Errorf("Unexpected engine: %q", engine))
 }
 
 func NewTemplateManager(context *config.GFlowsContext, jsonnetEngine *JsonnetTemplateEngine, yttEngine *YttTemplateEngine) *TemplateManager {

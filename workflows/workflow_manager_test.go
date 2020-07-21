@@ -20,7 +20,9 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	styles := container.Styles()
 	validator := NewWorkflowValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)
-	templateEngine := NewJsonnetTemplateEngine(fs, logger, context)
+	jsonnetEngine := NewJsonnetTemplateEngine(fs, logger, context)
+	yttEngine := NewYttTemplateEngine(fs, logger, context)
+	templateManager := NewTemplateManager(context, jsonnetEngine, yttEngine)
 	return fs, out, NewWorkflowManager(
 		fs,
 		logger,
@@ -28,7 +30,7 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 		validator,
 		context,
 		contentWriter,
-		templateEngine,
+		templateManager,
 	)
 }
 

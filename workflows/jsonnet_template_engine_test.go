@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateWorkflowDefinitions(t *testing.T) {
+func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 	container, context, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
@@ -25,7 +25,7 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 	assert.Equal(t, []*WorkflowDefinition{&expectedDefinition}, definitions)
 }
 
-func TestGetWorkflowSources(t *testing.T) {
+func TestGetJsonnetWorkflowSources(t *testing.T) {
 	container, context, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
@@ -40,7 +40,7 @@ func TestGetWorkflowSources(t *testing.T) {
 	assert.Equal(t, []string{".gflows/workflows/test.jsonnet"}, templates)
 }
 
-func TestGetWorkflowName(t *testing.T) {
+func TestGetJsonnetWorkflowName(t *testing.T) {
 	container, context, _ := fixtures.NewTestContext("")
 	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context)
 	assert.Equal(t, "my-workflow-1", templateEngine.getWorkflowName("/workflows", "/workflows/my-workflow-1.jsonnet"))
