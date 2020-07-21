@@ -7,7 +7,7 @@ compile:
 build: statik compile
 
 unit-test:
-	go test -coverprofile coverage.out $$(go list ./... | grep -v /e2e)
+	go test -coverprofile c.out $$(go list ./... | grep -v /e2e)
 
 e2e-test:
 	go test ./e2e
