@@ -37,7 +37,7 @@ local test_job = {
           ./cc-test-reporter before-build
         |||
       },
-      steps.named('unit test', 'go test -coverprofile c.out $(go list ./... | grep -v /e2e)'),
+      steps.named('unit test', 'make unit-test'),
       {
         name: 'upload coverage',
         env: {
@@ -45,7 +45,7 @@ local test_job = {
         },
         run: './cc-test-reporter after-build --prefix github.com/jbrunton/gflows'
       },
-      steps.named('e2e test', 'go test ./e2e')
+      steps.named('e2e test', 'make e2e-test')
   ]
 };
 
