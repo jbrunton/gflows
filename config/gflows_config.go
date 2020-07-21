@@ -97,6 +97,9 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 	if config.Workflows.Defaults.Checks.Schema.URI == "" {
 		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
 	}
+	if config.Templates.Defaults.Engine == "" {
+		config.Templates.Defaults.Engine = "jsonnet"
+	}
 
 	return &config, nil
 }
