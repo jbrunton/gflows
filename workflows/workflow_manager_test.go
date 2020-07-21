@@ -34,7 +34,7 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 
 func TestGetUnimportedWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
-	fs.WriteFile(".github/workflows/workflow.yml", []byte(exampleWorkflow("test")), 0644)
+	fs.WriteFile(".github/workflows/workflow.yml", []byte(exampleWorkflow("test.jsonnet")), 0644)
 
 	workflows := workflowManager.GetWorkflows()
 
@@ -43,8 +43,8 @@ func TestGetUnimportedWorkflows(t *testing.T) {
 
 func TestGetImportedWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test")), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test.jsonnet")), 0644)
 
 	workflows := workflowManager.GetWorkflows()
 
@@ -54,7 +54,7 @@ func TestGetImportedWorkflows(t *testing.T) {
 			Name:        "test",
 			Source:      ".gflows/workflows/test.jsonnet",
 			Destination: ".github/workflows/test.yml",
-			Content:     exampleWorkflow("test"),
+			Content:     exampleWorkflow("test.jsonnet"),
 			Status:      ValidationResult{Valid: true},
 		},
 	}
@@ -65,12 +65,12 @@ func TestValidateWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
 
 	// invalid template
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidJsonnetTemplate), 0644)
 	err := workflowManager.ValidateWorkflows(false)
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, missing workflow
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
 	err = workflowManager.ValidateWorkflows(false)
 	assert.EqualError(t, err, "workflow validation failed")
 
@@ -80,7 +80,7 @@ func TestValidateWorkflows(t *testing.T) {
 	assert.EqualError(t, err, "workflow validation failed")
 
 	// valid template, up to date workflow
-	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test")), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test.jsonnet")), 0644)
 	err = workflowManager.ValidateWorkflows(false)
 	assert.NoError(t, err)
 }
@@ -89,11 +89,11 @@ func TestValidateWorkflowsOutput(t *testing.T) {
 	fs, out, workflowManager := newTestWorkflowManager()
 
 	// invalid template
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(invalidJsonnetTemplate), 0644)
 	workflowManager.ValidateWorkflows(false)
 
 	// valid template, missing workflow
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
 	workflowManager.ValidateWorkflows(false)
 
 	// valid template, out of date workflow
@@ -101,7 +101,7 @@ func TestValidateWorkflowsOutput(t *testing.T) {
 	workflowManager.ValidateWorkflows(false)
 
 	// valid template, up to date workflow
-	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test")), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test.jsonnet")), 0644)
 	workflowManager.ValidateWorkflows(false)
 
 	expected := `
@@ -123,8 +123,8 @@ Checking test ... OK
 
 func TestUpdateWorkflows(t *testing.T) {
 	fs, out, workflowManager := newTestWorkflowManager()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	fs.WriteFile(".gflows/workflows/test2.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test2.jsonnet", []byte(exampleJsonnetTemplate), 0644)
 	fs.WriteFile(".github/workflows/test.yml", []byte("out of date workflow"), 0644)
 
 	err := workflowManager.UpdateWorkflows()
@@ -135,7 +135,7 @@ func TestUpdateWorkflows(t *testing.T) {
 		"     create .github/workflows/test2.yml (from .gflows/workflows/test2.jsonnet)",
 	}, "\n")+"\n", out.String())
 	testContent, _ := fs.ReadFile(".github/workflows/test.yml")
-	assert.Equal(t, exampleWorkflow("test"), string(testContent))
+	assert.Equal(t, exampleWorkflow("test.jsonnet"), string(testContent))
 	test2Content, _ := fs.ReadFile(".github/workflows/test2.yml")
 	assert.Equal(t, exampleWorkflow("test2"), string(test2Content))
 }

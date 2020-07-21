@@ -18,7 +18,7 @@ func setupValidator(workflowContent string, config string) (*afero.Afero, *Workf
 }
 
 func TestValidateContent(t *testing.T) {
-	workflowContent := exampleWorkflow("test")
+	workflowContent := exampleWorkflow("test.jsonnet")
 	fs, validator, definition := setupValidator(workflowContent, "")
 
 	fs.WriteFile(definition.Destination, []byte(workflowContent), 0644)
@@ -29,7 +29,7 @@ func TestValidateContent(t *testing.T) {
 }
 
 func TestValidateContentMissing(t *testing.T) {
-	_, validator, definition := setupValidator(exampleWorkflow("test"), "")
+	_, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), "")
 
 	result := validator.ValidateContent(definition)
 
@@ -38,7 +38,7 @@ func TestValidateContentMissing(t *testing.T) {
 }
 
 func TestValidateContentOutOfDate(t *testing.T) {
-	fs, validator, definition := setupValidator(exampleWorkflow("test"), "")
+	fs, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), "")
 
 	fs.WriteFile(definition.Destination, []byte("incorrect content"), 0644)
 	result := validator.ValidateContent(definition)
@@ -48,7 +48,7 @@ func TestValidateContentOutOfDate(t *testing.T) {
 }
 
 func TestValidateSchema(t *testing.T) {
-	_, validator, definition := setupValidator(exampleWorkflow("test"), "")
+	_, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), "")
 
 	result := validator.ValidateSchema(definition)
 
@@ -57,7 +57,7 @@ func TestValidateSchema(t *testing.T) {
 }
 
 func TestValidateSchemaMissingField(t *testing.T) {
-	_, validator, definition := setupValidator(invalidWorkflow, "")
+	_, validator, definition := setupValidator(invalidJsonnetWorkflow, "")
 
 	result := validator.ValidateSchema(definition)
 
@@ -102,7 +102,7 @@ func TestValidateContentEnabledFlags(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		_, validator, definition := setupValidator(exampleWorkflow("test"), scenario.config)
+		_, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), scenario.config)
 		result := validator.ValidateContent(definition)
 		assert.Equal(t, scenario.expectedResult, result)
 	}
@@ -163,7 +163,7 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		_, validator, definition := setupValidator(invalidWorkflow, scenario.config)
+		_, validator, definition := setupValidator(invalidJsonnetWorkflow, scenario.config)
 		result := validator.ValidateSchema(definition)
 		assert.Equal(t, scenario.expectedResult, result)
 	}

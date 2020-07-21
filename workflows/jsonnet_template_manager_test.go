@@ -10,7 +10,7 @@ import (
 func TestGenerateWorkflowDefinitions(t *testing.T) {
 	container, context, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
 	templateManager := NewJsonnetTemplateManager(fs, container.Logger(), context)
 
 	definitions, _ := templateManager.GetWorkflowDefinitions()
@@ -19,7 +19,7 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 		Name:        "test",
 		Source:      ".gflows/workflows/test.jsonnet",
 		Destination: ".github/workflows/test.yml",
-		Content:     exampleWorkflow("test"),
+		Content:     exampleWorkflow("test.jsonnet"),
 		Status:      ValidationResult{Valid: true},
 	}
 	assert.Equal(t, []*WorkflowDefinition{&expectedDefinition}, definitions)
@@ -28,8 +28,9 @@ func TestGenerateWorkflowDefinitions(t *testing.T) {
 func TestGetWorkflowSources(t *testing.T) {
 	container, context, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleTemplate), 0644)
-	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(exampleTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(exampleJsonnetTemplate), 0644)
 	templateManager := NewJsonnetTemplateManager(fs, container.Logger(), context)
 
 	sources := templateManager.GetWorkflowSources()
