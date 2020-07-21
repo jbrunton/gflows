@@ -42,7 +42,7 @@ func (manager *TemplateManager) getWorkflowTemplatesForEngine(engine string) []s
 		templates := manager.engines[engine].GetWorkflowTemplates()
 		manager.templatesCache[engine] = &templates
 	}
-	return *manager.sourcesCache[engine]
+	return *manager.templatesCache[engine]
 }
 
 func (manager *TemplateManager) getWorkflowDefinitionsForEngine(engine string) ([]*WorkflowDefinition, error) {
