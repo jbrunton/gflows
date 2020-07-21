@@ -38,13 +38,13 @@
         chmod +x ./cc-test-reporter
         ./cc-test-reporter before-build
     - "name": "unit test"
-      "run": "go test -coverprofile c.out $(go list ./... | grep -v /e2e)"
+      "run": "make unit-test"
     - "env":
         "CC_TEST_REPORTER_ID": "${{ secrets.CC_TEST_REPORTER_ID }}"
       "name": "upload coverage"
       "run": "./cc-test-reporter after-build --prefix github.com/jbrunton/gflows"
     - "name": "e2e test"
-      "run": "go test ./e2e"
+      "run": "make e2e-test"
 "name": "build"
 "on":
   "pull_request":
