@@ -66,8 +66,6 @@ func (manager *TemplateManager) getWorkflowDefinitionsForEngine(engine string) (
 		if err != nil {
 			return []*WorkflowDefinition{}, err
 		}
-		fmt.Println("engine:", engine)
-		fmt.Printf("definitions:%+v\n", definitions)
 		manager.definitionsCache[engine] = &definitions
 	}
 	return *manager.definitionsCache[engine], nil
