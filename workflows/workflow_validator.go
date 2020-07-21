@@ -26,7 +26,7 @@ type ValidationResult struct {
 // NewWorkflowValidator - creates a new validator for the given filesystem
 func NewWorkflowValidator(fs *afero.Afero, context *config.GFlowsContext) *WorkflowValidator {
 	config := context.Config
-	schemaLoader := gojsonschema.NewReferenceLoader(config.Defaults.Checks.Schema.URI)
+	schemaLoader := gojsonschema.NewReferenceLoader(config.Workflows.Defaults.Checks.Schema.URI)
 	defaultSchema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
 		panic(err)
@@ -123,7 +123,7 @@ func (validator *WorkflowValidator) ValidateContent(definition *WorkflowDefiniti
 }
 
 func (validator *WorkflowValidator) getWorkflowSchema(workflowName string) *gojsonschema.Schema {
-	workflowConfig := validator.config.Workflows[workflowName]
+	workflowConfig := validator.config.Workflows.Overrides[workflowName]
 	if workflowConfig == nil || workflowConfig.Checks.Schema.URI == "" {
 		return validator.defaultSchema
 	}
@@ -136,28 +136,13 @@ func (validator *WorkflowValidator) getWorkflowSchema(workflowName string) *gojs
 }
 
 func (validator *WorkflowValidator) getContentCheckEnabled(definition *WorkflowDefinition) bool {
-	return validator.getCheckEnabled(definition.Name, func(config config.GFlowsWorkflowConfig) *bool {
+	return validator.config.GetWorkflowBoolProperty(definition.Name, true, func(config *config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Content.Enabled
 	})
 }
 
 func (validator *WorkflowValidator) getSchemaCheckEnabled(definition *WorkflowDefinition) bool {
-	return validator.getCheckEnabled(definition.Name, func(config config.GFlowsWorkflowConfig) *bool {
+	return validator.config.GetWorkflowBoolProperty(definition.Name, true, func(config *config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Schema.Enabled
 	})
-}
-
-func (validator *WorkflowValidator) getCheckEnabled(workflowName string, selector func(config config.GFlowsWorkflowConfig) *bool) bool {
-	workflowConfig := validator.config.Workflows[workflowName]
-	if workflowConfig != nil {
-		enabled := selector(*workflowConfig)
-		if enabled != nil {
-			return *enabled
-		}
-	}
-	enabled := selector(validator.config.Defaults)
-	if enabled != nil {
-		return *enabled
-	}
-	return true
 }

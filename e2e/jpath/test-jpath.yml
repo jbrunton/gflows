@@ -2,9 +2,11 @@ setup:
   files:
     - path: .gflows/config.yml
       content: |
-        jsonnet:
-          jpath:
-            - vendor
+        templates:
+          defaults:
+            jsonnet:
+              jpath:
+                - vendor
     - path: .gflows/vendor/steps.libsonnet
       content: |
         {
