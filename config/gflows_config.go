@@ -35,6 +35,9 @@ type GFlowsTemplateConfig struct {
 	Jsonnet struct {
 		JPath []string `yaml:"jpath"`
 	}
+	Ytt struct {
+		Files []string
+	}
 }
 
 // LoadConfig - finds and returns the GFlowsConfig

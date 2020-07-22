@@ -65,7 +65,15 @@ func (manager *YttTemplateEngine) GetWorkflowTemplates() []string {
 		if err != nil {
 			panic(err)
 		}
-		if isDir {
+		isLib := false
+		for _, file := range manager.context.EvalDefaultYttFiles() {
+			fmt.Println("Considering lib:", file)
+			if filepath.Clean(file) == filepath.Clean(path) {
+				isLib = true
+				break
+			}
+		}
+		if isDir && !isLib {
 			sources := manager.getWorkflowSourcesInDir(path)
 			if len(sources) > 0 {
 				// only add directories with genuine source files
