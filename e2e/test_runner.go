@@ -157,10 +157,10 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 
 func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*workflows.Container, error) {
 	context, err := config.GetContext(runner.container.FileSystem(), cmd)
-	context.EnableColors = false
 	if err != nil {
 		return nil, err
 	}
+	context.EnableColors = false
 
 	container := workflows.NewContainer(runner.container, context)
 	return container, nil
