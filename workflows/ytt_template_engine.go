@@ -217,6 +217,20 @@ func (manager *YttTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (stri
 	return templatePath, nil
 }
 
+func (manager *YttTemplateEngine) WorkflowGenerator() content.WorkflowGenerator {
+	return content.WorkflowGenerator{
+		Name:       "gflows",
+		TrimPrefix: "/ytt",
+		Sources: []string{
+			"/ytt/workflows/common/steps.lib.yml",
+			"/ytt/workflows/common/workflows.lib.yml",
+			"/ytt/workflows/config/git.yml",
+			"/ytt/workflows/gflows/gflows.yml",
+			"/ytt/config.yml",
+		},
+	}
+}
+
 func (manager *YttTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))

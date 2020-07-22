@@ -1,0 +1,9 @@
+# Config file for GFlows.
+# See https://github.com/jbrunton/gflows#configuration for options.
+templates:
+  engine: ytt
+  defaults:
+    ytt:
+      files:
+        - workflows/common
+        - workflows/config

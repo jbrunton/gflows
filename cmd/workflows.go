@@ -99,8 +99,8 @@ func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = workflows.InitWorkflows(container.FileSystem(), container.Logger(), container.Context())
-			return err
+			container.WorkflowManager().InitWorkflows()
+			return nil
 		},
 	}
 }

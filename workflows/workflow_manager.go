@@ -11,9 +11,9 @@ import (
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/diff"
 	"github.com/jbrunton/gflows/styles"
+	statikFs "github.com/rakyll/statik/fs"
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
-	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 )
 
@@ -58,6 +58,9 @@ type TemplateEngine interface {
 
 	// ImportWorkflow - imports a workflow, returns the path to the new template.
 	ImportWorkflow(workflow *GitHubWorkflow) (string, error)
+
+	// WorkflowGenerator - returns a generator to create default workflow and config files
+	WorkflowGenerator() content.WorkflowGenerator
 }
 
 func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) TemplateEngine {
@@ -226,23 +229,15 @@ func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 	return nil
 }
 
-// InitWorkflows - copies g3ops workflow sources to context directory
-func InitWorkflows(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) error {
-	generator := content.WorkflowGenerator{
-		Name: "gflows",
-		Sources: []string{
-			"/jsonnet/workflows/common/steps.libsonnet",
-			"/jsonnet/workflows/common/workflows.libsonnet",
-			"/jsonnet/workflows/config/git.libsonnet",
-			"/jsonnet/workflows/gflows.jsonnet",
-			"/config.yml",
-		},
-	}
-	writer := content.NewWriter(fs, logger)
+func (manager *WorkflowManager) InitWorkflows() {
+	generator := manager.WorkflowGenerator()
+	writer := content.NewWriter(manager.fs, manager.logger)
 	sourceFs, err := statikFs.New()
 	if err != nil {
-		return err
+		panic(err)
 	}
-	err = writer.ApplyGenerator(sourceFs, context, generator)
-	return err
+	err = writer.ApplyGenerator(sourceFs, manager.context, generator)
+	if err != nil {
+		panic(err)
+	}
 }

@@ -120,6 +120,20 @@ func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (
 	return templatePath, nil
 }
 
+func (manager *JsonnetTemplateEngine) WorkflowGenerator() content.WorkflowGenerator {
+	return content.WorkflowGenerator{
+		Name:       "gflows",
+		TrimPrefix: "/jsonnet",
+		Sources: []string{
+			"/jsonnet/workflows/common/steps.libsonnet",
+			"/jsonnet/workflows/common/workflows.libsonnet",
+			"/jsonnet/workflows/config/git.libsonnet",
+			"/jsonnet/workflows/gflows.jsonnet",
+			"/jsonnet/config.yml",
+		},
+	}
+}
+
 func (manager *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))

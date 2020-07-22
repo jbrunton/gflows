@@ -1,0 +1,18 @@
+#@ load("workflows.lib.yml", "pull_request_defaults")
+#@ load("steps.lib.yml", "setup_go")
+
+name: gflows
+
+"on": #@ pull_request_defaults()
+
+jobs:
+  check_workflows:
+    name: check-workflows
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - #@ setup_go()
+    - name: install gflows
+      run: go get github.com/jbrunton/gflows
+    - name: validate workflows
+      run: gflows check
