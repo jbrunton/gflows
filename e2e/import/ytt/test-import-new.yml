@@ -1,7 +1,10 @@
 setup:
   files:
     - path: .gflows/config.yml
-    - path: .gflows/workflows/test.jsonnet
+      content: |
+          templates:
+            engine: ytt
+    - path: .gflows/workflows/test/workflow.yml
       content: test workflow
     - path: .github/workflows/test.yml
       content: |
@@ -20,10 +23,10 @@ run: import
 expect:
   output: |
     Found workflow: .github/workflows/test.yml
-      Exists: .gflows/workflows/test.jsonnet
+      Exists: .gflows/workflows/test
     
   files:
   - path: .gflows/config.yml
   - path: .github/workflows/test.yml
-  - path: .gflows/workflows/test.jsonnet
+  - path: .gflows/workflows/test/workflow.yml
     content: test workflow

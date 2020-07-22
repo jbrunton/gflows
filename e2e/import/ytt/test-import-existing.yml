@@ -1,8 +1,9 @@
 setup:
   files:
     - path: .gflows/config.yml
-    - path: .gflows/workflows/test.jsonnet
-      content: test workflow
+      content: |
+          templates:
+            engine: ytt
     - path: .github/workflows/test.yml
       content: |
         on:
@@ -20,10 +21,19 @@ run: import
 expect:
   output: |
     Found workflow: .github/workflows/test.yml
-      Exists: .gflows/workflows/test.jsonnet
+      Imported template: .gflows/workflows/test/test.yml
     
   files:
   - path: .gflows/config.yml
   - path: .github/workflows/test.yml
-  - path: .gflows/workflows/test.jsonnet
-    content: test workflow
+  - path: .gflows/workflows/test/test.yml
+    content: |
+      on:
+        push:
+          branches:
+          - develop
+      jobs:
+        hello:
+          runs-on: ubuntu-latest
+          steps:
+          - run: echo hello, world!
