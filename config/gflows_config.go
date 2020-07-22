@@ -48,7 +48,9 @@ type GFlowsTemplateConfig struct {
 func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	exists, err := fs.Exists(path)
 	if !exists {
-		return &GFlowsConfig{}, nil
+		defaultConfig := &GFlowsConfig{}
+		defaultConfig.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+		return defaultConfig, nil
 	}
 
 	data, err := fs.ReadFile(path)
