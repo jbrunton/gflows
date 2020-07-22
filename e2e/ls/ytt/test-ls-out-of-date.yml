@@ -1,0 +1,27 @@
+setup:
+  files:
+    - path: .gflows/config.yml
+      content: |
+        templates:
+          engine: ytt
+    - path: .gflows/workflows/test/config.yml
+      content: |
+        'on':
+          push:
+            branches: ['develop']
+        jobs:
+          hello:
+            runs-on: ubuntu-latest
+            steps:
+              - run: echo hello, world!
+    - path: .github/workflows/test.yml
+
+run: ls
+
+expect:
+  output: |
+    +------+------------------------+----------------------------+-------------+
+    | NAME |         SOURCE         |           TARGET           |   STATUS    |
+    +------+------------------------+----------------------------+-------------+
+    | test | .gflows/workflows/test | .github/workflows/test.yml | OUT OF DATE |
+    +------+------------------------+----------------------------+-------------+

@@ -17,10 +17,10 @@ type ContainerBuilderFunc func(cmd *cobra.Command) (*workflows.Container, error)
 func buildContainer(cmd *cobra.Command) (*workflows.Container, error) {
 	fs := adapters.CreateOsFs()
 	context, err := config.GetContext(fs, cmd)
-	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(os.Stdout), styles.NewStyles(context.EnableColors))
-	contentContainer := content.NewContainer(adaptersContainer)
 	if err != nil {
 		return nil, err
 	}
+	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(os.Stdout), styles.NewStyles(context.EnableColors))
+	contentContainer := content.NewContainer(adaptersContainer)
 	return workflows.NewContainer(contentContainer, context), nil
 }

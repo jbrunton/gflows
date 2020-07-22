@@ -67,12 +67,13 @@ func TestUpdateFileContentIdentical(t *testing.T) {
 func TestApplyGenerator(t *testing.T) {
 	// arrange
 	sourceFs := fixtures.CreateTestFileSystem([]fixtures.File{
-		{Name: "foo.txt", Body: "foo"},
-		{Name: "jsonnet/bar.txt", Body: "bar"},
+		{Path: "foo.txt", Content: "foo"},
+		{Path: "jsonnet/bar.txt", Content: "bar"},
 	}, "TestApplyGenerator")
 	generator := WorkflowGenerator{
-		Name:    "foo",
-		Sources: []string{"/foo.txt", "/jsonnet/bar.txt"},
+		Name:       "foo",
+		TrimPrefix: "/jsonnet",
+		Sources:    []string{"/foo.txt", "/jsonnet/bar.txt"},
 	}
 
 	container, context, out := fixtures.NewTestContext("")

@@ -1,7 +1,11 @@
 package config
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/spf13/afero"
+	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v2"
 )
 
@@ -13,6 +17,7 @@ type GFlowsConfig struct {
 		Overrides map[string]*GFlowsWorkflowConfig
 	}
 	Templates struct {
+		Engine    string
 		Defaults  GFlowsTemplateConfig
 		Overrides map[string]*GFlowsTemplateConfig
 	}
@@ -31,9 +36,11 @@ type GFlowsWorkflowConfig struct {
 }
 
 type GFlowsTemplateConfig struct {
-	Engine  string
 	Jsonnet struct {
 		JPath []string `yaml:"jpath"`
+	}
+	Ytt struct {
+		Files []string
 	}
 }
 
@@ -41,7 +48,9 @@ type GFlowsTemplateConfig struct {
 func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	exists, err := fs.Exists(path)
 	if !exists {
-		return &GFlowsConfig{}, nil
+		defaultConfig := &GFlowsConfig{}
+		defaultConfig.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+		return defaultConfig, nil
 	}
 
 	data, err := fs.ReadFile(path)
@@ -96,6 +105,12 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 
 	if config.Workflows.Defaults.Checks.Schema.URI == "" {
 		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+	}
+	if config.Templates.Engine == "" {
+		return nil, errors.New("missing value for config: templates.engine")
+	}
+	if !funk.ContainsString([]string{"ytt", "jsonnet"}, config.Templates.Engine) {
+		return nil, fmt.Errorf("unexpected value for templates.engine config field: %q (expected jsonnet or ytt)", config.Templates.Engine)
 	}
 
 	return &config, nil

@@ -90,3 +90,20 @@ func (context *GFlowsContext) EvalJPaths(workflowName string) []string {
 
 	return paths
 }
+
+func (context *GFlowsContext) EvalDefaultYttFiles() []string {
+	// TODO: this should probably return all potential lib files (incl. overrides) to ensure we don't
+	// accidentally infer a lib file is a workflow.
+	var paths []string
+	configFiles := context.Config.Templates.Defaults.Ytt.Files
+
+	for _, path := range configFiles {
+		if filepath.IsAbs(path) {
+			paths = append(paths, path)
+		} else {
+			paths = append(paths, filepath.Join(context.Dir, path))
+		}
+	}
+
+	return paths
+}

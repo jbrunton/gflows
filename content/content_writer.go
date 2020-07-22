@@ -1,6 +1,7 @@
 package content
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,8 +14,9 @@ import (
 )
 
 type WorkflowGenerator struct {
-	Name    string
-	Sources []string
+	Name       string
+	Sources    []string
+	TrimPrefix string // optionally trim this prefix from the destination
 }
 
 type Writer struct {
@@ -58,6 +60,8 @@ func (writer *Writer) UpdateFileContent(destination string, content string, deta
 			action = "identical"
 		} else {
 			action = "update"
+			fmt.Printf("actual: `%s`", string(actualContent))
+			fmt.Printf("generated: `%s`", content)
 		}
 	} else {
 		action = "create"
@@ -77,13 +81,13 @@ func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.G
 	for _, sourcePath := range generator.Sources {
 		file, err := sourceFs.Open(sourcePath)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)
 		}
 		defer file.Close()
 		content, err := ioutil.ReadAll(file)
-		destinationPath := filepath.Join(context.Dir, strings.TrimPrefix(sourcePath, "/jsonnet"))
+		destinationPath := filepath.Join(context.Dir, strings.TrimPrefix(sourcePath, generator.TrimPrefix))
 		if err != nil {
-			return err
+			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)
 		}
 		writer.UpdateFileContent(destinationPath, string(content), "")
 	}

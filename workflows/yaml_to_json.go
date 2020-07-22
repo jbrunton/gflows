@@ -1,6 +1,21 @@
 package workflows
 
-import "fmt"
+import (
+	"fmt"
+
+	"gopkg.in/yaml.v2"
+)
+
+func YamlToJson(input string) (json interface{}, err error) {
+	var yamlData map[interface{}]interface{}
+	err = yaml.Unmarshal([]byte(input), &yamlData)
+	if err != nil {
+		return
+	}
+
+	json, err = convertToStringKeysRecursive(yamlData, "")
+	return
+}
 
 // Taken from Docker (and then refactored to keep CodeClimate happy).
 // See: https://github.com/docker/docker-ce/blob/de14285fad39e215ea9763b8b404a37686811b3f/components/cli/cli/compose/loader/loader.go#L330

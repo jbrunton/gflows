@@ -10,23 +10,32 @@ import (
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	statikFs "github.com/rakyll/statik/fs"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
 type File struct {
-	Name string
-	Body string
+	Path    string
+	Content string
+}
+
+func (f *File) Write(fs *afero.Afero) {
+	fs.WriteFile(f.Path, []byte(f.Content), 0644)
+}
+
+func NewFile(path string, content string) File {
+	return File{Path: path, Content: content}
 }
 
 func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 	out := new(bytes.Buffer)
 	writer := zip.NewWriter(out)
 	for _, file := range files {
-		f, err := writer.Create(file.Name)
+		f, err := writer.Create(file.Path)
 		if err != nil {
 			panic(err)
 		}
-		_, err = f.Write([]byte(file.Body))
+		_, err = f.Write([]byte(file.Content))
 		if err != nil {
 			panic(err)
 		}
@@ -50,8 +59,14 @@ func NewTestContext(configString string) (*adapters.Container, *config.GFlowsCon
 	container := adapters.NewContainer(fs, adapters.NewLogger(out), styles.NewStyles(false))
 
 	configPath := ".gflows/config.yml"
+	if configString == "" {
+		configString = "templates:\n  engine: ytt"
+	}
 	fs.WriteFile(configPath, []byte(configString), 0644)
-	context, _ := config.NewContext(fs, configPath, false)
+	context, err := config.NewContext(fs, configPath, false)
+	if err != nil {
+		panic(err)
+	}
 
 	return container, context, out
 }

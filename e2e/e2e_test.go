@@ -24,23 +24,28 @@ func runTests(t *testing.T, glob string, useMemFs bool) {
 }
 
 func TestCheckCommand(t *testing.T) {
-	runTests(t, "./check/*.yml", true)
+	runTests(t, "./check/jsonnet/*.yml", true)
+	runTests(t, "./check/ytt/*.yml", true)
 }
 
 func TestImportCommand(t *testing.T) {
-	runTests(t, "./import/*.yml", true)
+	runTests(t, "./import/jsonnet/*.yml", true)
+	runTests(t, "./import/ytt/*.yml", true)
 }
 
 func TestInitCommand(t *testing.T) {
-	runTests(t, "./init/*.yml", true)
+	runTests(t, "./init/jsonnet/*.yml", true)
+	runTests(t, "./init/ytt/*.yml", true)
 }
 
 func TestListCommand(t *testing.T) {
-	runTests(t, "./ls/*.yml", true)
+	runTests(t, "./ls/jsonnet/*.yml", true)
+	runTests(t, "./ls/ytt/*.yml", true)
 }
 
 func TestUpdateCommand(t *testing.T) {
-	runTests(t, "./update/*.yml", true)
+	runTests(t, "./update/jsonnet/*.yml", true)
+	runTests(t, "./update/ytt/*.yml", true)
 }
 
 func TestJPath(t *testing.T) {

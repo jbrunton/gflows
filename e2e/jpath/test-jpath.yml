@@ -3,6 +3,7 @@ setup:
     - path: .gflows/config.yml
       content: |
         templates:
+          engine: jsonnet
           defaults:
             jsonnet:
               jpath:

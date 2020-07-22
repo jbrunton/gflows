@@ -1,0 +1,20 @@
+run: init jsonnet
+
+expect:
+  output: |2
+         create .gflows/workflows/common/steps.libsonnet
+         create .gflows/workflows/common/workflows.libsonnet
+         create .gflows/workflows/config/git.libsonnet
+         create .gflows/workflows/gflows.jsonnet
+         create .gflows/config.yml
+  files:
+  - path: .gflows/workflows/common/steps.libsonnet
+  - path: .gflows/workflows/common/workflows.libsonnet
+  - path: .gflows/workflows/config/git.libsonnet
+  - path: .gflows/workflows/gflows.jsonnet
+  - path: .gflows/config.yml
+    content: |
+      # Config file for GFlows.
+      # See https://github.com/jbrunton/gflows#configuration for options.
+      templates:
+        engine: jsonnet

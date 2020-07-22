@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/jbrunton/gflows/workflows"
 	"github.com/olekukonko/tablewriter"
+	"github.com/thoas/go-funk"
 
 	"github.com/spf13/cobra"
 )
@@ -91,18 +95,37 @@ func newUpdateWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 }
 
 func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
-	return &cobra.Command{
-		Use:   "init",
-		Short: "Setup config and templates for first time use",
+	cmd := &cobra.Command{
+		Use:   "init <engine>",
+		Short: "Setup config and templates for first time use using the given template engine",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return errors.New("Argument <engine> required")
+			}
+
+			if len(args) > 1 {
+				return errors.New("Unexpected arguments, only <engine> expected")
+			}
+
+			if !funk.ContainsString([]string{"jsonnet", "ytt"}, args[0]) {
+				return fmt.Errorf("Unexpected engine name: %q, valid options are ytt or jsonnet", args[0])
+			}
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			container, err := containerFunc(cmd)
 			if err != nil {
 				return err
 			}
-			err = workflows.InitWorkflows(container.FileSystem(), container.Logger(), container.Context())
-			return err
+
+			container.Context().Config.Templates.Engine = args[0]
+			container.WorkflowManager().InitWorkflows()
+			return nil
 		},
 	}
+	cmd.Flags().String("engine", "", "the template engine to use (either jsonnet or ytt)")
+	return cmd
 }
 
 func checkWorkflows(workflowManager *workflows.WorkflowManager, container *workflows.Container, watch bool, showDiff bool) error {
@@ -182,8 +205,8 @@ func newImportWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 				return err
 			}
 			manager := container.WorkflowManager()
-			manager.ImportWorkflows()
-			return nil
+			err = manager.ImportWorkflows()
+			return err
 		},
 	}
 }

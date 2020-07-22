@@ -1,0 +1,20 @@
+setup:
+  files:
+    - path: .gflows/config.yml
+      content: |
+        templates:
+          engine: ytt
+    - path: .gflows/workflows/test/config.yml
+      content: |
+        123: foo
+
+run: check
+
+expect:
+  error: workflow validation failed
+  output: |
+    Checking test ... FAILED
+      Error parsing template:
+      ► Non-string key at top level: 123
+
+
