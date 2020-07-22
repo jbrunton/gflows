@@ -1,0 +1,40 @@
+setup:
+  files:
+  - path: .gflows/config.yml
+    content: |
+      # Config file for GFlows.
+      # See https://github.com/jbrunton/gflows#configuration for options.
+      templates:
+        engine: ytt
+        defaults:
+          ytt:
+            files:
+              - workflows/common
+              - workflows/config
+
+run: init ytt
+
+expect:
+  output: |2
+         create .gflows/workflows/common/steps.lib.yml
+         create .gflows/workflows/common/workflows.lib.yml
+         create .gflows/workflows/config/git.yml
+         create .gflows/workflows/gflows/gflows.yml
+      identical .gflows/config.yml
+  files:
+  - path: .gflows/workflows/common/steps.lib.yml
+  - path: .gflows/workflows/common/workflows.lib.yml
+  - path: .gflows/workflows/config/git.yml
+  - path: .gflows/workflows/gflows/gflows.yml
+  - path: .gflows/config.yml
+    content: |
+      # Config file for GFlows.
+      # See https://github.com/jbrunton/gflows#configuration for options.
+      templates:
+        engine: ytt
+        defaults:
+          ytt:
+            files:
+              - workflows/common
+              - workflows/config
+
