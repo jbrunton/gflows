@@ -3,8 +3,8 @@
 #@ def pull_request_defaults():
   pull_request:
     branches:
-    - #@ data.values.main_branch
+    - #@ data.values.git.main_branch
   push:
     branches:
-    - #@ data.values.main_branch
+    - #@ data.values.git.main_branch
 #@ end
