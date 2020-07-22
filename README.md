@@ -4,7 +4,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/maintainability)](https://codeclimate.com/github/jbrunton/gflows/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/test_coverage)](https://codeclimate.com/github/jbrunton/gflows/test_coverage)
 
-GFlows is a CLI tool that makes templating GitHub Workflows easy. Built on [Jsonnet](https://jsonnet.org/), it can:
+GFlows is a CLI tool that makes templating GitHub Workflows easym using either [Jsonnet](https://jsonnet.org/) or [ytt (Yaml Templating Tool)](https://get-ytt.io/). It can:
 
 * Import existing workflows into Jsonnet templates.
 * Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
@@ -33,27 +33,29 @@ Note: this project is very new, so I expect there is room for improvement (espec
 
 ### Adding GFlows to a repository
 
-First, you'll probably want to run the `init` command to bootstrap GFlows:
+First, you'll probably want to run the `init` command to bootstrap GFlows. To use ytt as the templating engine:
 
-    $ gflows init
-         create .gflows/workflows/common/steps.libsonnet
-         create .gflows/workflows/common/workflows.libsonnet
-         create .gflows/workflows/config/git.libsonnet
-         create .gflows/workflows/gflows.jsonnet
+    $ gflows init ytt
+         create .gflows/workflows/common/steps.lib.yml
+         create .gflows/workflows/common/workflows.lib.yml
+         create .gflows/workflows/config/git.yml
+         create .gflows/workflows/gflows/gflows.yml
          create .gflows/config.yml
+
+(You can also use jsonnet with `gflows init jsonnet`.)
 
 This generates:
 
-* A workflow called `gflows` defined in `gflows.libsonnet`, which will run against PRs and your main branch to ensure your workflows are kept up to date with their source templates.
-* Some common code factored out into libsonnet files in the `config/` and `common/` directories.
+* A workflow called `gflows` defined in `gflows.yml`, which will run against PRs and your main branch to ensure your workflows are kept up to date with their source templates.
+* Some common code factored out into library files in the `config/` and `common/` directories.
 * A `config.yml` file to customize build and validation options (see [Configuration](#configuration) for more details).
 
-At this point, you should update the `config/git.libsonnet` file to reference the correct name of your main branch.
+At this point, you should update the `config/git.yml` file to reference the correct name of your main branch.
 
 Finally, run the `update` command to create the `gflows` workflow:
 
     $ gflows update
-         create .github/workflows/gflows.yml (from .gflows/workflows/gflows.jsonnet)
+         create .github/workflows/gflows.yml (from .gflows/workflows/gflows)
 
 ### Importing existing workflows
 
@@ -61,15 +63,15 @@ If you want to import your existing workflows, you can use the `import` command:
 
     $ gflows import
     Found workflow: .github/workflows/my-workflow.yml
-      Imported template: .gflows/workflows/my-workflow.jsonnet
+      Imported template: .gflows/workflows/my-workflow/my-workflow.yml
     
     Important: imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.
       ► Run "gflows update" to do this now
 
-Because Jsonnet (very probably) renders yaml differently from your existing workflow, you'll need to run the `update` command to regenerate your workflows:
+Especially if you use jsonnet, the templating engine may render yaml differently from your existing workflow so you'll likely need to run the `update` command to regenerate your workflows:
 
     $ gflows update
-         update .github/workflows/my-workflow.yml (from .gflows/workflows/my-workflow.jsonnet)
+         update .github/workflows/my-workflow.yml (from .gflows/workflows/my-workflow/my-workflow.yml)
 
 At this point you can commit and push your changes. If you create a PR against your main branch you should see the `gflows` workflow checking your workflows are up to date.
 
@@ -112,7 +114,7 @@ If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will
 
 ## Using jsonnet-bundler
 
-If you want to extract templates into a separate repository then the recommended approach is to use [jsonnet-bundler](https://github.com/jsonnet-bundler/jsonnet-bundler).
+If you use jsonnet as the templating engine and want to extract templates into a separate repository then the recommended approach is to use [jsonnet-bundler](https://github.com/jsonnet-bundler/jsonnet-bundler).
 
 Any additional library paths should be added to the `jsonnet.jpath` list in the config file. These paths may be relative, so, for example, if you install dependencies into `.jflows/vendor`, then your config may look like this:
 
@@ -131,39 +133,48 @@ The config file (`.gflows/config.yml`) can be edited to configure validation and
 # Default: .github
 githubDir: .github
 
-# Default options for generating workflows
-defaults:
-  # The checks to conduct when running `gflows check`
-  checks:
-    schema:
-      # Whether or not to validate with a JSON schema.
-      # Default: true
-      enabled: true
-      
-      # The schema to use.
-      # Default: https://json.schemastore.org/github-workflow
-      uri: https://example.com/my-schema
-
-    content:
-      # Whether or not to validate that the workflow in .github is up to date
-      # Default: true
-      enabled: true
-
-# Overrides for specific workflows
 workflows:
-  # For example, this overrides the schema options for my-workflow
-  my-workflow:
+  # Default options for generating workflows
+  defaults:
+    # The checks to conduct when running `gflows check`
     checks:
       schema:
-        enabled: false
+        # Whether or not to validate with a JSON schema.
+        # Default: true
+        enabled: true
+      
+        # The schema to use.
+        # Default: https://json.schemastore.org/github-workflow
+        uri: https://example.com/my-schema
 
-# Jsonnet options
-jsonnet:
-  # Additional paths to search for libraries. Useful if you use jsonnet-bundler.
-  # Default: <empty list>
-  jpath:
-  - vendor
-  - my-library
+      content:
+        # Whether or not to validate that the workflow in .github is up to date
+        # Default: true
+        enabled: true
+
+  # Overrides for specific workflows
+  workflows:
+    # For example, this overrides the schema options for my-workflow
+    my-workflow:
+      checks:
+        schema:
+          enabled: false
+
+templates:
+  # The templating engine to use (either ytt or jsonnet)
+  engine: ytt
+  # Jsonnet options
+  jsonnet:
+    # Additional paths to search for libraries. Useful if you use jsonnet-bundler.
+    # Default: <empty list>
+    jpath:
+    - vendor
+    - my-library
+  ytt:
+    # Additional paths to add as input files. This should include any files and directories used as libraries.
+    files:
+    - workflows/common
+    - workflows/lib
 ```
 
 ## Development Tips
