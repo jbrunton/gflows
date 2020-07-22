@@ -3,15 +3,24 @@ package workflows
 import (
 	"testing"
 
+	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/content"
+
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
 )
 
+func newJsonnetTemplateEngine() (*content.Container, *config.GFlowsContext, *JsonnetTemplateEngine) {
+	adaptersContainer, context, _ := fixtures.NewTestContext("")
+	container := content.NewContainer(adaptersContainer)
+	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter())
+	return container, context, templateEngine
+}
+
 func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
-	container, context, _ := fixtures.NewTestContext("")
+	container, _, templateEngine := newJsonnetTemplateEngine()
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
-	templateEngine := NewJsonnetTemplateEngine(fs, container.Logger(), context)
 
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
@@ -29,12 +38,11 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 }
 
 func TestGetJsonnetWorkflowSources(t *testing.T) {
-	container, context, _ := fixtures.NewTestContext("")
+	container, _, templateEngine := newJsonnetTemplateEngine()
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
 	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(exampleJsonnetTemplate), 0644)
 	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(exampleJsonnetTemplate), 0644)
-	templateEngine := NewJsonnetTemplateEngine(fs, container.Logger(), context)
 
 	sources := templateEngine.GetWorkflowSources()
 	templates := templateEngine.GetWorkflowTemplates()
@@ -44,8 +52,7 @@ func TestGetJsonnetWorkflowSources(t *testing.T) {
 }
 
 func TestGetJsonnetWorkflowName(t *testing.T) {
-	container, context, _ := fixtures.NewTestContext("")
-	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context)
+	_, _, templateEngine := newJsonnetTemplateEngine()
 	assert.Equal(t, "my-workflow-1", templateEngine.getWorkflowName("/workflows", "/workflows/my-workflow-1.jsonnet"))
 	assert.Equal(t, "my-workflow-2", templateEngine.getWorkflowName("/workflows", "/workflows/workflows/my-workflow-2.jsonnet"))
 }
