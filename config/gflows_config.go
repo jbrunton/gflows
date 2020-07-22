@@ -1,7 +1,11 @@
 package config
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/spf13/afero"
+	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v2"
 )
 
@@ -101,7 +105,10 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
 	}
 	if config.Templates.Engine == "" {
-		config.Templates.Engine = "jsonnet"
+		return nil, errors.New("missing value for config: templates.engine")
+	}
+	if !funk.ContainsString([]string{"ytt", "jsonnet"}, config.Templates.Engine) {
+		return nil, fmt.Errorf("unexpected value for templates.engine config field: %q (expected jsonnet or ytt)", config.Templates.Engine)
 	}
 
 	return &config, nil

@@ -38,7 +38,7 @@ func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "gflows",
 		Short:         "Generate GitHub workflows from jsonnet templates",
-		SilenceErrors: false,
+		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")
