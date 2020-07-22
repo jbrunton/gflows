@@ -73,6 +73,8 @@ func TestValidateContentEnabledFlags(t *testing.T) {
 	}{
 		{
 			config: strings.Join([]string{
+				"templates:",
+				"  engine: ytt",
 				"workflows:",
 				"  defaults:",
 				"    checks:",
@@ -87,6 +89,8 @@ func TestValidateContentEnabledFlags(t *testing.T) {
 		},
 		{
 			config: strings.Join([]string{
+				"templates:",
+				"  engine: ytt",
 				"workflows:",
 				"  defaults:",
 				"    checks:",
@@ -116,6 +120,8 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 	}{
 		{
 			config: strings.Join([]string{
+				"templates:",
+				"  engine: ytt",
 				"workflows:",
 				"  defaults:",
 				"    checks:",
@@ -130,6 +136,8 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 		},
 		{
 			config: strings.Join([]string{
+				"templates:",
+				"  engine: ytt",
 				"workflows:",
 				"  defaults:",
 				"    checks:",
@@ -148,6 +156,8 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 		},
 		{
 			config: strings.Join([]string{
+				"templates:",
+				"  engine: ytt",
 				"workflows:",
 				"  defaults:",
 				"    checks:",

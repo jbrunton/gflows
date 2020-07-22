@@ -10,6 +10,7 @@ import (
 func TestGetTemplateArrayProperty(t *testing.T) {
 	config, _ := parseConfig([]byte(strings.Join([]string{
 		"templates:",
+		"  engine: ytt",
 		"  defaults:",
 		"    jsonnet:",
 		"      jpath:",
@@ -30,6 +31,8 @@ func TestGetTemplateArrayProperty(t *testing.T) {
 
 func TestGetWorkflowBoolProperty(t *testing.T) {
 	config, _ := parseConfig([]byte(strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
 		"workflows:",
 		"  defaults:",
 		"    checks:",

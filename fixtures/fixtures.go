@@ -59,8 +59,14 @@ func NewTestContext(configString string) (*adapters.Container, *config.GFlowsCon
 	container := adapters.NewContainer(fs, adapters.NewLogger(out), styles.NewStyles(false))
 
 	configPath := ".gflows/config.yml"
+	if configString == "" {
+		configString = "templates:\n  engine: ytt"
+	}
 	fs.WriteFile(configPath, []byte(configString), 0644)
-	context, _ := config.NewContext(fs, configPath, false)
+	context, err := config.NewContext(fs, configPath, false)
+	if err != nil {
+		panic(err)
+	}
 
 	return container, context, out
 }
