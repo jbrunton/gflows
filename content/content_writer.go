@@ -60,6 +60,8 @@ func (writer *Writer) UpdateFileContent(destination string, content string, deta
 			action = "identical"
 		} else {
 			action = "update"
+			fmt.Printf("actual: `%s`", string(actualContent))
+			fmt.Printf("generated: `%s`", content)
 		}
 	} else {
 		action = "create"

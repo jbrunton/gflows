@@ -6,8 +6,8 @@ setup:
       # See https://github.com/jbrunton/gflows#configuration for options.
       templates:
         engine: jsonnet
-        
-run: init
+
+run: init jsonnet
 
 expect:
   output: |2

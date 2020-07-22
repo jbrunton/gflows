@@ -1,4 +1,4 @@
-run: init
+run: init jsonnet
 
 expect:
   output: |2
@@ -18,4 +18,3 @@ expect:
       # See https://github.com/jbrunton/gflows#configuration for options.
       templates:
         engine: jsonnet
-        
