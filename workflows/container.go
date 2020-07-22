@@ -18,7 +18,7 @@ func (container *Container) Context() *config.GFlowsContext {
 
 func (container *Container) WorkflowManager() *WorkflowManager {
 	if container.workflowManager == nil {
-		templateEngine := CreateWorkflowEngine(container.FileSystem(), container.Logger(), container.Context())
+		templateEngine := CreateWorkflowEngine(container.FileSystem(), container.Logger(), container.Context(), container.ContentWriter())
 		container.workflowManager = NewWorkflowManager(
 			container.FileSystem(),
 			container.Logger(),

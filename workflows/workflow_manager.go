@@ -55,15 +55,18 @@ type TemplateEngine interface {
 
 	// GetWorkflowDefinitions - returns definitions generated from workflow templates.
 	GetWorkflowDefinitions() ([]*WorkflowDefinition, error)
+
+	// ImportWorkflow - imports a workflow, returns the path to the new template.
+	ImportWorkflow(workflow *GitHubWorkflow) (string, error)
 }
 
-func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) TemplateEngine {
+func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) TemplateEngine {
 	var templateEngine TemplateEngine
 	switch engine := context.Config.Templates.Engine; engine {
 	case "jsonnet":
-		templateEngine = NewJsonnetTemplateEngine(fs, logger, context)
+		templateEngine = NewJsonnetTemplateEngine(fs, logger, context, contentWriter)
 	case "ytt":
-		templateEngine = NewYttTemplateEngine(fs, logger, context)
+		templateEngine = NewYttTemplateEngine(fs, logger, context, contentWriter)
 	default:
 		panic(fmt.Errorf("Unexpected engine: %s", engine))
 	}
@@ -104,38 +107,6 @@ func NewWorkflowManager(
 		TemplateEngine: templateEngine,
 	}
 }
-
-// func (manager *WorkflowManager) GetWorkflowDefinitions() (definitions []*WorkflowDefinition, err error) {
-// 	definitions, err = manager.templateEngine.GetWorkflowDefinitions()
-// 	if err != nil {
-// 		return
-// 	}
-// 	for _, definition := range definitions {
-// 		if !definition.Status.Valid {
-// 			continue
-// 		}
-
-// 		jsonData, err := yamlToJson(definition.Content)
-// 		if err != nil {
-// 			definition.Status = ValidationResult{
-// 				Valid:  false,
-// 				Errors: []string{err.Error()},
-// 			}
-// 			continue
-// 		}
-
-// 		definition.JSON = jsonData
-// 	}
-// 	return
-// }
-
-// func (manager *WorkflowManager) GetWorkflowSources() []string {
-// 	return manager.templateEngine.GetWorkflowSources()
-// }
-
-// func (manager *WorkflowManager) GetWorkflowTemplates() []string {
-// 	return manager.templateEngine.GetWorkflowTemplates()
-// }
 
 func (manager *WorkflowManager) GetWorkflows() []GitHubWorkflow {
 	files := []string{}

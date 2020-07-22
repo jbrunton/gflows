@@ -1,27 +1,33 @@
 package workflows
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/google/go-jsonnet"
+	"github.com/jbrunton/gflows/content"
+
+	gojsonnet "github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/jsonnet"
 	"github.com/spf13/afero"
 )
 
 type JsonnetTemplateEngine struct {
-	fs      *afero.Afero
-	logger  *adapters.Logger
-	context *config.GFlowsContext
+	fs            *afero.Afero
+	logger        *adapters.Logger
+	context       *config.GFlowsContext
+	contentWriter *content.Writer
 }
 
-func NewJsonnetTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *JsonnetTemplateEngine {
+func NewJsonnetTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *JsonnetTemplateEngine {
 	return &JsonnetTemplateEngine{
-		fs:      fs,
-		logger:  logger,
-		context: context,
+		fs:            fs,
+		logger:        logger,
+		context:       context,
+		contentWriter: contentWriter,
 	}
 }
 
@@ -88,14 +94,40 @@ func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefin
 	return definitions, nil
 }
 
+func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (string, error) {
+	workflowContent, err := manager.fs.ReadFile(workflow.path)
+	if err != nil {
+		return "", err
+	}
+
+	jsonData, err := YamlToJson(string(workflowContent))
+	if err != nil {
+		return "", err
+	}
+
+	json, err := jsonnet.Marshal(jsonData)
+	if err != nil {
+		return "", err
+	}
+
+	templateContent := fmt.Sprintf("local workflow = %s;\n\nstd.manifestYamlDoc(workflow)\n", string(json))
+
+	_, filename := filepath.Split(workflow.path)
+	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
+	templatePath := filepath.Join(manager.context.WorkflowsDir, templateName+".jsonnet")
+	manager.contentWriter.SafelyWriteFile(templatePath, templateContent)
+
+	return templatePath, nil
+}
+
 func (manager *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
-func createVM(context *config.GFlowsContext, workflowName string) *jsonnet.VM {
-	vm := jsonnet.MakeVM()
-	vm.Importer(&jsonnet.FileImporter{
+func createVM(context *config.GFlowsContext, workflowName string) *gojsonnet.VM {
+	vm := gojsonnet.MakeVM()
+	vm.Importer(&gojsonnet.FileImporter{
 		JPaths: context.EvalJPaths(workflowName),
 	})
 	vm.StringOutput = true

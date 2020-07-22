@@ -182,8 +182,8 @@ func newImportWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 				return err
 			}
 			manager := container.WorkflowManager()
-			manager.ImportWorkflows()
-			return nil
+			err = manager.ImportWorkflows()
+			return err
 		},
 	}
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/content"
 	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
 	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
 	"github.com/k14s/ytt/pkg/files"
@@ -17,16 +18,18 @@ import (
 )
 
 type YttTemplateEngine struct {
-	fs      *afero.Afero
-	logger  *adapters.Logger
-	context *config.GFlowsContext
+	fs            *afero.Afero
+	logger        *adapters.Logger
+	context       *config.GFlowsContext
+	contentWriter *content.Writer
 }
 
-func NewYttTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext) *YttTemplateEngine {
+func NewYttTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *YttTemplateEngine {
 	return &YttTemplateEngine{
-		fs:      fs,
-		logger:  logger,
-		context: context,
+		fs:            fs,
+		logger:        logger,
+		context:       context,
+		contentWriter: contentWriter,
 	}
 }
 
@@ -121,9 +124,9 @@ func (s FileSource) RelativePath() (string, error) {
 
 func (s FileSource) Bytes() ([]byte, error) { return s.fs.ReadFile(s.path) }
 
-func (manager *YttTemplateEngine) getInput() cmdtpl.TemplateInput {
+func (manager *YttTemplateEngine) getInput(templateDir string) cmdtpl.TemplateInput {
 	var in cmdtpl.TemplateInput
-	for _, sourcePath := range manager.GetWorkflowSources() {
+	for _, sourcePath := range manager.getWorkflowSourcesInDir(templateDir) {
 		source := NewFileSource(manager.fs, sourcePath, filepath.Dir(sourcePath))
 		file, err := files.NewFileFromSource(source)
 		if err != nil {
@@ -131,12 +134,17 @@ func (manager *YttTemplateEngine) getInput() cmdtpl.TemplateInput {
 		}
 		in.Files = append(in.Files, file)
 	}
+	libs, err := files.NewSortedFilesFromPaths(manager.context.EvalDefaultYttFiles(), files.SymlinkAllowOpts{})
+	if err != nil {
+		panic(err)
+	}
+	in.Files = append(in.Files, libs...)
 	return in
 }
 
-func (manager *YttTemplateEngine) apply() (string, error) {
+func (manager *YttTemplateEngine) apply(templateDir string) (string, error) {
 	ui := cmdcore.NewPlainUI(false)
-	in := manager.getInput()
+	in := manager.getInput(templateDir)
 	rootLibrary := workspace.NewRootLibrary(in.Files)
 
 	libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
@@ -180,7 +188,7 @@ func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefinitio
 			Status:      ValidationResult{Valid: true},
 		}
 
-		workflow, err := manager.apply()
+		workflow, err := manager.apply(templatePath)
 
 		if err != nil {
 			definition.Status.Valid = false
@@ -193,6 +201,20 @@ func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefinitio
 	}
 
 	return definitions, nil
+}
+
+func (manager *YttTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (string, error) {
+	workflowContent, err := manager.fs.ReadFile(workflow.path)
+	if err != nil {
+		return "", err
+	}
+
+	_, filename := filepath.Split(workflow.path)
+	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
+	templatePath := filepath.Join(manager.context.WorkflowsDir, templateName, templateName+".yml")
+	manager.contentWriter.SafelyWriteFile(templatePath, string(workflowContent))
+
+	return templatePath, nil
 }
 
 func (manager *YttTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
