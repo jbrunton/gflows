@@ -13,6 +13,7 @@ import (
 	"github.com/k14s/ytt/pkg/files"
 	"github.com/k14s/ytt/pkg/workspace"
 	"github.com/spf13/afero"
+	"github.com/thoas/go-funk"
 )
 
 type YttTemplateEngine struct {
@@ -65,20 +66,20 @@ func (manager *YttTemplateEngine) GetWorkflowTemplates() []string {
 		if err != nil {
 			panic(err)
 		}
-		isLib := false
-		for _, file := range manager.context.EvalDefaultYttFiles() {
-			fmt.Println("Considering lib:", file)
-			if filepath.Clean(file) == filepath.Clean(path) {
-				isLib = true
-				break
-			}
+		if !isDir {
+			continue
 		}
-		if isDir && !isLib {
-			sources := manager.getWorkflowSourcesInDir(path)
-			if len(sources) > 0 {
-				// only add directories with genuine source files
-				templates = append(templates, path)
-			}
+		_, isLib := funk.FindString(manager.context.EvalDefaultYttFiles(), func(lib string) bool {
+			return filepath.Clean(lib) == filepath.Clean(path)
+		})
+		if isLib {
+			continue
+		}
+
+		sources := manager.getWorkflowSourcesInDir(path)
+		if len(sources) > 0 {
+			// only add directories with genuine source files
+			templates = append(templates, path)
 		}
 	}
 	return templates
