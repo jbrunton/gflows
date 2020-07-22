@@ -71,8 +71,9 @@ func TestApplyGenerator(t *testing.T) {
 		{Path: "jsonnet/bar.txt", Content: "bar"},
 	}, "TestApplyGenerator")
 	generator := WorkflowGenerator{
-		Name:    "foo",
-		Sources: []string{"/foo.txt", "/jsonnet/bar.txt"},
+		Name:       "foo",
+		TrimPrefix: "/jsonnet",
+		Sources:    []string{"/foo.txt", "/jsonnet/bar.txt"},
 	}
 
 	container, context, out := fixtures.NewTestContext("")
