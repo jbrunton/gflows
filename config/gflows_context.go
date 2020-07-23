@@ -57,8 +57,8 @@ func NewContext(fs *afero.Afero, logger *adapters.Logger, opts ContextOpts) (*GF
 	return context, nil
 }
 
-// GetContext - returns the current command context
-func GetContext(fs *afero.Afero, logger *adapters.Logger, cmd *cobra.Command) (*GFlowsContext, error) {
+// CreateContextOpts - creates ContextOpts from flags and environment variables
+func CreateContextOpts(cmd *cobra.Command) ContextOpts {
 	configPath, err := cmd.Flags().GetString("config")
 	if err != nil {
 		panic(err)
@@ -88,13 +88,11 @@ func GetContext(fs *afero.Afero, logger *adapters.Logger, cmd *cobra.Command) (*
 		}
 	}
 
-	opts := ContextOpts{
+	return ContextOpts{
 		ConfigPath:   configPath,
 		EnableColors: !disableColors,
 		Engine:       engine,
 	}
-
-	return NewContext(fs, logger, opts)
 }
 
 // ResolvePath - returns paths relative to the working directory (since paths in configs may be written relative to the
