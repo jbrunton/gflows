@@ -44,7 +44,34 @@ type GFlowsTemplateConfig struct {
 const configSchema = `
 {
 	"definitions": {
-    "templateConfig": {
+    "workflowConfig": {
+			"type": "object",
+			"properties": {
+				"checks": {
+					"type": "object",
+					"properties": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"enabled": { "type": "boolean" },
+								"uri": { "type": "string" }
+							},
+							"additionalProperties": false
+						},
+						"content": {
+							"type": "object",
+							"properties": {
+								"enabled": { "type": "boolean" }
+							},
+							"additionalProperties": false
+						}
+					},
+					"additionalProperties": false
+				}
+			},
+			"additionalProperties": false
+    },
+		"templateConfig": {
 			"type": "object",
 			"properties": {
 				"libs": {
@@ -58,6 +85,17 @@ const configSchema = `
 	"type": "object",
 	"properties": {
 		"githubDir": { "type": "string" },
+		"workflows": {
+			"type": "object",
+			"properties": {
+				"engine": { "type": "string" },
+				"defaults": { "$ref": "#/definitions/workflowConfig" },
+				"overrides": {
+					"additionalProperties": { "$ref": "#/definitions/workflowConfig" }
+				}
+			},
+			"additionalProperties": false
+		},
 		"templates": {
 			"type": "object",
 			"properties": {
