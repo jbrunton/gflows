@@ -1,0 +1,5 @@
+run: init
+
+expect:
+  error: --engine flag required
+

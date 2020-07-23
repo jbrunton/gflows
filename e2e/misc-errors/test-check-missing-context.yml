@@ -1,0 +1,4 @@
+run: check
+
+expect:
+  error: "no gflows context found"

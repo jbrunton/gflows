@@ -7,7 +7,7 @@ setup:
       templates:
         engine: jsonnet
 
-run: init jsonnet
+run: init --engine jsonnet
 
 expect:
   output: |2

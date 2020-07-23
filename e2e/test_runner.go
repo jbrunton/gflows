@@ -111,7 +111,8 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	}
 
 	cmd := cmd.NewRootCommand(runner.buildContainer)
-	cmd.SetArgs(strings.Split(runner.test.Run, " "))
+	args := strings.Split(runner.test.Run, " ")
+	cmd.SetArgs(args)
 	err = cmd.Execute()
 
 	if runner.test.Expect.Error == "" {
@@ -156,11 +157,12 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 }
 
 func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*action.Container, error) {
-	context, err := config.GetContext(runner.container.FileSystem(), runner.container.Logger(), cmd)
+	opts := config.CreateContextOpts(cmd)
+	opts.EnableColors = false
+	context, err := config.NewContext(runner.container.FileSystem(), runner.container.Logger(), opts)
 	if err != nil {
 		return nil, err
 	}
-	context.EnableColors = false
 
 	container := action.NewContainer(runner.container, context)
 	return container, nil

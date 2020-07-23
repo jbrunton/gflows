@@ -1,0 +1,4 @@
+run: init --engine foo
+
+expect:
+  error: "Unexpected engine name: \"foo\", valid options are ytt or jsonnet"
