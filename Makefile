@@ -4,7 +4,7 @@ statik:
 compile:
 	go build
 
-build: statik compile
+build: statik compile test
 
 unit-test:
 	go test -coverprofile c.out $$(go list ./... | grep -v /e2e)
