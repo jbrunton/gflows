@@ -143,13 +143,13 @@ func (engine *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filena
 func (engine *JsonnetTemplateEngine) createVM(workflowName string) *gojsonnet.VM {
 	vm := gojsonnet.MakeVM()
 	vm.Importer(&gojsonnet.FileImporter{
-		JPaths: engine.evalJPaths(workflowName),
+		JPaths: engine.getJPath(workflowName),
 	})
 	vm.StringOutput = true
 	return vm
 }
 
-func (engine *JsonnetTemplateEngine) evalJPaths(workflowName string) []string {
+func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
 	jpaths := engine.context.Config.GetTemplateArrayProperty(workflowName, func(config *config.GFlowsTemplateConfig) []string {
 		return config.Jsonnet.JPath
 	})
