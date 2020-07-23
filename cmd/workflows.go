@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jbrunton/gflows/workflows"
+	"github.com/jbrunton/gflows/workflow/action"
 	"github.com/olekukonko/tablewriter"
 	"github.com/thoas/go-funk"
 
@@ -26,7 +26,7 @@ func newListWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			validator := container.WorkflowValidator()
+			validator := container.Validator()
 
 			table := tablewriter.NewWriter(container.Logger())
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})
@@ -128,7 +128,7 @@ func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	return cmd
 }
 
-func checkWorkflows(workflowManager *workflows.WorkflowManager, container *workflows.Container, watch bool, showDiff bool) error {
+func checkWorkflows(workflowManager *action.WorkflowManager, container *action.Container, watch bool, showDiff bool) error {
 	err := workflowManager.ValidateWorkflows(showDiff)
 	if err != nil {
 		return err

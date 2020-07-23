@@ -1,4 +1,4 @@
-package workflows
+package workflow
 
 import (
 	"strings"
@@ -9,16 +9,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupValidator(workflowContent string, config string) (*afero.Afero, *WorkflowValidator, *WorkflowDefinition) {
+func setupValidator(workflowContent string, config string) (*afero.Afero, *Validator, *Definition) {
 	container, context, _ := fixtures.NewTestContext(config)
 	fs := container.FileSystem()
-	WorkflowDefinition := newTestWorkflowDefinition("test", workflowContent)
-	validator := NewWorkflowValidator(fs, context)
-	return fs, validator, WorkflowDefinition
+	Definition := newTestWorkflowDefinition("test", workflowContent)
+	validator := NewValidator(fs, context)
+	return fs, validator, Definition
 }
 
 func TestValidateContent(t *testing.T) {
-	workflowContent := exampleWorkflow("test.jsonnet")
+	workflowContent := fixtures.ExampleWorkflow("test.jsonnet")
 	fs, validator, definition := setupValidator(workflowContent, "")
 
 	fs.WriteFile(definition.Destination, []byte(workflowContent), 0644)
@@ -29,7 +29,7 @@ func TestValidateContent(t *testing.T) {
 }
 
 func TestValidateContentMissing(t *testing.T) {
-	_, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), "")
+	_, validator, definition := setupValidator(fixtures.ExampleWorkflow("test.jsonnet"), "")
 
 	result := validator.ValidateContent(definition)
 
@@ -38,7 +38,7 @@ func TestValidateContentMissing(t *testing.T) {
 }
 
 func TestValidateContentOutOfDate(t *testing.T) {
-	fs, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), "")
+	fs, validator, definition := setupValidator(fixtures.ExampleWorkflow("test.jsonnet"), "")
 
 	fs.WriteFile(definition.Destination, []byte("incorrect content"), 0644)
 	result := validator.ValidateContent(definition)
@@ -48,7 +48,7 @@ func TestValidateContentOutOfDate(t *testing.T) {
 }
 
 func TestValidateSchema(t *testing.T) {
-	_, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), "")
+	_, validator, definition := setupValidator(fixtures.ExampleWorkflow("test.jsonnet"), "")
 
 	result := validator.ValidateSchema(definition)
 
@@ -57,7 +57,7 @@ func TestValidateSchema(t *testing.T) {
 }
 
 func TestValidateSchemaMissingField(t *testing.T) {
-	_, validator, definition := setupValidator(invalidJsonnetWorkflow, "")
+	_, validator, definition := setupValidator(fixtures.InvalidJsonnetWorkflow, "")
 
 	result := validator.ValidateSchema(definition)
 
@@ -106,7 +106,7 @@ func TestValidateContentEnabledFlags(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		_, validator, definition := setupValidator(exampleWorkflow("test.jsonnet"), scenario.config)
+		_, validator, definition := setupValidator(fixtures.ExampleWorkflow("test.jsonnet"), scenario.config)
 		result := validator.ValidateContent(definition)
 		assert.Equal(t, scenario.expectedResult, result)
 	}
@@ -173,7 +173,7 @@ func TestValidateSchemaEnabledFlags(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		_, validator, definition := setupValidator(invalidJsonnetWorkflow, scenario.config)
+		_, validator, definition := setupValidator(fixtures.InvalidJsonnetWorkflow, scenario.config)
 		result := validator.ValidateSchema(definition)
 		assert.Equal(t, scenario.expectedResult, result)
 	}

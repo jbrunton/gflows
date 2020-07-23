@@ -1,4 +1,4 @@
-package workflows
+package engine
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/workflow"
 
 	gojsonnet "github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/adapters"
@@ -60,23 +61,23 @@ func (manager *JsonnetTemplateEngine) GetWorkflowTemplates() []string {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
+func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
 	templates := manager.GetWorkflowTemplates()
-	definitions := []*WorkflowDefinition{}
+	definitions := []*workflow.Definition{}
 	for _, templatePath := range templates {
 		workflowName := manager.getWorkflowName(manager.context.WorkflowsDir, templatePath)
 		vm := createVM(manager.context, workflowName)
 		input, err := manager.fs.ReadFile(templatePath)
 		if err != nil {
-			return []*WorkflowDefinition{}, err
+			return []*workflow.Definition{}, err
 		}
 
 		destinationPath := filepath.Join(manager.context.GitHubDir, "workflows/", workflowName+".yml")
-		definition := &WorkflowDefinition{
+		definition := &workflow.Definition{
 			Name:        workflowName,
 			Source:      templatePath,
 			Destination: destinationPath,
-			Status:      ValidationResult{Valid: true},
+			Status:      workflow.ValidationResult{Valid: true},
 		}
 
 		workflow, err := vm.EvaluateSnippet(templatePath, string(input))
@@ -94,13 +95,13 @@ func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefin
 	return definitions, nil
 }
 
-func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (string, error) {
-	workflowContent, err := manager.fs.ReadFile(workflow.path)
+func (manager *JsonnetTemplateEngine) ImportWorkflow(wf *workflow.GitHubWorkflow) (string, error) {
+	workflowContent, err := manager.fs.ReadFile(wf.Path)
 	if err != nil {
 		return "", err
 	}
 
-	jsonData, err := YamlToJson(string(workflowContent))
+	jsonData, err := workflow.YamlToJson(string(workflowContent))
 	if err != nil {
 		return "", err
 	}
@@ -112,7 +113,7 @@ func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (
 
 	templateContent := fmt.Sprintf("local workflow = %s;\n\nstd.manifestYamlDoc(workflow)\n", string(json))
 
-	_, filename := filepath.Split(workflow.path)
+	_, filename := filepath.Split(wf.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 	templatePath := filepath.Join(manager.context.WorkflowsDir, templateName+".jsonnet")
 	manager.contentWriter.SafelyWriteFile(templatePath, templateContent)

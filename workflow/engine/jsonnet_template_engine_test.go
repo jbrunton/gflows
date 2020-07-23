@@ -1,10 +1,11 @@
-package workflows
+package engine
 
 import (
 	"testing"
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/workflow"
 
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
@@ -20,29 +21,29 @@ func newJsonnetTemplateEngine() (*content.Container, *config.GFlowsContext, *Jso
 func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 	container, _, templateEngine := newJsonnetTemplateEngine()
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
-	expectedContent := exampleWorkflow("test.jsonnet")
-	expectedJson, _ := YamlToJson(expectedContent)
-	expectedDefinition := WorkflowDefinition{
+	expectedContent := fixtures.ExampleWorkflow("test.jsonnet")
+	expectedJson, _ := workflow.YamlToJson(expectedContent)
+	expectedDefinition := workflow.Definition{
 		Name:        "test",
 		Source:      ".gflows/workflows/test.jsonnet",
 		Destination: ".github/workflows/test.yml",
 		Content:     expectedContent,
-		Status:      ValidationResult{Valid: true},
+		Status:      workflow.ValidationResult{Valid: true},
 		JSON:        expectedJson,
 	}
-	assert.Equal(t, []*WorkflowDefinition{&expectedDefinition}, definitions)
+	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
 }
 
 func TestGetJsonnetWorkflowSources(t *testing.T) {
 	container, _, templateEngine := newJsonnetTemplateEngine()
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
-	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(exampleJsonnetTemplate), 0644)
-	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 
 	sources := templateEngine.GetWorkflowSources()
 	templates := templateEngine.GetWorkflowTemplates()
