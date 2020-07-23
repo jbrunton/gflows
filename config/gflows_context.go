@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jbrunton/gflows/adapters"
 	"github.com/thoas/go-funk"
 
 	"github.com/spf13/afero"
@@ -20,10 +21,10 @@ type GFlowsContext struct {
 	EnableColors bool
 }
 
-func NewContext(fs *afero.Afero, configPath string, enableColors bool) (*GFlowsContext, error) {
+func NewContext(fs *afero.Afero, logger *adapters.Logger, configPath string, enableColors bool) (*GFlowsContext, error) {
 	contextDir := filepath.Dir(configPath)
 
-	config, err := LoadConfig(fs, configPath)
+	config, err := LoadConfig(fs, logger, configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func NewContext(fs *afero.Afero, configPath string, enableColors bool) (*GFlowsC
 }
 
 // GetContext - returns the current command context
-func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
+func GetContext(fs *afero.Afero, logger *adapters.Logger, cmd *cobra.Command) (*GFlowsContext, error) {
 	configPath, err := cmd.Flags().GetString("config")
 	if err != nil {
 		panic(err)
@@ -73,7 +74,7 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 		disableColors = true
 	}
 
-	return NewContext(fs, configPath, !disableColors)
+	return NewContext(fs, logger, configPath, !disableColors)
 }
 
 // ResolvePath - returns paths relative to the working directory (since paths in configs may be written relative to the

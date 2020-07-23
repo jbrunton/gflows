@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/jbrunton/gflows/adapters"
 	_ "github.com/jbrunton/gflows/statik"
 	"github.com/jbrunton/gflows/yaml"
 	statikFs "github.com/rakyll/statik/fs"
@@ -45,7 +46,7 @@ type GFlowsTemplateConfig struct {
 }
 
 // LoadConfig - finds and returns the GFlowsConfig
-func LoadConfig(fs *afero.Afero, path string) (config *GFlowsConfig, err error) {
+func LoadConfig(fs *afero.Afero, logger *adapters.Logger, path string) (config *GFlowsConfig, err error) {
 	exists, err := fs.Exists(path)
 	if !exists {
 		config = &GFlowsConfig{}
@@ -58,7 +59,7 @@ func LoadConfig(fs *afero.Afero, path string) (config *GFlowsConfig, err error) 
 		return
 	}
 
-	err = validateConfig(string(data))
+	err = validateConfig(string(data), logger)
 	if err != nil {
 		return
 	}
@@ -128,7 +129,7 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 	return &config, nil
 }
 
-func validateConfig(config string) error {
+func validateConfig(config string, logger *adapters.Logger) error {
 	json, err := yaml.YamlToJson(config)
 	if err != nil {
 		return err
@@ -157,7 +158,7 @@ func validateConfig(config string) error {
 
 	if !result.Valid() {
 		for _, err := range result.Errors() {
-			fmt.Println("Schema error:", err)
+			logger.Println("Schema error:", err)
 		}
 		return errors.New("invalid config")
 	}

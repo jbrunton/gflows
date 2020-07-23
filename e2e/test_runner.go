@@ -156,7 +156,7 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 }
 
 func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*action.Container, error) {
-	context, err := config.GetContext(runner.container.FileSystem(), cmd)
+	context, err := config.GetContext(runner.container.FileSystem(), runner.container.Logger(), cmd)
 	if err != nil {
 		return nil, err
 	}
