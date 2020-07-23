@@ -1,4 +1,4 @@
-package workflows
+package actions
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ func (manager *WorkflowManager) ImportWorkflows() error {
 	imported := 0
 	workflows := manager.GetWorkflows()
 	for _, workflow := range workflows {
-		manager.logger.Println("Found workflow:", workflow.path)
-		if workflow.definition == nil {
+		manager.logger.Println("Found workflow:", workflow.Path)
+		if workflow.Definition == nil {
 			templatePath, err := manager.ImportWorkflow(&workflow)
 			if err != nil {
 				return err
@@ -17,7 +17,7 @@ func (manager *WorkflowManager) ImportWorkflows() error {
 			manager.logger.Println("  Imported template:", templatePath)
 			imported++
 		} else {
-			manager.logger.Println("  Exists:", workflow.definition.Source)
+			manager.logger.Println("  Exists:", workflow.Definition.Source)
 		}
 	}
 

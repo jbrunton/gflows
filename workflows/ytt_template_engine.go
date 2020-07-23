@@ -204,12 +204,12 @@ func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefinitio
 }
 
 func (manager *YttTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (string, error) {
-	workflowContent, err := manager.fs.ReadFile(workflow.path)
+	workflowContent, err := manager.fs.ReadFile(workflow.Path)
 	if err != nil {
 		return "", err
 	}
 
-	_, filename := filepath.Split(workflow.path)
+	_, filename := filepath.Split(workflow.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 	templatePath := filepath.Join(manager.context.WorkflowsDir, templateName, templateName+".yml")
 	manager.contentWriter.SafelyWriteFile(templatePath, string(workflowContent))

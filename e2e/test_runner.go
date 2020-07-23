@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jbrunton/gflows/actions"
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/styles"
-	"github.com/jbrunton/gflows/workflows"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -155,13 +155,13 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	}
 }
 
-func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*workflows.Container, error) {
+func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*actions.Container, error) {
 	context, err := config.GetContext(runner.container.FileSystem(), cmd)
 	if err != nil {
 		return nil, err
 	}
 	context.EnableColors = false
 
-	container := workflows.NewContainer(runner.container, context)
+	container := actions.NewContainer(runner.container, context)
 	return container, nil
 }

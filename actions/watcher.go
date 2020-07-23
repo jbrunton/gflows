@@ -1,4 +1,4 @@
-package workflows
+package actions
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ func NewWatcher(manager *WorkflowManager, context *config.GFlowsContext) *Watche
 func (watcher *Watcher) getWatchFiles() []string {
 	files := watcher.manager.GetWorkflowSources()
 	for _, workflow := range watcher.manager.GetWorkflows() {
-		files = append(files, workflow.path)
+		files = append(files, workflow.Path)
 	}
 	return files
 }

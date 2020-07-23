@@ -95,7 +95,7 @@ func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefin
 }
 
 func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (string, error) {
-	workflowContent, err := manager.fs.ReadFile(workflow.path)
+	workflowContent, err := manager.fs.ReadFile(workflow.Path)
 	if err != nil {
 		return "", err
 	}
@@ -112,7 +112,7 @@ func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (
 
 	templateContent := fmt.Sprintf("local workflow = %s;\n\nstd.manifestYamlDoc(workflow)\n", string(json))
 
-	_, filename := filepath.Split(workflow.path)
+	_, filename := filepath.Split(workflow.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 	templatePath := filepath.Join(manager.context.WorkflowsDir, templateName+".jsonnet")
 	manager.contentWriter.SafelyWriteFile(templatePath, templateContent)
