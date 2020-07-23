@@ -86,7 +86,7 @@ You can validate and verify your workflows with the `check` command:
 
 By default this command will check, for each workflow:
 
-* That the Jsonnet source is valid.
+* That the source templates (jsonnet, ytt) are valid.
 * That the content of the generated workflow file in .github/workflows is up to date.
 * That the workflow is validated by the [github-workflow schema](https://json.schemastore.org/github-workflow) from [schemastore.org](https://www.schemastore.org/json/). (Note that this schema is comprehensive but may fail for occasional edge cases. You can disable schema validation on a per workflow basis if need be.)
 
@@ -96,7 +96,7 @@ If it fails any of the validation checks, you'll see clear errors describing the
 
 ## Refactoring Workflows
 
-One of the joys of Jsonnet is it gives you a whole host of options (including objects, functions and library files) for refactoring complex workflows.
+One of the joys of a real templating language (whether ytt or jsonnet) is it gives you a whole host of options for refactoring complex workflows.
 
 To make the process of refactoring easier, you can run the `watch` command (which is just an alias for `check --watch --show-diffs`). While refactoring, you should see no changes to the generated workflow, so any changes indicate an error in the refactor, and the diff output should quickly show you what it is.
 
