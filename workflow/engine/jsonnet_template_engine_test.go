@@ -27,7 +27,7 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 
 	expectedContent := exampleWorkflow("test.jsonnet")
 	expectedJson, _ := workflow.YamlToJson(expectedContent)
-	expectedDefinition := workflow.WorkflowDefinition{
+	expectedDefinition := workflow.Definition{
 		Name:        "test",
 		Source:      ".gflows/workflows/test.jsonnet",
 		Destination: ".github/workflows/test.yml",
@@ -35,7 +35,7 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 		Status:      workflow.ValidationResult{Valid: true},
 		JSON:        expectedJson,
 	}
-	assert.Equal(t, []*workflow.WorkflowDefinition{&expectedDefinition}, definitions)
+	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
 }
 
 func TestGetJsonnetWorkflowSources(t *testing.T) {

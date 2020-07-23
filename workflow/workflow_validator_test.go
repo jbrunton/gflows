@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupValidator(workflowContent string, config string) (*afero.Afero, *WorkflowValidator, *WorkflowDefinition) {
+func setupValidator(workflowContent string, config string) (*afero.Afero, *WorkflowValidator, *Definition) {
 	container, context, _ := fixtures.NewTestContext(config)
 	fs := container.FileSystem()
-	WorkflowDefinition := newTestWorkflowDefinition("test", workflowContent)
+	Definition := newTestWorkflowDefinition("test", workflowContent)
 	validator := NewWorkflowValidator(fs, context)
-	return fs, validator, WorkflowDefinition
+	return fs, validator, Definition
 }
 
 func TestValidateContent(t *testing.T) {

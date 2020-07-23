@@ -53,7 +53,7 @@ func TestGetImportedWorkflows(t *testing.T) {
 	expectedJson, _ := workflow.YamlToJson(expectedContent)
 	expectedWorflow := workflow.GitHubWorkflow{
 		Path: ".github/workflows/test.yml",
-		Definition: &workflow.WorkflowDefinition{
+		Definition: &workflow.Definition{
 			Name:        "test",
 			Source:      ".gflows/workflows/test.jsonnet",
 			Destination: ".github/workflows/test.yml",

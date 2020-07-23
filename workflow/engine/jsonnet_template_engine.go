@@ -61,19 +61,19 @@ func (manager *JsonnetTemplateEngine) GetWorkflowTemplates() []string {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.WorkflowDefinition, error) {
+func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
 	templates := manager.GetWorkflowTemplates()
-	definitions := []*workflow.WorkflowDefinition{}
+	definitions := []*workflow.Definition{}
 	for _, templatePath := range templates {
 		workflowName := manager.getWorkflowName(manager.context.WorkflowsDir, templatePath)
 		vm := createVM(manager.context, workflowName)
 		input, err := manager.fs.ReadFile(templatePath)
 		if err != nil {
-			return []*workflow.WorkflowDefinition{}, err
+			return []*workflow.Definition{}, err
 		}
 
 		destinationPath := filepath.Join(manager.context.GitHubDir, "workflows/", workflowName+".yml")
-		definition := &workflow.WorkflowDefinition{
+		definition := &workflow.Definition{
 			Name:        workflowName,
 			Source:      templatePath,
 			Destination: destinationPath,

@@ -38,7 +38,7 @@ func NewWorkflowValidator(fs *afero.Afero, context *config.GFlowsContext) *Workf
 }
 
 // ValidateSchema - validates the template for the definition generates a valid workflow
-func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinition) ValidationResult {
+func (validator *WorkflowValidator) ValidateSchema(definition *Definition) ValidationResult {
 	enabled := validator.getSchemaCheckEnabled(definition)
 	if !enabled {
 		return ValidationResult{
@@ -66,7 +66,7 @@ func (validator *WorkflowValidator) ValidateSchema(definition *WorkflowDefinitio
 }
 
 // ValidateContent - validates the content at the destination in the definition is up to date
-func (validator *WorkflowValidator) ValidateContent(definition *WorkflowDefinition) ValidationResult {
+func (validator *WorkflowValidator) ValidateContent(definition *Definition) ValidationResult {
 	enabled := validator.getContentCheckEnabled(definition)
 	if !enabled {
 		return ValidationResult{
@@ -123,13 +123,13 @@ func (validator *WorkflowValidator) getWorkflowSchema(workflowName string) *gojs
 	return schema
 }
 
-func (validator *WorkflowValidator) getContentCheckEnabled(definition *WorkflowDefinition) bool {
+func (validator *WorkflowValidator) getContentCheckEnabled(definition *Definition) bool {
 	return validator.config.GetWorkflowBoolProperty(definition.Name, true, func(config *config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Content.Enabled
 	})
 }
 
-func (validator *WorkflowValidator) getSchemaCheckEnabled(definition *WorkflowDefinition) bool {
+func (validator *WorkflowValidator) getSchemaCheckEnabled(definition *Definition) bool {
 	return validator.config.GetWorkflowBoolProperty(definition.Name, true, func(config *config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Schema.Enabled
 	})

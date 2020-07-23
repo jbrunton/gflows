@@ -13,7 +13,7 @@ type TemplateEngine interface {
 	GetWorkflowTemplates() []string
 
 	// GetWorkflowDefinitions - returns definitions generated from workflow templates.
-	GetWorkflowDefinitions() ([]*WorkflowDefinition, error)
+	GetWorkflowDefinitions() ([]*Definition, error)
 
 	// ImportWorkflow - imports a workflow, returns the path to the new template.
 	ImportWorkflow(workflow *GitHubWorkflow) (string, error)

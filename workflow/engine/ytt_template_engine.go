@@ -176,13 +176,13 @@ func (manager *YttTemplateEngine) apply(templateDir string) (string, error) {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflow.WorkflowDefinition, error) {
+func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
 	templates := manager.GetWorkflowTemplates()
-	definitions := []*workflow.WorkflowDefinition{}
+	definitions := []*workflow.Definition{}
 	for _, templatePath := range templates {
 		workflowName := filepath.Base(templatePath)
 		destinationPath := filepath.Join(manager.context.GitHubDir, "workflows/", workflowName+".yml")
-		definition := &workflow.WorkflowDefinition{
+		definition := &workflow.Definition{
 			Name:        workflowName,
 			Source:      templatePath,
 			Destination: destinationPath,
