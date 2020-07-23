@@ -45,30 +45,26 @@ type GFlowsTemplateConfig struct {
 }
 
 // LoadConfig - finds and returns the GFlowsConfig
-func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
+func LoadConfig(fs *afero.Afero, path string) (config *GFlowsConfig, err error) {
 	exists, err := fs.Exists(path)
 	if !exists {
-		defaultConfig := &GFlowsConfig{}
-		defaultConfig.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
-		return defaultConfig, nil
+		config = &GFlowsConfig{}
+		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+		return
 	}
 
 	data, err := fs.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	err = validateConfig(string(data))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	config, err := parseConfig(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
+	config, err = parseConfig(data)
+	return
 }
 
 func (config *GFlowsConfig) GetWorkflowStringProperty(workflowName string, selector func(config *GFlowsWorkflowConfig) string) string {
