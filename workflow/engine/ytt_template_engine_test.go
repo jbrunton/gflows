@@ -102,3 +102,23 @@ func TestGetYttLibs(t *testing.T) {
 	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, engine.getYttLibs("my-workflow"))
 	assert.Equal(t, []string{".gflows/common", ".gflows/config"}, engine.getYttLibs("other-workflow"))
 }
+
+func TestIsLib(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    ytt:",
+		"      libs: [common, config]",
+		"  overrides:",
+		"    my-workflow:",
+		"      ytt:",
+		"        libs: [my-lib]",
+	}, "\n")
+	_, _, engine := newYttTemplateEngine(config)
+
+	assert.Equal(t, true, engine.isLib(".gflows/common"))
+	assert.Equal(t, true, engine.isLib(".gflows/my-lib"))
+	assert.Equal(t, true, engine.isLib(".gflows/my-lib/"))
+	assert.Equal(t, false, engine.isLib(".gflows/my-workflow.yml"))
+}

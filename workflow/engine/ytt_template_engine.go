@@ -70,16 +70,9 @@ func (engine *YttTemplateEngine) GetWorkflowTemplates() []string {
 		if err != nil {
 			panic(err)
 		}
-		if !isDir {
+		if !isDir || engine.isLib(path) {
 			continue
 		}
-		_, isLib := funk.FindString(engine.getAllYttLibs(), func(lib string) bool {
-			return filepath.Clean(lib) == filepath.Clean(path)
-		})
-		if isLib {
-			continue
-		}
-
 		sources := engine.getWorkflowSourcesInDir(path)
 		if len(sources) > 0 {
 			// only add directories with genuine source files
@@ -253,4 +246,11 @@ func (engine *YttTemplateEngine) getYttLibs(workflowName string) []string {
 	})
 
 	return engine.context.ResolvePaths(libs)
+}
+
+func (engine *YttTemplateEngine) isLib(path string) bool {
+	_, isLib := funk.FindString(engine.getAllYttLibs(), func(lib string) bool {
+		return filepath.Clean(lib) == filepath.Clean(path)
+	})
+	return isLib
 }

@@ -4,6 +4,6 @@ templates:
   engine: ytt
   defaults:
     ytt:
-      files:
+      libs:
         - workflows/common
         - workflows/config
