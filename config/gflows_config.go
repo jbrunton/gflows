@@ -46,15 +46,20 @@ type GFlowsTemplateConfig struct {
 }
 
 // LoadConfig - finds and returns the GFlowsConfig
-func LoadConfig(fs *afero.Afero, logger *adapters.Logger, path string) (config *GFlowsConfig, err error) {
-	exists, err := fs.Exists(path)
+func LoadConfig(fs *afero.Afero, logger *adapters.Logger, opts ContextOpts) (config *GFlowsConfig, err error) {
+	exists, err := fs.Exists(opts.ConfigPath)
 	if !exists {
-		config = &GFlowsConfig{}
-		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+		if opts.Engine == "" {
+			err = errors.New("no gflows context found")
+		} else {
+			config = &GFlowsConfig{}
+			config.Templates.Engine = opts.Engine
+			config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+		}
 		return
 	}
 
-	data, err := fs.ReadFile(path)
+	data, err := fs.ReadFile(opts.ConfigPath)
 	if err != nil {
 		return
 	}

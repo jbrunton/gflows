@@ -36,6 +36,7 @@ func TestImportCommand(t *testing.T) {
 func TestInitCommand(t *testing.T) {
 	runTests(t, "./init/jsonnet/*.yml", true)
 	runTests(t, "./init/ytt/*.yml", true)
+	runTests(t, "./init/errors/*.yml", true)
 }
 
 func TestListCommand(t *testing.T) {
@@ -50,4 +51,8 @@ func TestUpdateCommand(t *testing.T) {
 
 func TestJPath(t *testing.T) {
 	runTests(t, "./jpath/*.yml", false)
+}
+
+func TestMiscErrors(t *testing.T) {
+	runTests(t, "./misc-errors/*.yml", false)
 }

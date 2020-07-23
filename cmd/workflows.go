@@ -96,30 +96,25 @@ func newUpdateWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 
 func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "init <engine>",
+		Use:   "init --engine <ytt|jsonnet>",
 		Short: "Setup config and templates for first time use using the given template engine",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errors.New("Argument <engine> required")
-			}
-
-			if len(args) > 1 {
-				return errors.New("Unexpected arguments, only <engine> expected")
-			}
-
-			if !funk.ContainsString([]string{"jsonnet", "ytt"}, args[0]) {
-				return fmt.Errorf("Unexpected engine name: %q, valid options are ytt or jsonnet", args[0])
-			}
-
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			engine, err := cmd.Flags().GetString("engine")
+			if err != nil {
+				panic(err)
+			}
+			if engine == "" {
+				return errors.New("--engine flag required")
+			}
+			if !funk.ContainsString([]string{"jsonnet", "ytt"}, engine) {
+				return fmt.Errorf("Unexpected engine name: %q, valid options are ytt or jsonnet", engine)
+			}
+
 			container, err := containerFunc(cmd)
 			if err != nil {
 				return err
 			}
 
-			container.Context().Config.Templates.Engine = args[0]
 			container.WorkflowManager().InitWorkflows()
 			return nil
 		},

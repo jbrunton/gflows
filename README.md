@@ -35,14 +35,14 @@ Note: this project is very new, so I expect there is room for improvement (espec
 
 First, you'll probably want to run the `init` command to bootstrap GFlows. To use ytt as the templating engine:
 
-    $ gflows init ytt
+    $ gflows init --engine ytt
          create .gflows/workflows/common/steps.lib.yml
          create .gflows/workflows/common/workflows.lib.yml
          create .gflows/workflows/config/git.yml
          create .gflows/workflows/gflows/gflows.yml
          create .gflows/config.yml
 
-(You can also use jsonnet with `gflows init jsonnet`.)
+(You can also use jsonnet with `gflows init --engine jsonnet`.)
 
 This generates:
 

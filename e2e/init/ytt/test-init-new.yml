@@ -1,4 +1,4 @@
-run: init ytt
+run: init --engine ytt
 
 expect:
   output: |2
