@@ -1,8 +1,11 @@
 package config
 
 import (
+	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/jbrunton/gflows/adapters"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -111,5 +114,87 @@ func TestGetWorkflowBoolProperty(t *testing.T) {
 	for _, scenario := range scenarios {
 		actualResult := config.GetWorkflowBoolProperty(scenario.workflowName, scenario.defaultValue, scenario.selector)
 		assert.Equal(t, scenario.expectedResult, actualResult, "Failures for scenario %+v", scenario)
+	}
+}
+
+func TestValidateConfig(t *testing.T) {
+	scenarios := []struct {
+		description    string
+		config         string
+		expectedError  string
+		expectedOutput string
+	}{
+		{
+			description: "invalid templates",
+			config: strings.Join([]string{
+				"templates:",
+				"  foo: bar",
+			}, "\n"),
+			expectedError:  "invalid config",
+			expectedOutput: "Schema error: templates: Additional property foo is not allowed\n",
+		},
+		{
+			description: "invalid templates override",
+			config: strings.Join([]string{
+				"templates:",
+				"  overrides:",
+				"    my-workflow:",
+				"      libs: [my-lib]",
+				"      foo: bar",
+			}, "\n"),
+			expectedError:  "invalid config",
+			expectedOutput: "Schema error: templates.overrides.my-workflow: Additional property foo is not allowed\n",
+		},
+		{
+			description: "invalid workflows override",
+			config: strings.Join([]string{
+				"workflows:",
+				"  overrides:",
+				"    my-workflow:",
+				"      foo: bar",
+			}, "\n"),
+			expectedError:  "invalid config",
+			expectedOutput: "Schema error: workflows.overrides.my-workflow: Additional property foo is not allowed\n",
+		},
+		{
+			description: "valid config",
+			config: strings.Join([]string{
+				"templates:",
+				"  engine: ytt",
+				"  defaults:",
+				"    libs: [vendor]",
+				"  overrides:",
+				"    my-workflow:",
+				"      libs: [my-lib]",
+				"workflows:",
+				"  defaults:",
+				"    checks:",
+				"      schema:",
+				"        enabled: true",
+				"        uri: example.com",
+				"      content:",
+				"        enabled: true",
+				"  overrides:",
+				"    my-workflow:",
+				"      checks:",
+				"        content:",
+				"          enabled: false",
+			}, "\n"),
+			expectedError:  "",
+			expectedOutput: "",
+		},
+	}
+
+	for _, scenario := range scenarios {
+		out := new(bytes.Buffer)
+		logger := adapters.NewLogger(out)
+		err := validateConfig(scenario.config, logger)
+
+		if scenario.expectedError == "" {
+			assert.NoError(t, err, "Unexpected error in scenario %s", scenario.description)
+		} else {
+			assert.EqualError(t, err, scenario.expectedError, "Unexpected error in scenario %q", scenario.description)
+		}
+		assert.Equal(t, scenario.expectedOutput, out.String(), "Output mismatch in scenario %q", scenario.description)
 	}
 }

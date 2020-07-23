@@ -3,10 +3,16 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 
+	"github.com/jbrunton/gflows/adapters"
+	_ "github.com/jbrunton/gflows/statik"
+	"github.com/jbrunton/gflows/yaml"
+	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
-	"gopkg.in/yaml.v2"
+	"github.com/xeipuuv/gojsonschema"
+	goyaml "gopkg.in/yaml.v2"
 )
 
 // GFlowsConfig - type of current gflows context
@@ -40,19 +46,26 @@ type GFlowsTemplateConfig struct {
 }
 
 // LoadConfig - finds and returns the GFlowsConfig
-func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
+func LoadConfig(fs *afero.Afero, logger *adapters.Logger, path string) (config *GFlowsConfig, err error) {
 	exists, err := fs.Exists(path)
 	if !exists {
-		defaultConfig := &GFlowsConfig{}
-		defaultConfig.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
-		return defaultConfig, nil
+		config = &GFlowsConfig{}
+		config.Workflows.Defaults.Checks.Schema.URI = "https://json.schemastore.org/github-workflow"
+		return
 	}
 
 	data, err := fs.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return parseConfig(data)
+
+	err = validateConfig(string(data), logger)
+	if err != nil {
+		return
+	}
+
+	config, err = parseConfig(data)
+	return
 }
 
 func (config *GFlowsConfig) GetWorkflowStringProperty(workflowName string, selector func(config *GFlowsWorkflowConfig) string) string {
@@ -98,7 +111,7 @@ func (config *GFlowsConfig) GetTemplateLibs(workflowName string) []string {
 
 func parseConfig(input []byte) (*GFlowsConfig, error) {
 	config := GFlowsConfig{}
-	err := yaml.Unmarshal(input, &config)
+	err := goyaml.Unmarshal(input, &config)
 	if err != nil {
 		panic(err)
 	}
@@ -114,4 +127,40 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func validateConfig(config string, logger *adapters.Logger) error {
+	json, err := yaml.YamlToJson(config)
+	if err != nil {
+		return err
+	}
+
+	sourceFs, err := statikFs.New()
+	if err != nil {
+		panic(err)
+	}
+	schemaFile, err := sourceFs.Open("/config-schema.json")
+	if err != nil {
+		panic(err)
+	}
+	defer schemaFile.Close()
+	configSchema, err := ioutil.ReadAll(schemaFile)
+	schemaLoader := gojsonschema.NewStringLoader(string(configSchema))
+	configLoader := gojsonschema.NewGoLoader(json)
+	schema, err := gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		panic(err)
+	}
+	result, err := schema.Validate(configLoader)
+	if err != nil {
+		panic(err)
+	}
+
+	if !result.Valid() {
+		for _, err := range result.Errors() {
+			logger.Println("Schema error:", err)
+		}
+		return errors.New("invalid config")
+	}
+	return nil
 }

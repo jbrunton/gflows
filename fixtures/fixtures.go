@@ -64,7 +64,7 @@ func NewTestContext(configString string) (*adapters.Container, *config.GFlowsCon
 		configString = "templates:\n  engine: ytt"
 	}
 	fs.WriteFile(configPath, []byte(configString), 0644)
-	context, err := config.NewContext(fs, configPath, false)
+	context, err := config.NewContext(fs, container.Logger(), configPath, false)
 	if err != nil {
 		panic(err)
 	}
