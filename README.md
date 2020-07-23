@@ -4,7 +4,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/maintainability)](https://codeclimate.com/github/jbrunton/gflows/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/test_coverage)](https://codeclimate.com/github/jbrunton/gflows/test_coverage)
 
-GFlows is a CLI tool that makes templating GitHub Workflows easym using either [Jsonnet](https://jsonnet.org/) or [ytt (Yaml Templating Tool)](https://get-ytt.io/). It can:
+GFlows is a CLI tool that makes templating GitHub Workflows easy, using either [Jsonnet](https://jsonnet.org/) or [ytt (Yaml Templating Tool)](https://get-ytt.io/). It can:
 
 * Import existing workflows into Jsonnet templates.
 * Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
