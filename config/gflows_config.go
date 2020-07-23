@@ -3,8 +3,11 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 
+	_ "github.com/jbrunton/gflows/statik"
 	"github.com/jbrunton/gflows/yaml"
+	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
 	"github.com/xeipuuv/gojsonschema"
@@ -40,78 +43,6 @@ type GFlowsWorkflowConfig struct {
 type GFlowsTemplateConfig struct {
 	Libs []string
 }
-
-const configSchema = `
-{
-	"definitions": {
-    "workflowConfig": {
-			"type": "object",
-			"properties": {
-				"checks": {
-					"type": "object",
-					"properties": {
-						"schema": {
-							"type": "object",
-							"properties": {
-								"enabled": { "type": "boolean" },
-								"uri": { "type": "string" }
-							},
-							"additionalProperties": false
-						},
-						"content": {
-							"type": "object",
-							"properties": {
-								"enabled": { "type": "boolean" }
-							},
-							"additionalProperties": false
-						}
-					},
-					"additionalProperties": false
-				}
-			},
-			"additionalProperties": false
-    },
-		"templateConfig": {
-			"type": "object",
-			"properties": {
-				"libs": {
-					"type": "array",
-					"items": { "type": "string" }
-				}
-			},
-			"additionalProperties": false
-    }
-  },
-	"type": "object",
-	"properties": {
-		"githubDir": { "type": "string" },
-		"workflows": {
-			"type": "object",
-			"properties": {
-				"engine": { "type": "string" },
-				"defaults": { "$ref": "#/definitions/workflowConfig" },
-				"overrides": {
-					"additionalProperties": { "$ref": "#/definitions/workflowConfig" }
-				}
-			},
-			"additionalProperties": false
-		},
-		"templates": {
-			"type": "object",
-			"properties": {
-				"engine": { "type": "string" },
-				"defaults": { "$ref": "#/definitions/templateConfig" },
-				"overrides": {
-					"additionalProperties": { "$ref": "#/definitions/templateConfig" }
-				}
-			},
-			"additionalProperties": false
-		},
-		"additionalProperties": false
-	},
-	"additionalProperties": false
-}
-`
 
 // LoadConfig - finds and returns the GFlowsConfig
 func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
@@ -207,7 +138,17 @@ func validateConfig(config string) error {
 		return err
 	}
 
-	schemaLoader := gojsonschema.NewStringLoader(configSchema)
+	sourceFs, err := statikFs.New()
+	if err != nil {
+		panic(err)
+	}
+	schemaFile, err := sourceFs.Open("/config-schema.json")
+	if err != nil {
+		panic(err)
+	}
+	defer schemaFile.Close()
+	configSchema, err := ioutil.ReadAll(schemaFile)
+	schemaLoader := gojsonschema.NewStringLoader(string(configSchema))
 	configLoader := gojsonschema.NewGoLoader(json)
 	schema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {

@@ -82,8 +82,8 @@ func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.G
 			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)
 		}
 		defer file.Close()
-		content, err := ioutil.ReadAll(file)
 		destinationPath := filepath.Join(context.Dir, strings.TrimPrefix(sourcePath, generator.TrimPrefix))
+		content, err := ioutil.ReadAll(file)
 		if err != nil {
 			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)
 		}
