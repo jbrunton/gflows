@@ -3,7 +3,7 @@
 templates:
   engine: ytt
   defaults:
-    ytt:
+    libs:
       files:
         - workflows/common
         - workflows/config
