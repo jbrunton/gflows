@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jbrunton/gflows/yaml"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
-	"gopkg.in/yaml.v2"
+	"github.com/xeipuuv/gojsonschema"
+	goyaml "gopkg.in/yaml.v2"
 )
 
 // GFlowsConfig - type of current gflows context
@@ -39,6 +41,16 @@ type GFlowsTemplateConfig struct {
 	Libs []string
 }
 
+const configSchema = `
+{
+	"type": "object",
+	"properties": {
+		"githubDir": { "type": "string" }
+	},
+	"additionalProperties": false
+}
+`
+
 // LoadConfig - finds and returns the GFlowsConfig
 func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	exists, err := fs.Exists(path)
@@ -52,7 +64,31 @@ func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseConfig(data)
+
+	config, err := parseConfig(data)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaLoader := gojsonschema.NewStringLoader(configSchema)
+	configLoader := gojsonschema.NewStringLoader(yaml.CleanComments(string(data)))
+	schema, err := gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		panic(err)
+	}
+	result, err := schema.Validate(configLoader)
+	if err != nil {
+		panic(err)
+	}
+
+	if !result.Valid() {
+		for _, err := range result.Errors() {
+			fmt.Println("Schema error:", err)
+		}
+		return nil, errors.New("invalid config")
+	}
+
+	return config, nil
 }
 
 func (config *GFlowsConfig) GetWorkflowStringProperty(workflowName string, selector func(config *GFlowsWorkflowConfig) string) string {
@@ -98,7 +134,7 @@ func (config *GFlowsConfig) GetTemplateLibs(workflowName string) []string {
 
 func parseConfig(input []byte) (*GFlowsConfig, error) {
 	config := GFlowsConfig{}
-	err := yaml.Unmarshal(input, &config)
+	err := goyaml.Unmarshal(input, &config)
 	if err != nil {
 		panic(err)
 	}
