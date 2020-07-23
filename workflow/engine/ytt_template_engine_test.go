@@ -73,12 +73,10 @@ func TestGetAllYttLibs(t *testing.T) {
 		"templates:",
 		"  engine: ytt",
 		"  defaults:",
-		"    ytt:",
-		"      libs: [common, config]",
+		"    libs: [common, config]",
 		"  overrides:",
 		"    my-workflow:",
-		"      ytt:",
-		"        libs: [my-lib]",
+		"      libs: [my-lib]",
 	}, "\n")
 	_, _, engine := newYttTemplateEngine(config)
 
@@ -90,12 +88,10 @@ func TestGetYttLibs(t *testing.T) {
 		"templates:",
 		"  engine: ytt",
 		"  defaults:",
-		"    ytt:",
-		"      libs: [common, config]",
+		"    libs: [common, config]",
 		"  overrides:",
 		"    my-workflow:",
-		"      ytt:",
-		"        libs: [my-lib]",
+		"      libs: [my-lib]",
 	}, "\n")
 	_, _, engine := newYttTemplateEngine(config)
 
@@ -108,12 +104,10 @@ func TestIsLib(t *testing.T) {
 		"templates:",
 		"  engine: ytt",
 		"  defaults:",
-		"    ytt:",
-		"      libs: [common, config]",
+		"    libs: [common, config]",
 		"  overrides:",
 		"    my-workflow:",
-		"      ytt:",
-		"        libs: [my-lib]",
+		"      libs: [my-lib]",
 	}, "\n")
 	_, _, engine := newYttTemplateEngine(config)
 

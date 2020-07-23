@@ -231,20 +231,17 @@ func (engine *YttTemplateEngine) getWorkflowName(workflowsDir string, filename s
 }
 
 func (engine *YttTemplateEngine) getAllYttLibs() []string {
-	libs := engine.context.Config.Templates.Defaults.Ytt.Libs
+	libs := engine.context.Config.Templates.Defaults.Libs
 
 	for _, override := range engine.context.Config.Templates.Overrides {
-		libs = append(libs, override.Ytt.Libs...)
+		libs = append(libs, override.Libs...)
 	}
 
 	return engine.context.ResolvePaths(libs)
 }
 
 func (engine *YttTemplateEngine) getYttLibs(workflowName string) []string {
-	libs := engine.context.Config.GetTemplateArrayProperty(workflowName, func(config *config.GFlowsTemplateConfig) []string {
-		return config.Ytt.Libs
-	})
-
+	libs := engine.context.Config.GetTemplateLibs(workflowName)
 	return engine.context.ResolvePaths(libs)
 }
 

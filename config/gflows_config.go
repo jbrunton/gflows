@@ -36,12 +36,7 @@ type GFlowsWorkflowConfig struct {
 }
 
 type GFlowsTemplateConfig struct {
-	Jsonnet struct {
-		JPath []string `yaml:"jpath"`
-	}
-	Ytt struct {
-		Libs []string
-	}
+	Libs []string
 }
 
 // LoadConfig - finds and returns the GFlowsConfig
@@ -93,6 +88,12 @@ func (config *GFlowsConfig) GetTemplateArrayProperty(workflowName string, select
 		values = append(values, selector(workflowConfig)...)
 	}
 	return values
+}
+
+func (config *GFlowsConfig) GetTemplateLibs(workflowName string) []string {
+	return config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
+		return config.Libs
+	})
 }
 
 func parseConfig(input []byte) (*GFlowsConfig, error) {

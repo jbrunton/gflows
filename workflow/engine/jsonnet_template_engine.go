@@ -150,9 +150,6 @@ func (engine *JsonnetTemplateEngine) createVM(workflowName string) *gojsonnet.VM
 }
 
 func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
-	jpaths := engine.context.Config.GetTemplateArrayProperty(workflowName, func(config *config.GFlowsTemplateConfig) []string {
-		return config.Jsonnet.JPath
-	})
-
+	jpaths := engine.context.Config.GetTemplateLibs(workflowName)
 	return engine.context.ResolvePaths(jpaths)
 }

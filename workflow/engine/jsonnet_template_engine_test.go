@@ -67,12 +67,10 @@ func TestGetJPath(t *testing.T) {
 		"templates:",
 		"  engine: jsonnet",
 		"  defaults:",
-		"    jsonnet:",
-		"      jpath: [some-lib]",
+		"    libs: [some-lib]",
 		"  overrides:",
 		"    my-workflow:",
-		"      jsonnet:",
-		"        jpath: [my-lib]",
+		"      libs: [my-lib]",
 	}, "\n")
 	_, _, engine := newJsonnetTemplateEngine(config)
 

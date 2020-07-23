@@ -12,20 +12,18 @@ func TestGetTemplateArrayProperty(t *testing.T) {
 		"templates:",
 		"  engine: ytt",
 		"  defaults:",
-		"    jsonnet:",
-		"      jpath:",
-		"        - vendor",
+		"    libs:",
+		"      - vendor",
 		"  overrides:",
 		"    my-workflow:",
-		"      jsonnet:",
-		"        jpath:",
-		"        - my-lib",
+		"      libs:",
+		"      - my-lib",
 	}, "\n")))
 	assert.Equal(t, []string{"vendor"}, config.GetTemplateArrayProperty("some-workflow", func(config *GFlowsTemplateConfig) []string {
-		return config.Jsonnet.JPath
+		return config.Libs
 	}))
 	assert.Equal(t, []string{"vendor", "my-lib"}, config.GetTemplateArrayProperty("my-workflow", func(config *GFlowsTemplateConfig) []string {
-		return config.Jsonnet.JPath
+		return config.Libs
 	}))
 }
 
