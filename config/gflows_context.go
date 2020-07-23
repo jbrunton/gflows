@@ -21,10 +21,16 @@ type GFlowsContext struct {
 	EnableColors bool
 }
 
-func NewContext(fs *afero.Afero, logger *adapters.Logger, configPath string, enableColors bool) (*GFlowsContext, error) {
-	contextDir := filepath.Dir(configPath)
+type ContextOpts struct {
+	ConfigPath   string
+	EnableColors bool
+	Engine       string
+}
 
-	config, err := LoadConfig(fs, logger, configPath)
+func NewContext(fs *afero.Afero, logger *adapters.Logger, opts ContextOpts) (*GFlowsContext, error) {
+	contextDir := filepath.Dir(opts.ConfigPath)
+
+	config, err := LoadConfig(fs, logger, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +47,11 @@ func NewContext(fs *afero.Afero, logger *adapters.Logger, configPath string, ena
 
 	context := &GFlowsContext{
 		Config:       config,
-		ConfigPath:   configPath,
+		ConfigPath:   opts.ConfigPath,
 		GitHubDir:    githubDir,
 		WorkflowsDir: workflowsDir,
 		Dir:          contextDir,
-		EnableColors: enableColors,
+		EnableColors: opts.EnableColors,
 	}
 
 	return context, nil
@@ -74,7 +80,21 @@ func GetContext(fs *afero.Afero, logger *adapters.Logger, cmd *cobra.Command) (*
 		disableColors = true
 	}
 
-	return NewContext(fs, logger, configPath, !disableColors)
+	var engine string
+	if cmd.Flags().Lookup("engine") != nil {
+		engine, err = cmd.Flags().GetString("engine")
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	opts := ContextOpts{
+		ConfigPath:   configPath,
+		EnableColors: !disableColors,
+		Engine:       engine,
+	}
+
+	return NewContext(fs, logger, opts)
 }
 
 // ResolvePath - returns paths relative to the working directory (since paths in configs may be written relative to the
