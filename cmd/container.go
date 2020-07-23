@@ -3,11 +3,11 @@ package cmd
 import (
 	"os"
 
-	"github.com/jbrunton/gflows/actions"
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/styles"
+	"github.com/jbrunton/gflows/workflows/actions"
 	"github.com/spf13/cobra"
 )
 

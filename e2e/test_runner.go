@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jbrunton/gflows/actions"
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/styles"
+	"github.com/jbrunton/gflows/workflows/actions"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
