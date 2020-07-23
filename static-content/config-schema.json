@@ -1,0 +1,91 @@
+{
+  "definitions": {
+    "workflowConfig": {
+      "type": "object",
+      "properties": {
+        "checks": {
+          "type": "object",
+          "properties": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "uri": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "content": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "templateConfig": {
+      "type": "object",
+      "properties": {
+        "libs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "githubDir": {
+      "type": "string"
+    },
+    "workflows": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "type": "string"
+        },
+        "defaults": {
+          "$ref": "#/definitions/workflowConfig"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "$ref": "#/definitions/workflowConfig"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "templates": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "type": "string"
+        },
+        "defaults": {
+          "$ref": "#/definitions/templateConfig"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "$ref": "#/definitions/templateConfig"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "additionalProperties": false
+  },
+  "additionalProperties": false
+}
