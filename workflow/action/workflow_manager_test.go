@@ -19,7 +19,7 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	fs := container.FileSystem()
 	logger := adapters.NewLogger(out)
 	styles := container.Styles()
-	validator := workflow.NewWorkflowValidator(fs, context)
+	validator := workflow.NewValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)
 	templateEngine := CreateWorkflowEngine(fs, logger, context, contentWriter)
 	return fs, out, NewWorkflowManager(

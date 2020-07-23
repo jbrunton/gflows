@@ -26,7 +26,7 @@ func newListWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			validator := container.WorkflowValidator()
+			validator := container.Validator()
 
 			table := tablewriter.NewWriter(container.Logger())
 			table.SetHeader([]string{"Name", "Source", "Target", "Status"})

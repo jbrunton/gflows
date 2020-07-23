@@ -8,8 +8,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// WorkflowValidator - validates a workflow definition
-type WorkflowValidator struct {
+// Validator - validates a workflow definition
+type Validator struct {
 	fs            *afero.Afero
 	defaultSchema *gojsonschema.Schema
 	config        *config.GFlowsConfig
@@ -22,15 +22,15 @@ type ValidationResult struct {
 	ActualContent string
 }
 
-// NewWorkflowValidator - creates a new validator for the given filesystem
-func NewWorkflowValidator(fs *afero.Afero, context *config.GFlowsContext) *WorkflowValidator {
+// NewValidator - creates a new validator for the given filesystem
+func NewValidator(fs *afero.Afero, context *config.GFlowsContext) *Validator {
 	config := context.Config
 	schemaLoader := gojsonschema.NewReferenceLoader(config.Workflows.Defaults.Checks.Schema.URI)
 	defaultSchema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
 		panic(err)
 	}
-	return &WorkflowValidator{
+	return &Validator{
 		fs:            fs,
 		defaultSchema: defaultSchema,
 		config:        config,
@@ -38,7 +38,7 @@ func NewWorkflowValidator(fs *afero.Afero, context *config.GFlowsContext) *Workf
 }
 
 // ValidateSchema - validates the template for the definition generates a valid workflow
-func (validator *WorkflowValidator) ValidateSchema(definition *Definition) ValidationResult {
+func (validator *Validator) ValidateSchema(definition *Definition) ValidationResult {
 	enabled := validator.getSchemaCheckEnabled(definition)
 	if !enabled {
 		return ValidationResult{
@@ -66,7 +66,7 @@ func (validator *WorkflowValidator) ValidateSchema(definition *Definition) Valid
 }
 
 // ValidateContent - validates the content at the destination in the definition is up to date
-func (validator *WorkflowValidator) ValidateContent(definition *Definition) ValidationResult {
+func (validator *Validator) ValidateContent(definition *Definition) ValidationResult {
 	enabled := validator.getContentCheckEnabled(definition)
 	if !enabled {
 		return ValidationResult{
@@ -110,7 +110,7 @@ func (validator *WorkflowValidator) ValidateContent(definition *Definition) Vali
 	}
 }
 
-func (validator *WorkflowValidator) getWorkflowSchema(workflowName string) *gojsonschema.Schema {
+func (validator *Validator) getWorkflowSchema(workflowName string) *gojsonschema.Schema {
 	workflowConfig := validator.config.Workflows.Overrides[workflowName]
 	if workflowConfig == nil || workflowConfig.Checks.Schema.URI == "" {
 		return validator.defaultSchema
@@ -123,13 +123,13 @@ func (validator *WorkflowValidator) getWorkflowSchema(workflowName string) *gojs
 	return schema
 }
 
-func (validator *WorkflowValidator) getContentCheckEnabled(definition *Definition) bool {
+func (validator *Validator) getContentCheckEnabled(definition *Definition) bool {
 	return validator.config.GetWorkflowBoolProperty(definition.Name, true, func(config *config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Content.Enabled
 	})
 }
 
-func (validator *WorkflowValidator) getSchemaCheckEnabled(definition *Definition) bool {
+func (validator *Validator) getSchemaCheckEnabled(definition *Definition) bool {
 	return validator.config.GetWorkflowBoolProperty(definition.Name, true, func(config *config.GFlowsWorkflowConfig) *bool {
 		return config.Checks.Schema.Enabled
 	})

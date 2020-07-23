@@ -36,7 +36,7 @@ type WorkflowManager struct {
 	fs            *afero.Afero
 	logger        *adapters.Logger
 	styles        *styles.Styles
-	validator     *workflow.WorkflowValidator
+	validator     *workflow.Validator
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
 	workflow.TemplateEngine
@@ -46,7 +46,7 @@ func NewWorkflowManager(
 	fs *afero.Afero,
 	logger *adapters.Logger,
 	styles *styles.Styles,
-	validator *workflow.WorkflowValidator,
+	validator *workflow.Validator,
 	context *config.GFlowsContext,
 	contentWriter *content.Writer,
 	templateEngine workflow.TemplateEngine,
