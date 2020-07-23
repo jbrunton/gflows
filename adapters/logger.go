@@ -9,12 +9,14 @@ import (
 )
 
 type Logger struct {
-	out io.Writer
+	out          io.Writer
+	enableColors bool
 }
 
-func NewLogger(out io.Writer) *Logger {
+func NewLogger(out io.Writer, enableColors bool) *Logger {
 	return &Logger{
-		out: out,
+		out:          out,
+		enableColors: enableColors,
 	}
 }
 
@@ -46,17 +48,22 @@ func (logger *Logger) PrintStatusErrors(errors []string, firstLineOnly bool) {
 
 // PrettyPrintDiff - highlights the given patch if pygmentize is available
 func (logger *Logger) PrettyPrintDiff(patch string) {
-	logger.prettyPrint(patch, "-ldiff")
+	logger.prettyPrint(patch, "diff")
 }
 
 // Inspired by https://github.com/pksunkara/pygments
-func (logger *Logger) prettyPrint(code string, lexer string) {
-	if _, err := exec.LookPath("pygmentize"); err != nil {
+func (logger *Logger) prettyPrint(code string, language string) {
+	if _, err := exec.LookPath("bat"); err != nil {
 		logger.Println(code)
 		return
 	}
 
-	cmd := exec.Command("pygmentize", "-fterminal256", lexer, "-O style=monokai")
+	color := "never"
+	if logger.enableColors {
+		color = "always"
+	}
+
+	cmd := exec.Command("bat", "--language", language, "--color", color, "--style", "plain")
 	cmd.Stdin = strings.NewReader(code)
 
 	var out bytes.Buffer

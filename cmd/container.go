@@ -16,8 +16,8 @@ type ContainerBuilderFunc func(cmd *cobra.Command) (*action.Container, error)
 
 func buildContainer(cmd *cobra.Command) (*action.Container, error) {
 	fs := adapters.CreateOsFs()
-	logger := adapters.NewLogger(os.Stdout)
 	opts := config.CreateContextOpts(cmd)
+	logger := adapters.NewLogger(os.Stdout, opts.EnableColors)
 	context, err := config.NewContext(fs, logger, opts)
 	if err != nil {
 		return nil, err

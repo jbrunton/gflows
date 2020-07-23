@@ -30,11 +30,3 @@ func NewContainer(fs *afero.Afero, logger *Logger, styles *styles.Styles) *Conta
 		styles:     styles,
 	}
 }
-
-// func CreateContainer(enableColors bool) *Container {
-// 	return NewContainer(
-// 		CreateOsFs(),
-// 		NewLogger(os.Stdout),
-// 		styles.NewStyles(enableColors),
-// 	)
-// }

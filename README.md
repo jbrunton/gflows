@@ -108,7 +108,7 @@ To make the process of refactoring easier, you can run the `watch` command (whic
     Checking my-workflow ... UP TO DATE
 ```
 
-If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will include syntax highlighting. For example:
+If you [install bat](https://github.com/sharkdp/bat) then the diff will include syntax highlighting. For example:
 
 ![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-diff.png)
 
