@@ -21,11 +21,11 @@ func newJsonnetTemplateEngine() (*content.Container, *config.GFlowsContext, *Jso
 func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 	container, _, templateEngine := newJsonnetTemplateEngine()
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
-	expectedContent := exampleWorkflow("test.jsonnet")
+	expectedContent := fixtures.ExampleWorkflow("test.jsonnet")
 	expectedJson, _ := workflow.YamlToJson(expectedContent)
 	expectedDefinition := workflow.Definition{
 		Name:        "test",
@@ -41,9 +41,9 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 func TestGetJsonnetWorkflowSources(t *testing.T) {
 	container, _, templateEngine := newJsonnetTemplateEngine()
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
-	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(exampleJsonnetTemplate), 0644)
-	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 
 	sources := templateEngine.GetWorkflowSources()
 	templates := templateEngine.GetWorkflowTemplates()

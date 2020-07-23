@@ -35,7 +35,7 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 
 func TestGetUnimportedWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
-	fs.WriteFile(".github/workflows/workflow.yml", []byte(exampleWorkflow("test.jsonnet")), 0644)
+	fs.WriteFile(".github/workflows/workflow.yml", []byte(fixtures.ExampleWorkflow("test.jsonnet")), 0644)
 
 	gitHubWorkflows := workflowManager.GetWorkflows()
 
@@ -44,12 +44,12 @@ func TestGetUnimportedWorkflows(t *testing.T) {
 
 func TestGetImportedWorkflows(t *testing.T) {
 	fs, _, workflowManager := newTestWorkflowManager()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
-	fs.WriteFile(".github/workflows/test.yml", []byte(exampleWorkflow("test.jsonnet")), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile(".github/workflows/test.yml", []byte(fixtures.ExampleWorkflow("test.jsonnet")), 0644)
 
 	gitHubWorkflows := workflowManager.GetWorkflows()
 
-	expectedContent := exampleWorkflow("test.jsonnet")
+	expectedContent := fixtures.ExampleWorkflow("test.jsonnet")
 	expectedJson, _ := workflow.YamlToJson(expectedContent)
 	expectedWorflow := workflow.GitHubWorkflow{
 		Path: ".github/workflows/test.yml",
@@ -75,7 +75,7 @@ func TestValidateWorkflows(t *testing.T) {
 		{
 			description: "invalid template",
 			files: []fixtures.File{
-				fixtures.NewFile(".gflows/workflows/test.jsonnet", invalidJsonnetTemplate),
+				fixtures.NewFile(".gflows/workflows/test.jsonnet", fixtures.InvalidJsonnetTemplate),
 			},
 			expectedError: "workflow validation failed",
 			expectedOutput: `
@@ -89,7 +89,7 @@ Checking test ... FAILED
 		{
 			description: "valid template, missing workflow",
 			files: []fixtures.File{
-				fixtures.NewFile(".gflows/workflows/test.jsonnet", exampleJsonnetTemplate),
+				fixtures.NewFile(".gflows/workflows/test.jsonnet", fixtures.ExampleJsonnetTemplate),
 			},
 			expectedError: "workflow validation failed",
 			expectedOutput: `
@@ -101,7 +101,7 @@ Checking test ... FAILED
 		{
 			description: "valid template, out of date workflow",
 			files: []fixtures.File{
-				fixtures.NewFile(".gflows/workflows/test.jsonnet", exampleJsonnetTemplate),
+				fixtures.NewFile(".gflows/workflows/test.jsonnet", fixtures.ExampleJsonnetTemplate),
 				fixtures.NewFile(".github/workflows/test.yml", "incorrect content"),
 			},
 			expectedError: "workflow validation failed",
@@ -114,8 +114,8 @@ Checking test ... FAILED
 		{
 			description: "valid template, up to date workflow",
 			files: []fixtures.File{
-				fixtures.NewFile(".gflows/workflows/test.jsonnet", exampleJsonnetTemplate),
-				fixtures.NewFile(".github/workflows/test.yml", exampleWorkflow("test.jsonnet")),
+				fixtures.NewFile(".gflows/workflows/test.jsonnet", fixtures.ExampleJsonnetTemplate),
+				fixtures.NewFile(".github/workflows/test.yml", fixtures.ExampleWorkflow("test.jsonnet")),
 			},
 			expectedOutput: `
 Checking test ... OK
@@ -175,8 +175,8 @@ Checking test ... OK
 
 func TestUpdateWorkflows(t *testing.T) {
 	fs, out, workflowManager := newTestWorkflowManager()
-	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(exampleJsonnetTemplate), 0644)
-	fs.WriteFile(".gflows/workflows/test2.jsonnet", []byte(exampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/workflows/test2.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	fs.WriteFile(".github/workflows/test.yml", []byte("out of date workflow"), 0644)
 
 	err := workflowManager.UpdateWorkflows()
@@ -187,7 +187,7 @@ func TestUpdateWorkflows(t *testing.T) {
 		"     create .github/workflows/test2.yml (from .gflows/workflows/test2.jsonnet)",
 	}, "\n")+"\n", out.String())
 	testContent, _ := fs.ReadFile(".github/workflows/test.yml")
-	assert.Equal(t, exampleWorkflow("test.jsonnet"), string(testContent))
+	assert.Equal(t, fixtures.ExampleWorkflow("test.jsonnet"), string(testContent))
 	test2Content, _ := fs.ReadFile(".github/workflows/test2.yml")
-	assert.Equal(t, exampleWorkflow("test2.jsonnet"), string(test2Content))
+	assert.Equal(t, fixtures.ExampleWorkflow("test2.jsonnet"), string(test2Content))
 }
