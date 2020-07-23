@@ -19,8 +19,7 @@ expect:
       templates:
         engine: ytt
         defaults:
-          ytt:
-            files:
-              - workflows/common
-              - workflows/config
+          libs:
+            - workflows/common
+            - workflows/config
 

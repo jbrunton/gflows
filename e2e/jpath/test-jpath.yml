@@ -5,9 +5,8 @@ setup:
         templates:
           engine: jsonnet
           defaults:
-            jsonnet:
-              jpath:
-                - vendor
+            libs:
+              - vendor
     - path: .gflows/vendor/steps.libsonnet
       content: |
         {

@@ -116,11 +116,11 @@ If you [install pygments](https://pygments.org/docs/cmdline/) then the diff will
 
 If you use jsonnet as the templating engine and want to extract templates into a separate repository then the recommended approach is to use [jsonnet-bundler](https://github.com/jsonnet-bundler/jsonnet-bundler).
 
-Any additional library paths should be added to the `jsonnet.jpath` list in the config file. These paths may be relative, so, for example, if you install dependencies into `.jflows/vendor`, then your config may look like this:
+Any additional library paths should be added to the `templates.libs` list in the config file. These paths may be relative, so, for example, if you install dependencies into `.jflows/vendor`, then your config may look like this:
 
 ```
-jsonnet:
-  jpath:
+templates:
+  libs:
   - vendor
 ```
 
@@ -163,18 +163,19 @@ workflows:
 templates:
   # The templating engine to use (either ytt or jsonnet)
   engine: ytt
-  # Jsonnet options
-  jsonnet:
-    # Additional paths to search for libraries. Useful if you use jsonnet-bundler.
-    # Default: <empty list>
-    jpath:
-    - vendor
-    - my-library
-  ytt:
-    # Additional paths to add as input files. This should include any files and directories used as libraries.
-    files:
-    - workflows/common
-    - workflows/lib
+
+  # Additional paths to search for libraries.
+  #
+  # For ytt, these paths are passed as files (i.e. the -f flag) to ytt. Note that it's important to
+  # add all ytt library files here or they may be treated as workflows.
+  #
+  # For jsonnet, libs are treated as jpaths. For example, if you use jsonnet-bundler to add
+  # library files to .gflows/vendor, add them like this:
+  #   libs:
+  #   - vendor
+  libs:
+  - workflows/common
+  - workflows/lib
 ```
 
 ## Development Tips

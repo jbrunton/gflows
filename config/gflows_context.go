@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/thoas/go-funk"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -74,36 +76,16 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 	return NewContext(fs, configPath, !disableColors)
 }
 
-func (context *GFlowsContext) EvalJPaths(workflowName string) []string {
-	var paths []string
-	configJPaths := context.Config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
-		return config.Jsonnet.JPath
-	})
-
-	for _, path := range configJPaths {
-		if filepath.IsAbs(path) {
-			paths = append(paths, path)
-		} else {
-			paths = append(paths, filepath.Join(context.Dir, path))
-		}
+// ResolvePath - returns paths relative to the working directory (since paths in configs may be written relative to the
+// context directory instead)
+func (context *GFlowsContext) ResolvePath(path string) string {
+	if filepath.IsAbs(path) {
+		return path
 	}
-
-	return paths
+	return filepath.Join(context.Dir, path)
 }
 
-func (context *GFlowsContext) EvalDefaultYttFiles() []string {
-	// TODO: this should probably return all potential lib files (incl. overrides) to ensure we don't
-	// accidentally infer a lib file is a workflow.
-	var paths []string
-	configFiles := context.Config.Templates.Defaults.Ytt.Files
-
-	for _, path := range configFiles {
-		if filepath.IsAbs(path) {
-			paths = append(paths, path)
-		} else {
-			paths = append(paths, filepath.Join(context.Dir, path))
-		}
-	}
-
-	return paths
+// ResolvePaths - returns an array of resolved paths
+func (context *GFlowsContext) ResolvePaths(paths []string) []string {
+	return funk.Map(paths, context.ResolvePath).([]string)
 }

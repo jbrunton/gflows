@@ -17,7 +17,7 @@ make statik
 assert_no_changes "Static content is out of date. Run \"make statik\" and commit the changes." \
   "Static content is up to date."
 
-make build
+make compile
 ./gflows init ytt
 assert_no_changes "Default workflow files don't match generated files. Contents of static-content and .gflows need to match." \
   "Default workflow files are up to date."
