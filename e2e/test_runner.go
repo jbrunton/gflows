@@ -66,7 +66,7 @@ func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool) *e2eTes
 	}
 
 	out := new(bytes.Buffer)
-	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(out), styles.NewStyles(false))
+	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(out, false), styles.NewStyles(false))
 	contentContainer := content.NewContainer(adaptersContainer)
 
 	return &e2eTestRunner{

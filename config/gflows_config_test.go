@@ -187,7 +187,7 @@ func TestValidateConfig(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		out := new(bytes.Buffer)
-		logger := adapters.NewLogger(out)
+		logger := adapters.NewLogger(out, false)
 		err := validateConfig(scenario.config, logger)
 
 		if scenario.expectedError == "" {

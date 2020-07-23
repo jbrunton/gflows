@@ -17,7 +17,7 @@ func newTestContext() *GFlowsContext {
 	}
 	fs := adapters.CreateMemFs()
 	out := new(bytes.Buffer)
-	logger := adapters.NewLogger(out)
+	logger := adapters.NewLogger(out, false)
 	context, err := NewContext(fs, logger, opts)
 	if err != nil {
 		panic(err)
