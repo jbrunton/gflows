@@ -1,10 +1,12 @@
 statik:
 	statik -m -src=static-content
 
-compile:
+go-build:
 	go build
 
-build: statik compile test
+compile: statik go-build
+
+build: compile test
 
 unit-test:
 	go test -coverprofile c.out $$(go list ./... | grep -v /e2e)
@@ -14,4 +16,4 @@ e2e-test:
 
 test: unit-test e2e-test
 
-.PHONY: statik compile build unit-test e2e-test test
+.PHONY: statik go-build compile build unit-test e2e-test test
