@@ -73,7 +73,7 @@ func (manager *YttTemplateEngine) GetWorkflowTemplates() []string {
 		if !isDir {
 			continue
 		}
-		_, isLib := funk.FindString(manager.EvalDefaultYttLibs(), func(lib string) bool {
+		_, isLib := funk.FindString(manager.getAllYttLibs(), func(lib string) bool {
 			return filepath.Clean(lib) == filepath.Clean(path)
 		})
 		if isLib {
@@ -125,7 +125,7 @@ func (s FileSource) RelativePath() (string, error) {
 
 func (s FileSource) Bytes() ([]byte, error) { return s.fs.ReadFile(s.path) }
 
-func (manager *YttTemplateEngine) getInput(templateDir string) cmdtpl.TemplateInput {
+func (manager *YttTemplateEngine) getInput(workflowName string, templateDir string) cmdtpl.TemplateInput {
 	var in cmdtpl.TemplateInput
 	for _, sourcePath := range manager.getWorkflowSourcesInDir(templateDir) {
 		source := NewFileSource(manager.fs, sourcePath, filepath.Dir(sourcePath))
@@ -135,7 +135,7 @@ func (manager *YttTemplateEngine) getInput(templateDir string) cmdtpl.TemplateIn
 		}
 		in.Files = append(in.Files, file)
 	}
-	libs, err := files.NewSortedFilesFromPaths(manager.EvalDefaultYttLibs(), files.SymlinkAllowOpts{})
+	libs, err := files.NewSortedFilesFromPaths(manager.getYttLibs(workflowName), files.SymlinkAllowOpts{})
 	if err != nil {
 		panic(err)
 	}
@@ -143,9 +143,9 @@ func (manager *YttTemplateEngine) getInput(templateDir string) cmdtpl.TemplateIn
 	return in
 }
 
-func (manager *YttTemplateEngine) apply(templateDir string) (string, error) {
+func (manager *YttTemplateEngine) apply(workflowName string, templateDir string) (string, error) {
 	ui := cmdcore.NewPlainUI(false)
-	in := manager.getInput(templateDir)
+	in := manager.getInput(workflowName, templateDir)
 	rootLibrary := workspace.NewRootLibrary(in.Files)
 
 	libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
@@ -189,7 +189,7 @@ func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definiti
 			Status:      workflow.ValidationResult{Valid: true},
 		}
 
-		workflow, err := manager.apply(templatePath)
+		workflow, err := manager.apply(workflowName, templatePath)
 
 		if err != nil {
 			definition.Status.Valid = false
@@ -237,19 +237,20 @@ func (manager *YttTemplateEngine) getWorkflowName(workflowsDir string, filename 
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
-func (manager *YttTemplateEngine) EvalDefaultYttLibs() []string {
-	// TODO: this should probably return all potential lib files (incl. overrides) to ensure we don't
-	// accidentally infer a lib file is a workflow.
-	var paths []string
-	defaultLibs := manager.context.Config.Templates.Defaults.Ytt.Libs
+func (manager *YttTemplateEngine) getAllYttLibs() []string {
+	libs := manager.context.Config.Templates.Defaults.Ytt.Libs
 
-	for _, path := range defaultLibs {
-		if filepath.IsAbs(path) {
-			paths = append(paths, path)
-		} else {
-			paths = append(paths, filepath.Join(manager.context.Dir, path))
-		}
+	for _, override := range manager.context.Config.Templates.Overrides {
+		libs = append(libs, override.Ytt.Libs...)
 	}
 
-	return paths
+	return manager.context.ResolvePaths(libs)
+}
+
+func (manager *YttTemplateEngine) getYttLibs(workflowName string) []string {
+	libs := manager.context.Config.GetTemplateArrayProperty(workflowName, func(config *config.GFlowsTemplateConfig) []string {
+		return config.Ytt.Libs
+	})
+
+	return manager.context.ResolvePaths(libs)
 }

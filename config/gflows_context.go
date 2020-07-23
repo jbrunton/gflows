@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/thoas/go-funk"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -72,4 +74,18 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 	}
 
 	return NewContext(fs, configPath, !disableColors)
+}
+
+// ResolvePath - returns paths relative to the working directory (since paths in configs may be written relative to the
+// context directory instead)
+func (context *GFlowsContext) ResolvePath(path string) string {
+	if filepath.IsAbs(path) {
+		return path
+	}
+	return filepath.Join(context.Dir, path)
+}
+
+// ResolvePaths - returns an array of resolved paths
+func (context *GFlowsContext) ResolvePaths(paths []string) []string {
+	return funk.Map(paths, context.ResolvePath).([]string)
 }
