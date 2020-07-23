@@ -9,7 +9,7 @@
       "with":
         "go-version": "^1.14.4"
     - "run": "go get github.com/rakyll/statik"
-    - "run": "make build"
+    - "run": "make compile"
     - "run": "./check-static-content.sh"
   "test":
     "runs-on": "ubuntu-latest"
