@@ -24,7 +24,7 @@ func TestGetTemplateArrayProperty(t *testing.T) {
 	assert.Equal(t, []string{"vendor"}, config.GetTemplateArrayProperty("some-workflow", func(config *GFlowsTemplateConfig) []string {
 		return config.Jsonnet.JPath
 	}))
-	assert.Equal(t, []string{"my-lib", "vendor"}, config.GetTemplateArrayProperty("my-workflow", func(config *GFlowsTemplateConfig) []string {
+	assert.Equal(t, []string{"vendor", "my-lib"}, config.GetTemplateArrayProperty("my-workflow", func(config *GFlowsTemplateConfig) []string {
 		return config.Jsonnet.JPath
 	}))
 }

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/jbrunton/gflows/config"
@@ -10,15 +11,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newYttTemplateEngine() (*content.Container, *config.GFlowsContext, *YttTemplateEngine) {
-	adaptersContainer, context, _ := fixtures.NewTestContext("")
+func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsContext, *YttTemplateEngine) {
+	adaptersContainer, context, _ := fixtures.NewTestContext(config)
 	container := content.NewContainer(adaptersContainer)
 	templateEngine := NewYttTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter())
 	return container, context, templateEngine
 }
 
 func TestGenerateYttWorkflowDefinitions(t *testing.T) {
-	container, _, templateEngine := newYttTemplateEngine()
+	container, _, templateEngine := newYttTemplateEngine("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test/config.yml", []byte(""), 0644)
 
@@ -38,7 +39,7 @@ func TestGenerateYttWorkflowDefinitions(t *testing.T) {
 }
 
 func TestGetYttWorkflowSources(t *testing.T) {
-	container, _, templateEngine := newYttTemplateEngine()
+	container, _, templateEngine := newYttTemplateEngine("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte("config1"), 0644)
 	fs.WriteFile(".gflows/workflows/my-workflow/config2.yaml", []byte("config2"), 0644)
@@ -52,7 +53,7 @@ func TestGetYttWorkflowSources(t *testing.T) {
 }
 
 func TestGetYttWorkflowTemplates(t *testing.T) {
-	container, _, templateEngine := newYttTemplateEngine()
+	container, _, templateEngine := newYttTemplateEngine("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte("config1"), 0644)
 	fs.WriteFile(".gflows/workflows/my-workflow/nested-dir/config2.yaml", []byte("config2"), 0644)
@@ -65,4 +66,39 @@ func TestGetYttWorkflowTemplates(t *testing.T) {
 	templates := templateEngine.GetWorkflowTemplates()
 
 	assert.Equal(t, []string{".gflows/workflows/another-workflow", ".gflows/workflows/my-workflow"}, templates)
+}
+
+func TestGetAllYttLibs(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    ytt:",
+		"      libs: [common, config]",
+		"  overrides:",
+		"    my-workflow:",
+		"      ytt:",
+		"        libs: [my-lib]",
+	}, "\n")
+	_, _, engine := newYttTemplateEngine(config)
+
+	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, engine.getAllYttLibs())
+}
+
+func TestGetYttLibs(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    ytt:",
+		"      libs: [common, config]",
+		"  overrides:",
+		"    my-workflow:",
+		"      ytt:",
+		"        libs: [my-lib]",
+	}, "\n")
+	_, _, engine := newYttTemplateEngine(config)
+
+	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, engine.getYttLibs("my-workflow"))
+	assert.Equal(t, []string{".gflows/common", ".gflows/config"}, engine.getYttLibs("other-workflow"))
 }

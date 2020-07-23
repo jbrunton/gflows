@@ -87,12 +87,11 @@ func (config *GFlowsConfig) GetWorkflowBoolProperty(workflowName string, default
 }
 
 func (config *GFlowsConfig) GetTemplateArrayProperty(workflowName string, selector func(config *GFlowsTemplateConfig) []string) []string {
-	var values []string
+	values := selector(&config.Templates.Defaults)
 	workflowConfig := config.Templates.Overrides[workflowName]
 	if workflowConfig != nil {
-		values = selector(workflowConfig)
+		values = append(values, selector(workflowConfig)...)
 	}
-	values = append(values, selector(&config.Templates.Defaults)...)
 	return values
 }
 
