@@ -7,14 +7,14 @@ import (
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/styles"
-	"github.com/jbrunton/gflows/workflows/actions"
+	"github.com/jbrunton/gflows/workflows/action"
 	"github.com/spf13/cobra"
 )
 
 // ContainerBuilderFunc - factory function to create a new container for the given command
-type ContainerBuilderFunc func(cmd *cobra.Command) (*actions.Container, error)
+type ContainerBuilderFunc func(cmd *cobra.Command) (*action.Container, error)
 
-func buildContainer(cmd *cobra.Command) (*actions.Container, error) {
+func buildContainer(cmd *cobra.Command) (*action.Container, error) {
 	fs := adapters.CreateOsFs()
 	context, err := config.GetContext(fs, cmd)
 	if err != nil {
@@ -22,5 +22,5 @@ func buildContainer(cmd *cobra.Command) (*actions.Container, error) {
 	}
 	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(os.Stdout), styles.NewStyles(context.EnableColors))
 	contentContainer := content.NewContainer(adaptersContainer)
-	return actions.NewContainer(contentContainer, context), nil
+	return action.NewContainer(contentContainer, context), nil
 }

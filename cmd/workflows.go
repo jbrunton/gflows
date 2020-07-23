@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jbrunton/gflows/workflows/actions"
+	"github.com/jbrunton/gflows/workflows/action"
 	"github.com/olekukonko/tablewriter"
 	"github.com/thoas/go-funk"
 
@@ -128,7 +128,7 @@ func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	return cmd
 }
 
-func checkWorkflows(workflowManager *actions.WorkflowManager, container *actions.Container, watch bool, showDiff bool) error {
+func checkWorkflows(workflowManager *action.WorkflowManager, container *action.Container, watch bool, showDiff bool) error {
 	err := workflowManager.ValidateWorkflows(showDiff)
 	if err != nil {
 		return err
