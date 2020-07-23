@@ -43,9 +43,33 @@ type GFlowsTemplateConfig struct {
 
 const configSchema = `
 {
+	"definitions": {
+    "templateConfig": {
+			"type": "object",
+			"properties": {
+				"libs": {
+					"type": "array",
+					"items": { "type": "string" }
+				}
+			},
+			"additionalProperties": false
+    }
+  },
 	"type": "object",
 	"properties": {
-		"githubDir": { "type": "string" }
+		"githubDir": { "type": "string" },
+		"templates": {
+			"type": "object",
+			"properties": {
+				"engine": { "type": "string" },
+				"defaults": { "$ref": "#/definitions/templateConfig" },
+				"overrides": {
+					"additionalProperties": { "$ref": "#/definitions/templateConfig" }
+				}
+			},
+			"additionalProperties": false
+		},
+		"additionalProperties": false
 	},
 	"additionalProperties": false
 }
@@ -65,27 +89,14 @@ func LoadConfig(fs *afero.Afero, path string) (*GFlowsConfig, error) {
 		return nil, err
 	}
 
-	config, err := parseConfig(data)
+	err = validateConfig(string(data))
 	if err != nil {
 		return nil, err
 	}
 
-	schemaLoader := gojsonschema.NewStringLoader(configSchema)
-	configLoader := gojsonschema.NewStringLoader(yaml.CleanComments(string(data)))
-	schema, err := gojsonschema.NewSchema(schemaLoader)
+	config, err := parseConfig(data)
 	if err != nil {
-		panic(err)
-	}
-	result, err := schema.Validate(configLoader)
-	if err != nil {
-		panic(err)
-	}
-
-	if !result.Valid() {
-		for _, err := range result.Errors() {
-			fmt.Println("Schema error:", err)
-		}
-		return nil, errors.New("invalid config")
+		return nil, err
 	}
 
 	return config, nil
@@ -150,4 +161,30 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func validateConfig(config string) error {
+	json, err := yaml.YamlToJson(config)
+	if err != nil {
+		return err
+	}
+
+	schemaLoader := gojsonschema.NewStringLoader(configSchema)
+	configLoader := gojsonschema.NewGoLoader(json)
+	schema, err := gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		panic(err)
+	}
+	result, err := schema.Validate(configLoader)
+	if err != nil {
+		panic(err)
+	}
+
+	if !result.Valid() {
+		for _, err := range result.Errors() {
+			fmt.Println("Schema error:", err)
+		}
+		return errors.New("invalid config")
+	}
+	return nil
 }
