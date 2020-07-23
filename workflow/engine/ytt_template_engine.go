@@ -73,7 +73,7 @@ func (manager *YttTemplateEngine) GetWorkflowTemplates() []string {
 		if !isDir {
 			continue
 		}
-		_, isLib := funk.FindString(manager.context.EvalDefaultYttFiles(), func(lib string) bool {
+		_, isLib := funk.FindString(manager.EvalDefaultYttLibs(), func(lib string) bool {
 			return filepath.Clean(lib) == filepath.Clean(path)
 		})
 		if isLib {
@@ -135,7 +135,7 @@ func (manager *YttTemplateEngine) getInput(templateDir string) cmdtpl.TemplateIn
 		}
 		in.Files = append(in.Files, file)
 	}
-	libs, err := files.NewSortedFilesFromPaths(manager.context.EvalDefaultYttFiles(), files.SymlinkAllowOpts{})
+	libs, err := files.NewSortedFilesFromPaths(manager.EvalDefaultYttLibs(), files.SymlinkAllowOpts{})
 	if err != nil {
 		panic(err)
 	}
@@ -235,4 +235,21 @@ func (manager *YttTemplateEngine) WorkflowGenerator() content.WorkflowGenerator 
 func (manager *YttTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
+}
+
+func (manager *YttTemplateEngine) EvalDefaultYttLibs() []string {
+	// TODO: this should probably return all potential lib files (incl. overrides) to ensure we don't
+	// accidentally infer a lib file is a workflow.
+	var paths []string
+	defaultLibs := manager.context.Config.Templates.Defaults.Ytt.Libs
+
+	for _, path := range defaultLibs {
+		if filepath.IsAbs(path) {
+			paths = append(paths, path)
+		} else {
+			paths = append(paths, filepath.Join(manager.context.Dir, path))
+		}
+	}
+
+	return paths
 }

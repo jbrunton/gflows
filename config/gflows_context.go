@@ -73,37 +73,3 @@ func GetContext(fs *afero.Afero, cmd *cobra.Command) (*GFlowsContext, error) {
 
 	return NewContext(fs, configPath, !disableColors)
 }
-
-func (context *GFlowsContext) EvalJPaths(workflowName string) []string {
-	var paths []string
-	configJPaths := context.Config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
-		return config.Jsonnet.JPath
-	})
-
-	for _, path := range configJPaths {
-		if filepath.IsAbs(path) {
-			paths = append(paths, path)
-		} else {
-			paths = append(paths, filepath.Join(context.Dir, path))
-		}
-	}
-
-	return paths
-}
-
-func (context *GFlowsContext) EvalDefaultYttFiles() []string {
-	// TODO: this should probably return all potential lib files (incl. overrides) to ensure we don't
-	// accidentally infer a lib file is a workflow.
-	var paths []string
-	configFiles := context.Config.Templates.Defaults.Ytt.Files
-
-	for _, path := range configFiles {
-		if filepath.IsAbs(path) {
-			paths = append(paths, path)
-		} else {
-			paths = append(paths, filepath.Join(context.Dir, path))
-		}
-	}
-
-	return paths
-}

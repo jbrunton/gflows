@@ -66,7 +66,7 @@ func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defi
 	definitions := []*workflow.Definition{}
 	for _, templatePath := range templates {
 		workflowName := manager.getWorkflowName(manager.context.WorkflowsDir, templatePath)
-		vm := createVM(manager.context, workflowName)
+		vm := manager.createVM(workflowName)
 		input, err := manager.fs.ReadFile(templatePath)
 		if err != nil {
 			return []*workflow.Definition{}, err
@@ -140,11 +140,28 @@ func (manager *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filen
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
-func createVM(context *config.GFlowsContext, workflowName string) *gojsonnet.VM {
+func (manager *JsonnetTemplateEngine) createVM(workflowName string) *gojsonnet.VM {
 	vm := gojsonnet.MakeVM()
 	vm.Importer(&gojsonnet.FileImporter{
-		JPaths: context.EvalJPaths(workflowName),
+		JPaths: manager.evalJPaths(workflowName),
 	})
 	vm.StringOutput = true
 	return vm
+}
+
+func (manager *JsonnetTemplateEngine) evalJPaths(workflowName string) []string {
+	var paths []string
+	configJPaths := manager.context.Config.GetTemplateArrayProperty(workflowName, func(config *config.GFlowsTemplateConfig) []string {
+		return config.Jsonnet.JPath
+	})
+
+	for _, path := range configJPaths {
+		if filepath.IsAbs(path) {
+			paths = append(paths, path)
+		} else {
+			paths = append(paths, filepath.Join(manager.context.Dir, path))
+		}
+	}
+
+	return paths
 }

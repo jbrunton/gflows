@@ -40,7 +40,7 @@ type GFlowsTemplateConfig struct {
 		JPath []string `yaml:"jpath"`
 	}
 	Ytt struct {
-		Files []string
+		Libs []string
 	}
 }
 
