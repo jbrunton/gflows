@@ -1,4 +1,4 @@
-package workflows
+package workflow
 
 type GitHubWorkflow struct {
 	Path       string

@@ -1,4 +1,4 @@
-package workflows
+package workflow
 
 import (
 	"github.com/jbrunton/gflows/content"
@@ -6,10 +6,10 @@ import (
 
 type TemplateEngine interface {
 	// GetWorkflowSources - returns a list of all the files (i.e. templates + library files) used
-	// to generate workflows.
+	// to generate workflow.
 	GetWorkflowSources() []string
 
-	// GetWorkflowTemplates - returns a list of all the templates used to generator workflows.
+	// GetWorkflowTemplates - returns a list of all the templates used to generator workflow.
 	GetWorkflowTemplates() []string
 
 	// GetWorkflowDefinitions - returns definitions generated from workflow templates.

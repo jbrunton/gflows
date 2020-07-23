@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 
-	"github.com/jbrunton/gflows/workflows"
+	"github.com/jbrunton/gflows/workflow"
 )
 
 const invalidJsonnetTemplate = `
@@ -59,9 +59,9 @@ func exampleWorkflow(sourceFileName string) string {
 `, sourceFileName)
 }
 
-func newTestWorkflowDefinition(name string, content string) *workflows.WorkflowDefinition {
-	json, _ := workflows.YamlToJson(content)
-	return &workflows.WorkflowDefinition{
+func newTestWorkflowDefinition(name string, content string) *workflow.WorkflowDefinition {
+	json, _ := workflow.YamlToJson(content)
+	return &workflow.WorkflowDefinition{
 		Name:        name,
 		Source:      fmt.Sprintf(".gflows/workflows/%s.jsonnet", name),
 		Destination: fmt.Sprintf(".github/workflows/%s.yml", name),

@@ -2,7 +2,7 @@ package action
 
 import (
 	"github.com/jbrunton/gflows/content"
-	"github.com/jbrunton/gflows/workflows"
+	"github.com/jbrunton/gflows/workflow"
 
 	"github.com/jbrunton/gflows/config"
 )
@@ -32,8 +32,8 @@ func (container *Container) WorkflowManager() *WorkflowManager {
 	return container.workflowManager
 }
 
-func (container *Container) WorkflowValidator() *workflows.WorkflowValidator {
-	return workflows.NewWorkflowValidator(container.FileSystem(), container.Context())
+func (container *Container) WorkflowValidator() *workflow.WorkflowValidator {
+	return workflow.NewWorkflowValidator(container.FileSystem(), container.Context())
 }
 
 func (container *Container) Watcher() *Watcher {

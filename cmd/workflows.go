@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jbrunton/gflows/workflows/action"
+	"github.com/jbrunton/gflows/workflow/action"
 	"github.com/olekukonko/tablewriter"
 	"github.com/thoas/go-funk"
 

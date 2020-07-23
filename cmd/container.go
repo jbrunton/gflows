@@ -7,7 +7,7 @@ import (
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/styles"
-	"github.com/jbrunton/gflows/workflows/action"
+	"github.com/jbrunton/gflows/workflow/action"
 	"github.com/spf13/cobra"
 )
 

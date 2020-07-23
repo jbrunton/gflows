@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jbrunton/gflows/content"
-	"github.com/jbrunton/gflows/workflows"
+	"github.com/jbrunton/gflows/workflow"
 	"github.com/spf13/afero"
 
 	"github.com/jbrunton/gflows/adapters"
@@ -19,7 +19,7 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	fs := container.FileSystem()
 	logger := adapters.NewLogger(out)
 	styles := container.Styles()
-	validator := workflows.NewWorkflowValidator(fs, context)
+	validator := workflow.NewWorkflowValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)
 	templateEngine := CreateWorkflowEngine(fs, logger, context, contentWriter)
 	return fs, out, NewWorkflowManager(
@@ -39,7 +39,7 @@ func TestGetUnimportedWorkflows(t *testing.T) {
 
 	gitHubWorkflows := workflowManager.GetWorkflows()
 
-	assert.Equal(t, []workflows.GitHubWorkflow{workflows.GitHubWorkflow{Path: ".github/workflows/workflow.yml"}}, gitHubWorkflows)
+	assert.Equal(t, []workflow.GitHubWorkflow{workflow.GitHubWorkflow{Path: ".github/workflows/workflow.yml"}}, gitHubWorkflows)
 }
 
 func TestGetImportedWorkflows(t *testing.T) {
@@ -50,19 +50,19 @@ func TestGetImportedWorkflows(t *testing.T) {
 	gitHubWorkflows := workflowManager.GetWorkflows()
 
 	expectedContent := exampleWorkflow("test.jsonnet")
-	expectedJson, _ := workflows.YamlToJson(expectedContent)
-	expectedWorflow := workflows.GitHubWorkflow{
+	expectedJson, _ := workflow.YamlToJson(expectedContent)
+	expectedWorflow := workflow.GitHubWorkflow{
 		Path: ".github/workflows/test.yml",
-		Definition: &workflows.WorkflowDefinition{
+		Definition: &workflow.WorkflowDefinition{
 			Name:        "test",
 			Source:      ".gflows/workflows/test.jsonnet",
 			Destination: ".github/workflows/test.yml",
 			Content:     expectedContent,
-			Status:      workflows.ValidationResult{Valid: true},
+			Status:      workflow.ValidationResult{Valid: true},
 			JSON:        expectedJson,
 		},
 	}
-	assert.Equal(t, []workflows.GitHubWorkflow{expectedWorflow}, gitHubWorkflows)
+	assert.Equal(t, []workflow.GitHubWorkflow{expectedWorflow}, gitHubWorkflows)
 }
 
 func TestValidateWorkflows(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
-	"github.com/jbrunton/gflows/workflows"
+	"github.com/jbrunton/gflows/workflow"
 	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
 	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
 	"github.com/k14s/ytt/pkg/files"
@@ -176,17 +176,17 @@ func (manager *YttTemplateEngine) apply(templateDir string) (string, error) {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflows.WorkflowDefinition, error) {
+func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflow.WorkflowDefinition, error) {
 	templates := manager.GetWorkflowTemplates()
-	definitions := []*workflows.WorkflowDefinition{}
+	definitions := []*workflow.WorkflowDefinition{}
 	for _, templatePath := range templates {
 		workflowName := filepath.Base(templatePath)
 		destinationPath := filepath.Join(manager.context.GitHubDir, "workflows/", workflowName+".yml")
-		definition := &workflows.WorkflowDefinition{
+		definition := &workflow.WorkflowDefinition{
 			Name:        workflowName,
 			Source:      templatePath,
 			Destination: destinationPath,
-			Status:      workflows.ValidationResult{Valid: true},
+			Status:      workflow.ValidationResult{Valid: true},
 		}
 
 		workflow, err := manager.apply(templatePath)
@@ -204,7 +204,7 @@ func (manager *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflows.Workflo
 	return definitions, nil
 }
 
-func (manager *YttTemplateEngine) ImportWorkflow(workflow *workflows.GitHubWorkflow) (string, error) {
+func (manager *YttTemplateEngine) ImportWorkflow(workflow *workflow.GitHubWorkflow) (string, error) {
 	workflowContent, err := manager.fs.ReadFile(workflow.Path)
 	if err != nil {
 		return "", err

@@ -11,16 +11,16 @@ import (
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/diff"
 	"github.com/jbrunton/gflows/styles"
-	"github.com/jbrunton/gflows/workflows"
-	"github.com/jbrunton/gflows/workflows/engine"
+	"github.com/jbrunton/gflows/workflow"
+	"github.com/jbrunton/gflows/workflow/engine"
 	statikFs "github.com/rakyll/statik/fs"
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/spf13/afero"
 )
 
-func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) workflows.TemplateEngine {
-	var templateEngine workflows.TemplateEngine
+func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) workflow.TemplateEngine {
+	var templateEngine workflow.TemplateEngine
 	switch engineName := context.Config.Templates.Engine; engineName {
 	case "jsonnet":
 		templateEngine = engine.NewJsonnetTemplateEngine(fs, logger, context, contentWriter)
@@ -36,20 +36,20 @@ type WorkflowManager struct {
 	fs            *afero.Afero
 	logger        *adapters.Logger
 	styles        *styles.Styles
-	validator     *workflows.WorkflowValidator
+	validator     *workflow.WorkflowValidator
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
-	workflows.TemplateEngine
+	workflow.TemplateEngine
 }
 
 func NewWorkflowManager(
 	fs *afero.Afero,
 	logger *adapters.Logger,
 	styles *styles.Styles,
-	validator *workflows.WorkflowValidator,
+	validator *workflow.WorkflowValidator,
 	context *config.GFlowsContext,
 	contentWriter *content.Writer,
-	templateEngine workflows.TemplateEngine,
+	templateEngine workflow.TemplateEngine,
 ) *WorkflowManager {
 	return &WorkflowManager{
 		fs:             fs,
@@ -62,7 +62,7 @@ func NewWorkflowManager(
 	}
 }
 
-func (manager *WorkflowManager) GetWorkflows() []workflows.GitHubWorkflow {
+func (manager *WorkflowManager) GetWorkflows() []workflow.GitHubWorkflow {
 	files := []string{}
 	files, err := afero.Glob(manager.fs, filepath.Join(manager.context.GitHubDir, "workflows/*.yml"))
 	if err != nil {
@@ -74,10 +74,10 @@ func (manager *WorkflowManager) GetWorkflows() []workflows.GitHubWorkflow {
 		panic(err) // TODO: improve handling
 	}
 
-	var gitHubWorkflows []workflows.GitHubWorkflow
+	var gitHubWorkflows []workflow.GitHubWorkflow
 
 	for _, file := range files {
-		workflow := workflows.GitHubWorkflow{Path: file}
+		workflow := workflow.GitHubWorkflow{Path: file}
 		for _, definition := range definitions {
 			if definition.Destination == file {
 				workflow.Definition = definition
