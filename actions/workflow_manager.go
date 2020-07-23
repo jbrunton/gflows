@@ -12,6 +12,7 @@ import (
 	"github.com/jbrunton/gflows/diff"
 	"github.com/jbrunton/gflows/styles"
 	"github.com/jbrunton/gflows/workflows"
+	"github.com/jbrunton/gflows/workflows/engines"
 	statikFs "github.com/rakyll/statik/fs"
 
 	fdiff "github.com/go-git/go-git/v5/plumbing/format/diff"
@@ -22,9 +23,9 @@ func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *con
 	var templateEngine workflows.TemplateEngine
 	switch engine := context.Config.Templates.Engine; engine {
 	case "jsonnet":
-		templateEngine = workflows.NewJsonnetTemplateEngine(fs, logger, context, contentWriter)
+		templateEngine = engines.NewJsonnetTemplateEngine(fs, logger, context, contentWriter)
 	case "ytt":
-		templateEngine = workflows.NewYttTemplateEngine(fs, logger, context, contentWriter)
+		templateEngine = engines.NewYttTemplateEngine(fs, logger, context, contentWriter)
 	default:
 		panic(fmt.Errorf("Unexpected engine: %s", engine))
 	}

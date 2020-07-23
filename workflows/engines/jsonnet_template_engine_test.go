@@ -1,10 +1,11 @@
-package workflows
+package engines
 
 import (
 	"testing"
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/workflows"
 
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
@@ -25,16 +26,16 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
 	expectedContent := exampleWorkflow("test.jsonnet")
-	expectedJson, _ := YamlToJson(expectedContent)
-	expectedDefinition := WorkflowDefinition{
+	expectedJson, _ := workflows.YamlToJson(expectedContent)
+	expectedDefinition := workflows.WorkflowDefinition{
 		Name:        "test",
 		Source:      ".gflows/workflows/test.jsonnet",
 		Destination: ".github/workflows/test.yml",
 		Content:     expectedContent,
-		Status:      ValidationResult{Valid: true},
+		Status:      workflows.ValidationResult{Valid: true},
 		JSON:        expectedJson,
 	}
-	assert.Equal(t, []*WorkflowDefinition{&expectedDefinition}, definitions)
+	assert.Equal(t, []*workflows.WorkflowDefinition{&expectedDefinition}, definitions)
 }
 
 func TestGetJsonnetWorkflowSources(t *testing.T) {

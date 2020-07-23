@@ -1,6 +1,8 @@
 package workflows
 
-import "github.com/jbrunton/gflows/content"
+import (
+	"github.com/jbrunton/gflows/content"
+)
 
 type TemplateEngine interface {
 	// GetWorkflowSources - returns a list of all the files (i.e. templates + library files) used

@@ -1,4 +1,4 @@
-package workflows
+package engines
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/workflows"
 
 	gojsonnet "github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/adapters"
@@ -60,23 +61,23 @@ func (manager *JsonnetTemplateEngine) GetWorkflowTemplates() []string {
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
-func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefinition, error) {
+func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflows.WorkflowDefinition, error) {
 	templates := manager.GetWorkflowTemplates()
-	definitions := []*WorkflowDefinition{}
+	definitions := []*workflows.WorkflowDefinition{}
 	for _, templatePath := range templates {
 		workflowName := manager.getWorkflowName(manager.context.WorkflowsDir, templatePath)
 		vm := createVM(manager.context, workflowName)
 		input, err := manager.fs.ReadFile(templatePath)
 		if err != nil {
-			return []*WorkflowDefinition{}, err
+			return []*workflows.WorkflowDefinition{}, err
 		}
 
 		destinationPath := filepath.Join(manager.context.GitHubDir, "workflows/", workflowName+".yml")
-		definition := &WorkflowDefinition{
+		definition := &workflows.WorkflowDefinition{
 			Name:        workflowName,
 			Source:      templatePath,
 			Destination: destinationPath,
-			Status:      ValidationResult{Valid: true},
+			Status:      workflows.ValidationResult{Valid: true},
 		}
 
 		workflow, err := vm.EvaluateSnippet(templatePath, string(input))
@@ -94,13 +95,13 @@ func (manager *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*WorkflowDefin
 	return definitions, nil
 }
 
-func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *GitHubWorkflow) (string, error) {
+func (manager *JsonnetTemplateEngine) ImportWorkflow(workflow *workflows.GitHubWorkflow) (string, error) {
 	workflowContent, err := manager.fs.ReadFile(workflow.Path)
 	if err != nil {
 		return "", err
 	}
 
-	jsonData, err := YamlToJson(string(workflowContent))
+	jsonData, err := workflows.YamlToJson(string(workflowContent))
 	if err != nil {
 		return "", err
 	}
