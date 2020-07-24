@@ -24,7 +24,7 @@ expect:
   output: |
     Found workflow: .github/workflows/test.yml
       Exists: .gflows/workflows/test.jsonnet
-    
+
   files:
   - path: .gflows/config.yml
   - path: .github/workflows/test.yml

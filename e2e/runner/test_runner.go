@@ -1,54 +1,53 @@
-package e2e
+package runner
 
 import (
 	"bytes"
 	"os"
 	"strings"
-	"testing"
 
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io/styles"
 	"github.com/jbrunton/gflows/workflow/action"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )
 
-type e2eTestFile struct {
+type TestFile struct {
 	Path    string
 	Content string
 }
 
-type e2eTestSetup struct {
-	Files []e2eTestFile
+type TestSetup struct {
+	Files []TestFile
 }
 
-type e2eTestExpect struct {
+type TestExpect struct {
 	Output string
 	Error  string
-	Files  []e2eTestFile
+	Files  []TestFile
 }
 
-type e2eTest struct {
+type Test struct {
 	Run    string
-	Setup  e2eTestSetup
-	Expect e2eTestExpect
+	Setup  TestSetup
+	Expect TestExpect
 }
 
-type e2eTestRunner struct {
+type TestRunner struct {
 	testPath  string
-	test      *e2eTest
+	test      *Test
 	useMemFs  bool
 	out       *bytes.Buffer
 	container *content.Container
+	assert    Assertions
 }
 
-func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool) *e2eTestRunner {
-	test := e2eTest{}
+func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *TestRunner {
+	test := Test{}
 	input, err := osFs.ReadFile(testPath)
 	if err != nil {
 		panic(err)
@@ -69,16 +68,17 @@ func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool) *e2eTes
 	ioContainer := io.NewContainer(fs, io.NewLogger(out, false), styles.NewStyles(false))
 	contentContainer := content.NewContainer(ioContainer)
 
-	return &e2eTestRunner{
+	return &TestRunner{
 		testPath:  testPath,
 		test:      &test,
 		useMemFs:  useMemFs,
 		out:       out,
 		container: contentContainer,
+		assert:    assert,
 	}
 }
 
-func (runner *e2eTestRunner) setup() error {
+func (runner *TestRunner) setup() error {
 	for _, file := range runner.test.Setup.Files {
 		err := runner.container.ContentWriter().SafelyWriteFile(file.Path, file.Content)
 		if err != nil {
@@ -88,7 +88,7 @@ func (runner *e2eTestRunner) setup() error {
 	return nil
 }
 
-func (runner *e2eTestRunner) run(t *testing.T) {
+func (runner *TestRunner) Run() {
 	fs := runner.container.FileSystem()
 	if !runner.useMemFs {
 		tmpDir, err := fs.TempDir("", "gflows-e2e")
@@ -116,24 +116,24 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	err = cmd.Execute()
 
 	if runner.test.Expect.Error == "" {
-		assert.NoError(t, err, "Unexpected error (%s)", runner.testPath)
+		runner.assert.NoError(err, "Unexpected error (%s)", runner.testPath)
 	} else {
-		assert.EqualError(t, err, runner.test.Expect.Error, "Unexpected error (%s)", runner.testPath)
+		runner.assert.EqualError(err, runner.test.Expect.Error, "Unexpected error (%s)", runner.testPath)
 	}
-	assert.Equal(t, runner.test.Expect.Output, runner.out.String(), "Unexpected output (%s)", runner.testPath)
+	runner.assert.Equal(runner.test.Expect.Output, runner.out.String(), "Unexpected output (%s)", runner.testPath)
 	if len(runner.test.Expect.Files) > 0 {
 		for _, expectedFile := range runner.test.Expect.Files {
 			exists, err := fs.Exists(expectedFile.Path)
 			if err != nil {
 				panic(err)
 			}
-			assert.True(t, exists, "Expected file %s to exist (%s)", expectedFile.Path, runner.testPath)
+			runner.assert.True(exists, "Expected file %s to exist (%s)", expectedFile.Path, runner.testPath)
 			if exists && expectedFile.Content != "" {
 				actualContent, err := fs.ReadFile(expectedFile.Path)
 				if err != nil {
 					panic(err)
 				}
-				assert.Equal(t, expectedFile.Content, string(actualContent), "Unexpected content for file %s (%s)", expectedFile.Path, runner.testPath)
+				runner.assert.Equal(expectedFile.Content, string(actualContent), "Unexpected content for file %s (%s)", expectedFile.Path, runner.testPath)
 			}
 		}
 		fs.Walk(".", func(path string, info os.FileInfo, err error) error {
@@ -150,13 +150,13 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 					expected = true
 				}
 			}
-			assert.True(t, expected, "File %s was not expected (%s)", path, runner.testPath)
+			runner.assert.True(expected, "File %s was not expected (%s)", path, runner.testPath)
 			return nil
 		})
 	}
 }
 
-func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*action.Container, error) {
+func (runner *TestRunner) buildContainer(cmd *cobra.Command) (*action.Container, error) {
 	opts := config.CreateContextOpts(cmd)
 	opts.EnableColors = false
 	context, err := config.NewContext(runner.container.FileSystem(), runner.container.Logger(), opts)

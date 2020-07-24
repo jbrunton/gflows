@@ -1,10 +1,12 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/spf13/afero"
 
+	"github.com/jbrunton/gflows/e2e/runner"
 	"github.com/jbrunton/gflows/io"
 	_ "github.com/jbrunton/gflows/static/statik"
 )
@@ -17,42 +19,49 @@ func runTests(t *testing.T, glob string, useMemFs bool) {
 		panic(err)
 	}
 
-	for _, testFile := range testFiles {
-		runner := newE2eTestRunner(osFs, testFile, useMemFs)
-		runner.run(t)
+	if len(testFiles) == 0 {
+		panic(fmt.Errorf("No test files found: %s", glob))
 	}
+
+	for _, testFile := range testFiles {
+		assertions := runner.NewTestifyAssertions(t)
+		runner := runner.NewTestRunner(osFs, testFile, useMemFs, assertions)
+		runner.Run()
+	}
+
+	t.Logf("Completed %d tests for %s", len(testFiles), glob)
 }
 
 func TestCheckCommand(t *testing.T) {
-	runTests(t, "./check/jsonnet/*.yml", true)
-	runTests(t, "./check/ytt/*.yml", true)
+	runTests(t, "./tests/check/jsonnet/*.yml", true)
+	runTests(t, "./tests/check/ytt/*.yml", true)
 }
 
 func TestImportCommand(t *testing.T) {
-	runTests(t, "./import/jsonnet/*.yml", true)
-	runTests(t, "./import/ytt/*.yml", true)
+	runTests(t, "./tests/import/jsonnet/*.yml", true)
+	runTests(t, "./tests/import/ytt/*.yml", true)
 }
 
 func TestInitCommand(t *testing.T) {
-	runTests(t, "./init/jsonnet/*.yml", true)
-	runTests(t, "./init/ytt/*.yml", true)
-	runTests(t, "./init/errors/*.yml", true)
+	runTests(t, "./tests/init/jsonnet/*.yml", true)
+	runTests(t, "./tests/init/ytt/*.yml", true)
+	runTests(t, "./tests/init/errors/*.yml", true)
 }
 
 func TestListCommand(t *testing.T) {
-	runTests(t, "./ls/jsonnet/*.yml", true)
-	runTests(t, "./ls/ytt/*.yml", true)
+	runTests(t, "./tests/ls/jsonnet/*.yml", true)
+	runTests(t, "./tests/ls/ytt/*.yml", true)
 }
 
 func TestUpdateCommand(t *testing.T) {
-	runTests(t, "./update/jsonnet/*.yml", true)
-	runTests(t, "./update/ytt/*.yml", true)
+	runTests(t, "./tests/update/jsonnet/*.yml", true)
+	runTests(t, "./tests/update/ytt/*.yml", true)
 }
 
 func TestJPath(t *testing.T) {
-	runTests(t, "./jpath/*.yml", false)
+	runTests(t, "./tests/jpath/*.yml", false)
 }
 
 func TestMiscErrors(t *testing.T) {
-	runTests(t, "./misc-errors/*.yml", false)
+	runTests(t, "./tests/misc-errors/*.yml", false)
 }
