@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -15,6 +16,10 @@ func runTests(t *testing.T, glob string, useMemFs bool) {
 	testFiles, err := afero.Glob(osFs, glob)
 	if err != nil {
 		panic(err)
+	}
+
+	if len(testFiles) == 0 {
+		panic(fmt.Errorf("No test files found: %s", glob))
 	}
 
 	for _, testFile := range testFiles {
