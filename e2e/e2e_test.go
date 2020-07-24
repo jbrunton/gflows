@@ -23,8 +23,9 @@ func runTests(t *testing.T, glob string, useMemFs bool) {
 	}
 
 	for _, testFile := range testFiles {
-		runner := newE2eTestRunner(osFs, testFile, useMemFs)
-		runner.run(t)
+		assertions := &e2eTestiftyAssertions{t: t}
+		runner := newE2eTestRunner(osFs, testFile, useMemFs, assertions)
+		runner.run()
 	}
 }
 

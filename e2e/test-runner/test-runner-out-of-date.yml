@@ -1,0 +1,26 @@
+setup:
+  files:
+    - path: .gflows/config.yml
+      content: |
+        templates:
+          engine: ytt
+    - path: .gflows/workflows/test/config.yml
+      content: |
+        'on':
+          push:
+            branches: ['develop']
+        jobs:
+          hello:
+            runs-on: ubuntu-latest
+            steps:
+              - run: echo hello, world!
+    - path: .github/workflows/test.yml
+
+run: check
+
+expect:
+  error: workflow validation failed
+  output: |
+    Checking test ... FAILED
+      Content is out of date for "test" (.github/workflows/test.yml)
+      ► Run "gflows workflow update" to update

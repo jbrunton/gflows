@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"os"
 	"strings"
-	"testing"
 
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io/styles"
 	"github.com/jbrunton/gflows/workflow/action"
@@ -39,15 +38,42 @@ type e2eTest struct {
 	Expect e2eTestExpect
 }
 
+type e2eAssertions interface {
+	NoError(err error, msgAndArgs ...interface{})
+	EqualError(theError error, errString string, msgAndArgs ...interface{})
+	True(value bool, msgAndArgs ...interface{})
+	Equal(expected, actual interface{}, msgAndArgs ...interface{})
+}
+
+type e2eTestiftyAssertions struct {
+	t assert.TestingT
+}
+
+func (a *e2eTestiftyAssertions) NoError(err error, msgAndArgs ...interface{}) {
+	assert.NoError(a.t, err, msgAndArgs...)
+}
+
+func (a *e2eTestiftyAssertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) {
+	assert.EqualError(a.t, theError, errString, msgAndArgs...)
+}
+
+func (a *e2eTestiftyAssertions) True(value bool, msgAndArgs ...interface{}) {
+	assert.True(a.t, value, msgAndArgs...)
+}
+func (a *e2eTestiftyAssertions) Equal(expected, actual interface{}, msgAndArgs ...interface{}) {
+	assert.Equal(a.t, expected, actual, msgAndArgs...)
+}
+
 type e2eTestRunner struct {
 	testPath  string
 	test      *e2eTest
 	useMemFs  bool
 	out       *bytes.Buffer
 	container *content.Container
+	assert    e2eAssertions
 }
 
-func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool) *e2eTestRunner {
+func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert e2eAssertions) *e2eTestRunner {
 	test := e2eTest{}
 	input, err := osFs.ReadFile(testPath)
 	if err != nil {
@@ -75,6 +101,7 @@ func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool) *e2eTes
 		useMemFs:  useMemFs,
 		out:       out,
 		container: contentContainer,
+		assert:    assert,
 	}
 }
 
@@ -88,7 +115,7 @@ func (runner *e2eTestRunner) setup() error {
 	return nil
 }
 
-func (runner *e2eTestRunner) run(t *testing.T) {
+func (runner *e2eTestRunner) run() {
 	fs := runner.container.FileSystem()
 	if !runner.useMemFs {
 		tmpDir, err := fs.TempDir("", "gflows-e2e")
@@ -116,24 +143,24 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 	err = cmd.Execute()
 
 	if runner.test.Expect.Error == "" {
-		assert.NoError(t, err, "Unexpected error (%s)", runner.testPath)
+		runner.assert.NoError(err, "Unexpected error (%s)", runner.testPath)
 	} else {
-		assert.EqualError(t, err, runner.test.Expect.Error, "Unexpected error (%s)", runner.testPath)
+		runner.assert.EqualError(err, runner.test.Expect.Error, "Unexpected error (%s)", runner.testPath)
 	}
-	assert.Equal(t, runner.test.Expect.Output, runner.out.String(), "Unexpected output (%s)", runner.testPath)
+	runner.assert.Equal(runner.test.Expect.Output, runner.out.String(), "Unexpected output (%s)", runner.testPath)
 	if len(runner.test.Expect.Files) > 0 {
 		for _, expectedFile := range runner.test.Expect.Files {
 			exists, err := fs.Exists(expectedFile.Path)
 			if err != nil {
 				panic(err)
 			}
-			assert.True(t, exists, "Expected file %s to exist (%s)", expectedFile.Path, runner.testPath)
+			runner.assert.True(exists, "Expected file %s to exist (%s)", expectedFile.Path, runner.testPath)
 			if exists && expectedFile.Content != "" {
 				actualContent, err := fs.ReadFile(expectedFile.Path)
 				if err != nil {
 					panic(err)
 				}
-				assert.Equal(t, expectedFile.Content, string(actualContent), "Unexpected content for file %s (%s)", expectedFile.Path, runner.testPath)
+				runner.assert.Equal(expectedFile.Content, string(actualContent), "Unexpected content for file %s (%s)", expectedFile.Path, runner.testPath)
 			}
 		}
 		fs.Walk(".", func(path string, info os.FileInfo, err error) error {
@@ -150,7 +177,7 @@ func (runner *e2eTestRunner) run(t *testing.T) {
 					expected = true
 				}
 			}
-			assert.True(t, expected, "File %s was not expected (%s)", path, runner.testPath)
+			runner.assert.True(expected, "File %s was not expected (%s)", path, runner.testPath)
 			return nil
 		})
 	}
