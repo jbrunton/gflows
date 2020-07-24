@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/jbrunton/gflows/io"
-	_ "github.com/jbrunton/gflows/statik"
+	_ "github.com/jbrunton/gflows/static/statik"
 	"github.com/jbrunton/gflows/yaml"
 	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"

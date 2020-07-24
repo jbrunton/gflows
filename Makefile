@@ -1,5 +1,5 @@
 statik:
-	statik -m -src=static-content
+	statik -m -src=static/content -dest=static
 
 go-build:
 	go build

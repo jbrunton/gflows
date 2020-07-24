@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/jbrunton/gflows/io"
-	_ "github.com/jbrunton/gflows/statik"
+	_ "github.com/jbrunton/gflows/static/statik"
 )
 
 func runTests(t *testing.T, glob string, useMemFs bool) {

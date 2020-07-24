@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/jbrunton/gflows/fixtures"
-	_ "github.com/jbrunton/gflows/statik"
+	_ "github.com/jbrunton/gflows/static/statik"
 	"github.com/stretchr/testify/assert"
 )
 
