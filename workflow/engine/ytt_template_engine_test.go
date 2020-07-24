@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yaml"

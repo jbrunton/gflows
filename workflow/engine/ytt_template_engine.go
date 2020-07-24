@@ -8,7 +8,7 @@ import (
 
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
 	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"

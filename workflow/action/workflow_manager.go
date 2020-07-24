@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/diff"
 	"github.com/jbrunton/gflows/io/styles"

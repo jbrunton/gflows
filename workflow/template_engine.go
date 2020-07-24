@@ -1,7 +1,7 @@
 package workflow
 
 import (
-	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/io/content"
 )
 
 type TemplateEngine interface {
