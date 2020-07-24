@@ -22,7 +22,10 @@ expect:
   output: |
     Found workflow: .github/workflows/test.yml
       Imported template: .gflows/workflows/test/test.yml
-    
+
+    Important: imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.
+      ► Run "gflows update" to do this now
+
   files:
   - path: .gflows/config.yml
   - path: .github/workflows/test.yml

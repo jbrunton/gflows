@@ -1,9 +1,5 @@
 package action
 
-import (
-	"fmt"
-)
-
 func (manager *WorkflowManager) ImportWorkflows() error {
 	imported := 0
 	workflows := manager.GetWorkflows()
@@ -22,9 +18,9 @@ func (manager *WorkflowManager) ImportWorkflows() error {
 	}
 
 	if imported > 0 {
-		fmt.Println()
-		fmt.Println(manager.styles.StyleWarning("Important:"), "imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.")
-		fmt.Println("  ► Run \"gflows update\" to do this now")
+		manager.logger.Println()
+		manager.logger.Println(manager.styles.StyleWarning("Important:"), "imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.")
+		manager.logger.Println("  ► Run \"gflows update\" to do this now")
 	}
 	return nil
 }
