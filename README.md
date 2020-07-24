@@ -4,13 +4,13 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/maintainability)](https://codeclimate.com/github/jbrunton/gflows/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/02363f0b2588376bbf98/test_coverage)](https://codeclimate.com/github/jbrunton/gflows/test_coverage)
 
-GFlows is a CLI tool that makes templating GitHub Workflows easym using either [Jsonnet](https://jsonnet.org/) or [ytt (Yaml Templating Tool)](https://get-ytt.io/). It can:
+GFlows is a CLI tool that makes templating GitHub Workflows easy, using either [Jsonnet](https://jsonnet.org/) or [ytt (Yaml Templating Tool)](https://get-ytt.io/). It can:
 
-* Import existing workflows into Jsonnet templates.
+* Import existing workflows to help you quickly get started.
 * Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
 * Watch changes to the templates, so you can develop and refactor workflows with fast feedback on your changes.
 
-Note: this project is very new, so I expect there is room for improvement (especially around error handling). But I've used it comfortably in my own projects, and the risk of adoption is low since it mostly just builds on top of existing tooling (primarily Jsonnet). If you have any feedback I'd love to hear it!
+Note: this project is very new, so I expect there is room for improvement (especially around error handling). But I've used it comfortably in my own projects, and the risk of adoption is low since it mostly just builds on top of existing tooling (primarily Jsonnet and ytt). If you have any feedback I'd love to hear it!
 
 ## Contents
 
@@ -68,7 +68,7 @@ If you want to import your existing workflows, you can use the `import` command:
     Important: imported workflow templates may generate yaml which is ordered differerently from the source. You will need to update the workflows before validation passes.
       ► Run "gflows update" to do this now
 
-Especially if you use jsonnet, the templating engine may render yaml differently from your existing workflow so you'll likely need to run the `update` command to regenerate your workflows:
+Note that the yaml generated will be a little different from your existing workflow so you'll need to run the `update` command to regenerate your workflows:
 
     $ gflows update
          update .github/workflows/my-workflow.yml (from .gflows/workflows/my-workflow/my-workflow.yml)
