@@ -1,2 +1,5 @@
 /gflows
 /c.out
+/gflows-darwin-amd64
+/gflows-linux-amd64
+/node_modules
