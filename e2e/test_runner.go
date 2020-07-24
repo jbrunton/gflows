@@ -17,64 +17,64 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type e2eTestFile struct {
+type TestFile struct {
 	Path    string
 	Content string
 }
 
-type e2eTestSetup struct {
-	Files []e2eTestFile
+type TestSetup struct {
+	Files []TestFile
 }
 
-type e2eTestExpect struct {
+type TestExpect struct {
 	Output string
 	Error  string
-	Files  []e2eTestFile
+	Files  []TestFile
 }
 
-type e2eTest struct {
+type Test struct {
 	Run    string
-	Setup  e2eTestSetup
-	Expect e2eTestExpect
+	Setup  TestSetup
+	Expect TestExpect
 }
 
-type e2eAssertions interface {
+type Assertions interface {
 	NoError(err error, msgAndArgs ...interface{})
 	EqualError(theError error, errString string, msgAndArgs ...interface{})
 	True(value bool, msgAndArgs ...interface{})
 	Equal(expected, actual interface{}, msgAndArgs ...interface{})
 }
 
-type e2eTestiftyAssertions struct {
+type TestiftyAssertions struct {
 	t assert.TestingT
 }
 
-func (a *e2eTestiftyAssertions) NoError(err error, msgAndArgs ...interface{}) {
+func (a *TestiftyAssertions) NoError(err error, msgAndArgs ...interface{}) {
 	assert.NoError(a.t, err, msgAndArgs...)
 }
 
-func (a *e2eTestiftyAssertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) {
+func (a *TestiftyAssertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) {
 	assert.EqualError(a.t, theError, errString, msgAndArgs...)
 }
 
-func (a *e2eTestiftyAssertions) True(value bool, msgAndArgs ...interface{}) {
+func (a *TestiftyAssertions) True(value bool, msgAndArgs ...interface{}) {
 	assert.True(a.t, value, msgAndArgs...)
 }
-func (a *e2eTestiftyAssertions) Equal(expected, actual interface{}, msgAndArgs ...interface{}) {
+func (a *TestiftyAssertions) Equal(expected, actual interface{}, msgAndArgs ...interface{}) {
 	assert.Equal(a.t, expected, actual, msgAndArgs...)
 }
 
 type e2eTestRunner struct {
 	testPath  string
-	test      *e2eTest
+	test      *Test
 	useMemFs  bool
 	out       *bytes.Buffer
 	container *content.Container
-	assert    e2eAssertions
+	assert    Assertions
 }
 
-func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert e2eAssertions) *e2eTestRunner {
-	test := e2eTest{}
+func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *e2eTestRunner {
+	test := Test{}
 	input, err := osFs.ReadFile(testPath)
 	if err != nil {
 		panic(err)
