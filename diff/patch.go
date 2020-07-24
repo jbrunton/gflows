@@ -1,3 +1,6 @@
+// This implementation for Patch is taken from go-get:
+// https://github.com/go-git/go-git/blob/master/plumbing/object/patch.go
+
 package diff
 
 import (
