@@ -193,7 +193,7 @@ func newWatchWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 func newImportWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   "import",
-		Short: "Import workflow files",
+		Short: "Import existing workflows",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			container, err := containerFunc(cmd)
 			if err != nil {
