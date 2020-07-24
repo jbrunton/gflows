@@ -1,19 +1,19 @@
 package content
 
-import "github.com/jbrunton/gflows/adapters"
+import "github.com/jbrunton/gflows/io"
 
 type Container struct {
-	*adapters.Container
+	*io.Container
 }
 
 func (container *Container) ContentWriter() *Writer {
 	return NewWriter(container.FileSystem(), container.Logger())
 }
 
-func NewContainer(parentContainer *adapters.Container) *Container {
+func NewContainer(parentContainer *io.Container) *Container {
 	return &Container{parentContainer}
 }
 
 // func CreateContainer(enableColors bool) *Container {
-// 	return NewContainer(adapters.CreateContainer(enableColors))
+// 	return NewContainer(io.CreateContainer(enableColors))
 // }

@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/thoas/go-funk"
 
 	"github.com/spf13/afero"
@@ -27,7 +27,7 @@ type ContextOpts struct {
 	Engine       string
 }
 
-func NewContext(fs *afero.Afero, logger *adapters.Logger, opts ContextOpts) (*GFlowsContext, error) {
+func NewContext(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (*GFlowsContext, error) {
 	contextDir := filepath.Dir(opts.ConfigPath)
 
 	config, err := LoadConfig(fs, logger, opts)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	_ "github.com/jbrunton/gflows/statik"
 	"github.com/jbrunton/gflows/yaml"
 	statikFs "github.com/rakyll/statik/fs"
@@ -46,7 +46,7 @@ type GFlowsTemplateConfig struct {
 }
 
 // LoadConfig - finds and returns the GFlowsConfig
-func LoadConfig(fs *afero.Afero, logger *adapters.Logger, opts ContextOpts) (config *GFlowsConfig, err error) {
+func LoadConfig(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (config *GFlowsConfig, err error) {
 	exists, err := fs.Exists(opts.ConfigPath)
 	if !exists {
 		if opts.Engine == "" {
@@ -134,7 +134,7 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 	return &config, nil
 }
 
-func validateConfig(config string, logger *adapters.Logger) error {
+func validateConfig(config string, logger *io.Logger) error {
 	json, err := yaml.YamlToJson(config)
 	if err != nil {
 		return err

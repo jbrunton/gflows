@@ -1,4 +1,4 @@
-package adapters
+package io
 
 import (
 	"github.com/jbrunton/gflows/styles"

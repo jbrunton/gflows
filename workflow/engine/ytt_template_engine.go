@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/workflow"
@@ -20,12 +20,12 @@ import (
 
 type YttTemplateEngine struct {
 	fs            *afero.Afero
-	logger        *adapters.Logger
+	logger        *io.Logger
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
 }
 
-func NewYttTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *YttTemplateEngine {
+func NewYttTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *YttTemplateEngine {
 	return &YttTemplateEngine{
 		fs:            fs,
 		logger:        logger,

@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/styles"
@@ -15,14 +15,14 @@ import (
 type ContainerBuilderFunc func(cmd *cobra.Command) (*action.Container, error)
 
 func buildContainer(cmd *cobra.Command) (*action.Container, error) {
-	fs := adapters.CreateOsFs()
+	fs := io.CreateOsFs()
 	opts := config.CreateContextOpts(cmd)
-	logger := adapters.NewLogger(os.Stdout, opts.EnableColors)
+	logger := io.NewLogger(os.Stdout, opts.EnableColors)
 	context, err := config.NewContext(fs, logger, opts)
 	if err != nil {
 		return nil, err
 	}
-	adaptersContainer := adapters.NewContainer(fs, logger, styles.NewStyles(context.EnableColors))
-	contentContainer := content.NewContainer(adaptersContainer)
+	ioContainer := io.NewContainer(fs, logger, styles.NewStyles(context.EnableColors))
+	contentContainer := content.NewContainer(ioContainer)
 	return action.NewContainer(contentContainer, context), nil
 }

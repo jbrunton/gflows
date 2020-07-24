@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -187,7 +187,7 @@ func TestValidateConfig(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		out := new(bytes.Buffer)
-		logger := adapters.NewLogger(out, false)
+		logger := io.NewLogger(out, false)
 		err := validateConfig(scenario.config, logger)
 
 		if scenario.expectedError == "" {

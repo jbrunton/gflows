@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
 	"github.com/jbrunton/gflows/diff"
@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) workflow.TemplateEngine {
+func CreateWorkflowEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer) workflow.TemplateEngine {
 	var templateEngine workflow.TemplateEngine
 	switch engineName := context.Config.Templates.Engine; engineName {
 	case "jsonnet":
@@ -34,7 +34,7 @@ func CreateWorkflowEngine(fs *afero.Afero, logger *adapters.Logger, context *con
 
 type WorkflowManager struct {
 	fs            *afero.Afero
-	logger        *adapters.Logger
+	logger        *io.Logger
 	styles        *styles.Styles
 	validator     *workflow.Validator
 	context       *config.GFlowsContext
@@ -44,7 +44,7 @@ type WorkflowManager struct {
 
 func NewWorkflowManager(
 	fs *afero.Afero,
-	logger *adapters.Logger,
+	logger *io.Logger,
 	styles *styles.Styles,
 	validator *workflow.Validator,
 	context *config.GFlowsContext,
