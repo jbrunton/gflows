@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
-	"github.com/jbrunton/gflows/diff"
+	"github.com/jbrunton/gflows/io"
+	"github.com/jbrunton/gflows/io/diff"
 	"github.com/jbrunton/gflows/io/styles"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/workflow/engine"
