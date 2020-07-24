@@ -6,7 +6,10 @@
   },
   "npm": false,
   "hooks": {
-    "before:init": ["make build"],
+    "before:init": [
+      "make build",
+      "git update-index -q --really-refresh"
+    ],
     "after:bump": ["make compile-release"]
   }
 }
