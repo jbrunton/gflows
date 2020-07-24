@@ -1,4 +1,4 @@
-package e2e
+package runner
 
 import (
 	"errors"
@@ -30,19 +30,19 @@ func (a *mockAssertions) Equal(expected, actual interface{}, msgAndArgs ...inter
 func TestRunnerUpToDate(t *testing.T) {
 	osFs := io.CreateOsFs()
 	assertions := &mockAssertions{}
-	runner := newE2eTestRunner(osFs, "./test-runner/test-runner-up-to-date.yml", true, assertions)
+	runner := NewTestRunner(osFs, "./tests/test-runner-up-to-date.yml", true, assertions)
 
 	assertions.On(
 		"NoError",
 		nil,
-		"Unexpected error (%s)", "./test-runner/test-runner-up-to-date.yml")
+		"Unexpected error (%s)", "./tests/test-runner-up-to-date.yml")
 	assertions.On(
 		"Equal",
 		"Checking test ... OK\nWorkflows up to date\n",
 		"Checking test ... OK\nWorkflows up to date\n",
-		"Unexpected output (%s)", "./test-runner/test-runner-up-to-date.yml")
+		"Unexpected output (%s)", "./tests/test-runner-up-to-date.yml")
 
-	runner.run()
+	runner.Run()
 
 	assertions.AssertNumberOfCalls(t, "Errorf", 0)
 }
@@ -50,20 +50,20 @@ func TestRunnerUpToDate(t *testing.T) {
 func TestRunnerOutOfDate(t *testing.T) {
 	osFs := io.CreateOsFs()
 	assertions := &mockAssertions{}
-	runner := newE2eTestRunner(osFs, "./test-runner/test-runner-out-of-date.yml", true, assertions)
+	runner := NewTestRunner(osFs, "./tests/test-runner-out-of-date.yml", true, assertions)
 
 	assertions.On(
 		"EqualError",
 		errors.New("workflow validation failed"),
 		"workflow validation failed",
-		"Unexpected error (%s)", "./test-runner/test-runner-out-of-date.yml")
+		"Unexpected error (%s)", "./tests/test-runner-out-of-date.yml")
 	assertions.On(
 		"Equal",
 		"Checking test ... FAILED\n  Content is out of date for \"test\" (.github/workflows/test.yml)\n  ► Run \"gflows workflow update\" to update\n",
 		"Checking test ... FAILED\n  Content is out of date for \"test\" (.github/workflows/test.yml)\n  ► Run \"gflows workflow update\" to update\n",
-		"Unexpected output (%s)", "./test-runner/test-runner-out-of-date.yml")
+		"Unexpected output (%s)", "./tests/test-runner-out-of-date.yml")
 
-	runner.run()
+	runner.Run()
 
 	assertions.AssertNumberOfCalls(t, "Errorf", 0)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/afero"
 
+	"github.com/jbrunton/gflows/e2e/runner"
 	"github.com/jbrunton/gflows/io"
 	_ "github.com/jbrunton/gflows/static/statik"
 )
@@ -23,9 +24,9 @@ func runTests(t *testing.T, glob string, useMemFs bool) {
 	}
 
 	for _, testFile := range testFiles {
-		assertions := &TestiftyAssertions{t: t}
-		runner := newE2eTestRunner(osFs, testFile, useMemFs, assertions)
-		runner.run()
+		assertions := runner.NewTestifyAssertions(t)
+		runner := runner.NewTestRunner(osFs, testFile, useMemFs, assertions)
+		runner.Run()
 	}
 
 	t.Logf("Completed %d tests for %s", len(testFiles), glob)

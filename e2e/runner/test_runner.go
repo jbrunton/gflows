@@ -1,4 +1,4 @@
-package e2e
+package runner
 
 import (
 	"bytes"
@@ -13,7 +13,6 @@ import (
 	"github.com/jbrunton/gflows/workflow/action"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )
 
@@ -38,33 +37,7 @@ type Test struct {
 	Expect TestExpect
 }
 
-type Assertions interface {
-	NoError(err error, msgAndArgs ...interface{})
-	EqualError(theError error, errString string, msgAndArgs ...interface{})
-	True(value bool, msgAndArgs ...interface{})
-	Equal(expected, actual interface{}, msgAndArgs ...interface{})
-}
-
-type TestiftyAssertions struct {
-	t assert.TestingT
-}
-
-func (a *TestiftyAssertions) NoError(err error, msgAndArgs ...interface{}) {
-	assert.NoError(a.t, err, msgAndArgs...)
-}
-
-func (a *TestiftyAssertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) {
-	assert.EqualError(a.t, theError, errString, msgAndArgs...)
-}
-
-func (a *TestiftyAssertions) True(value bool, msgAndArgs ...interface{}) {
-	assert.True(a.t, value, msgAndArgs...)
-}
-func (a *TestiftyAssertions) Equal(expected, actual interface{}, msgAndArgs ...interface{}) {
-	assert.Equal(a.t, expected, actual, msgAndArgs...)
-}
-
-type e2eTestRunner struct {
+type TestRunner struct {
 	testPath  string
 	test      *Test
 	useMemFs  bool
@@ -73,7 +46,7 @@ type e2eTestRunner struct {
 	assert    Assertions
 }
 
-func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *e2eTestRunner {
+func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *TestRunner {
 	test := Test{}
 	input, err := osFs.ReadFile(testPath)
 	if err != nil {
@@ -95,7 +68,7 @@ func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert 
 	ioContainer := io.NewContainer(fs, io.NewLogger(out, false), styles.NewStyles(false))
 	contentContainer := content.NewContainer(ioContainer)
 
-	return &e2eTestRunner{
+	return &TestRunner{
 		testPath:  testPath,
 		test:      &test,
 		useMemFs:  useMemFs,
@@ -105,7 +78,7 @@ func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert 
 	}
 }
 
-func (runner *e2eTestRunner) setup() error {
+func (runner *TestRunner) setup() error {
 	for _, file := range runner.test.Setup.Files {
 		err := runner.container.ContentWriter().SafelyWriteFile(file.Path, file.Content)
 		if err != nil {
@@ -115,7 +88,7 @@ func (runner *e2eTestRunner) setup() error {
 	return nil
 }
 
-func (runner *e2eTestRunner) run() {
+func (runner *TestRunner) Run() {
 	fs := runner.container.FileSystem()
 	if !runner.useMemFs {
 		tmpDir, err := fs.TempDir("", "gflows-e2e")
@@ -183,7 +156,7 @@ func (runner *e2eTestRunner) run() {
 	}
 }
 
-func (runner *e2eTestRunner) buildContainer(cmd *cobra.Command) (*action.Container, error) {
+func (runner *TestRunner) buildContainer(cmd *cobra.Command) (*action.Container, error) {
 	opts := config.CreateContextOpts(cmd)
 	opts.EnableColors = false
 	context, err := config.NewContext(runner.container.FileSystem(), runner.container.Logger(), opts)
