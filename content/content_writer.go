@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
 	"github.com/spf13/afero"
 )
@@ -21,10 +21,10 @@ type WorkflowGenerator struct {
 
 type Writer struct {
 	fs     *afero.Afero
-	logger *adapters.Logger
+	logger *io.Logger
 }
 
-func NewWriter(fs *afero.Afero, logger *adapters.Logger) *Writer {
+func NewWriter(fs *afero.Afero, logger *io.Logger) *Writer {
 	return &Writer{
 		fs:     fs,
 		logger: logger,

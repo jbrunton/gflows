@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jbrunton/gflows/styles"
+	"github.com/jbrunton/gflows/io/styles"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
 	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
@@ -54,10 +54,10 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 	return sourceFs
 }
 
-func NewTestContext(configString string) (*adapters.Container, *config.GFlowsContext, *bytes.Buffer) {
-	fs := adapters.CreateMemFs()
+func NewTestContext(configString string) (*io.Container, *config.GFlowsContext, *bytes.Buffer) {
+	fs := io.CreateMemFs()
 	out := new(bytes.Buffer)
-	container := adapters.NewContainer(fs, adapters.NewLogger(out, false), styles.NewStyles(false))
+	container := io.NewContainer(fs, io.NewLogger(out, false), styles.NewStyles(false))
 
 	configPath := ".gflows/config.yml"
 	if configString == "" {

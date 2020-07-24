@@ -5,12 +5,12 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/jbrunton/gflows/adapters"
-	_ "github.com/jbrunton/gflows/statik"
+	"github.com/jbrunton/gflows/io"
+	_ "github.com/jbrunton/gflows/static/statik"
 )
 
 func runTests(t *testing.T, glob string, useMemFs bool) {
-	osFs := adapters.CreateOsFs()
+	osFs := io.CreateOsFs()
 
 	testFiles, err := afero.Glob(osFs, glob)
 	if err != nil {

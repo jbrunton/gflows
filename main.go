@@ -17,7 +17,7 @@ package main
 
 import (
 	"github.com/jbrunton/gflows/cmd"
-	_ "github.com/jbrunton/gflows/statik"
+	_ "github.com/jbrunton/gflows/static/statik"
 )
 
 func main() {

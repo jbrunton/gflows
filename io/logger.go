@@ -1,4 +1,4 @@
-package adapters
+package io
 
 import (
 	"bytes"

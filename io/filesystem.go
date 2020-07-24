@@ -1,4 +1,4 @@
-package adapters
+package io
 
 import "github.com/spf13/afero"
 

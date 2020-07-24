@@ -10,7 +10,7 @@ import (
 	"github.com/jbrunton/gflows/yaml"
 	"github.com/spf13/afero"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +18,7 @@ import (
 func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	container, context, out := fixtures.NewTestContext("templates:\n  engine: jsonnet")
 	fs := container.FileSystem()
-	logger := adapters.NewLogger(out, false)
+	logger := io.NewLogger(out, false)
 	styles := container.Styles()
 	validator := workflow.NewValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)

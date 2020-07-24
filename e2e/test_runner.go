@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/content"
-	"github.com/jbrunton/gflows/styles"
+	"github.com/jbrunton/gflows/io/styles"
 	"github.com/jbrunton/gflows/workflow/action"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -60,14 +60,14 @@ func newE2eTestRunner(osFs *afero.Afero, testPath string, useMemFs bool) *e2eTes
 
 	var fs *afero.Afero
 	if useMemFs {
-		fs = adapters.CreateMemFs()
+		fs = io.CreateMemFs()
 	} else {
 		fs = osFs
 	}
 
 	out := new(bytes.Buffer)
-	adaptersContainer := adapters.NewContainer(fs, adapters.NewLogger(out, false), styles.NewStyles(false))
-	contentContainer := content.NewContainer(adaptersContainer)
+	ioContainer := io.NewContainer(fs, io.NewLogger(out, false), styles.NewStyles(false))
+	contentContainer := content.NewContainer(ioContainer)
 
 	return &e2eTestRunner{
 		testPath:  testPath,

@@ -11,20 +11,20 @@ import (
 	"github.com/jbrunton/gflows/yaml"
 
 	gojsonnet "github.com/google/go-jsonnet"
-	"github.com/jbrunton/gflows/adapters"
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/jsonnet"
+	"github.com/jbrunton/gflows/io"
+	"github.com/jbrunton/gflows/workflow/engine/jsonnet"
 	"github.com/spf13/afero"
 )
 
 type JsonnetTemplateEngine struct {
 	fs            *afero.Afero
-	logger        *adapters.Logger
+	logger        *io.Logger
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
 }
 
-func NewJsonnetTemplateEngine(fs *afero.Afero, logger *adapters.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *JsonnetTemplateEngine {
+func NewJsonnetTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *JsonnetTemplateEngine {
 	return &JsonnetTemplateEngine{
 		fs:            fs,
 		logger:        logger,

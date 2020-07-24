@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/jbrunton/gflows/adapters"
+	"github.com/jbrunton/gflows/io"
 	"github.com/spf13/cobra"
 
 	"github.com/stretchr/testify/assert"
@@ -15,9 +15,9 @@ func newTestContext() *GFlowsContext {
 		ConfigPath: ".gflows/config.yml",
 		Engine:     "ytt",
 	}
-	fs := adapters.CreateMemFs()
+	fs := io.CreateMemFs()
 	out := new(bytes.Buffer)
-	logger := adapters.NewLogger(out, false)
+	logger := io.NewLogger(out, false)
 	context, err := NewContext(fs, logger, opts)
 	if err != nil {
 		panic(err)
