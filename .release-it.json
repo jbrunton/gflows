@@ -5,7 +5,6 @@
     "draft": true
   },
   "npm": false,
-  "git": false,
   "hooks": {
     "before:init": ["make build"],
     "after:bump": ["make compile-release"]
