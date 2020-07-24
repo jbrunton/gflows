@@ -17,3 +17,5 @@ e2e-test:
 test: unit-test e2e-test
 
 .PHONY: statik go-build compile build unit-test e2e-test test
+
+.DEFAULT_GOAL := build
