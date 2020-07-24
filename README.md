@@ -16,6 +16,8 @@ Note: this project is very new so I expect there is room for improvement, but I'
 
 ## Installing
 
+Either download from [Releases](https://github.com/jbrunton/gflows/releases) or install with Go:
+
     go get github.com/jbrunton/gflows
 
 ## Getting Started
