@@ -65,7 +65,7 @@ By default this command will check, for each workflow:
 
 If it fails any of the validation checks, you'll see clear errors describing the problem:
 
-![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/docs/workflow-checks.png)
+![Example output from check command](https://raw.githubusercontent.com/jbrunton/gflows/develop/workflow-checks.png)
 
 ## Refactoring Workflows
 
