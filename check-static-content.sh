@@ -4,14 +4,16 @@ set -e
 
 function assert_no_changes() {
   if [[ `git status --porcelain` ]]; then
-    echo $1
+    printf "ERROR: %s\n" "$1"
     exit 1
   else
-    echo $2
+    printf "OK: %s\n\n" "$2"
   fi
 }
 
-assert_no_changes "Dirty repo, commit changes before running this command"
+echo "Checking git repo status"
+assert_no_changes "Dirty repo, commit changes before running this command" \
+  "Git repo is clean, continuing..."
 
 make statik
 assert_no_changes "Static content is out of date. Run \"make statik\" and commit the changes." \
