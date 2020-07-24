@@ -4,5 +4,10 @@
     "assets": ["gflows-darwin-amd64", "gflows-linux-amd64"],
     "draft": true
   },
-  "npm": false
+  "npm": false,
+  "git": false,
+  "hooks": {
+    "before:init": ["make build"],
+    "after:bump": ["make compile-release"]
+  }
 }
