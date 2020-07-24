@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jbrunton/gflows/content"
+	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yaml"
 	"github.com/spf13/afero"
