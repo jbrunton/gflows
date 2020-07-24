@@ -11,9 +11,9 @@ import (
 	"github.com/jbrunton/gflows/yaml"
 
 	gojsonnet "github.com/google/go-jsonnet"
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/jsonnet"
+	"github.com/jbrunton/gflows/io"
+	"github.com/jbrunton/gflows/workflow/engine/jsonnet"
 	"github.com/spf13/afero"
 )
 
