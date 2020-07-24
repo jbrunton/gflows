@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jbrunton/gflows/styles"
+	"github.com/jbrunton/gflows/io/styles"
 
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"

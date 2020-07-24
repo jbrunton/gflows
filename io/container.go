@@ -1,7 +1,7 @@
 package io
 
 import (
-	"github.com/jbrunton/gflows/styles"
+	"github.com/jbrunton/gflows/io/styles"
 	"github.com/spf13/afero"
 )
 
