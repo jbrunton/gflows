@@ -12,6 +12,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - #@ setup_go()
-    - uses: jbrunton/setup-gflows@v0
+    - uses: jbrunton/setup-gflows@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: validate workflows
       run: gflows check
