@@ -12,8 +12,9 @@ import (
 
 func newTestContext() *GFlowsContext {
 	opts := ContextOpts{
-		ConfigPath: ".gflows/config.yml",
-		Engine:     "ytt",
+		ConfigPath:     ".gflows/config.yml",
+		Engine:         "ytt",
+		AllowNoContext: true,
 	}
 	fs := io.CreateMemFs()
 	out := new(bytes.Buffer)

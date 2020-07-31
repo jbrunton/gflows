@@ -22,9 +22,10 @@ type GFlowsContext struct {
 }
 
 type ContextOpts struct {
-	ConfigPath   string
-	EnableColors bool
-	Engine       string
+	ConfigPath     string
+	EnableColors   bool
+	Engine         string
+	AllowNoContext bool
 }
 
 func NewContext(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (*GFlowsContext, error) {
@@ -88,10 +89,13 @@ func CreateContextOpts(cmd *cobra.Command) ContextOpts {
 		}
 	}
 
+	allowNoContext := funk.ContainsString([]string{"init", "version"}, cmd.Name())
+
 	return ContextOpts{
-		ConfigPath:   configPath,
-		EnableColors: !disableColors,
-		Engine:       engine,
+		ConfigPath:     configPath,
+		EnableColors:   !disableColors,
+		Engine:         engine,
+		AllowNoContext: allowNoContext,
 	}
 }
 
