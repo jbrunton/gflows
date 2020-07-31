@@ -49,7 +49,7 @@ type GFlowsTemplateConfig struct {
 func LoadConfig(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (config *GFlowsConfig, err error) {
 	exists, err := fs.Exists(opts.ConfigPath)
 	if !exists {
-		if opts.Engine == "" {
+		if !opts.AllowNoContext {
 			err = errors.New("no gflows context found")
 		} else {
 			config = &GFlowsConfig{}
