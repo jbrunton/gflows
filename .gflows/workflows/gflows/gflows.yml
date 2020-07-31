@@ -14,6 +14,6 @@ jobs:
     - #@ setup_go()
     - uses: jbrunton/setup-gflows@v1
       with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: validate workflows
       run: gflows check
