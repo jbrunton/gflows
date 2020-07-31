@@ -33,6 +33,25 @@ func Execute() {
 	}
 }
 
+// Version - the build version
+var Version = "development"
+
+func newVersionCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "version",
+		Short: "Print version",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			container, err := containerFunc(cmd)
+			if err != nil {
+				return err
+			}
+			container.Logger().Printfln("gflows version %s", Version)
+			return nil
+		},
+	}
+	return cmd
+}
+
 // NewRootCommand creates a new root command
 func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 	cmd := &cobra.Command{
@@ -50,6 +69,7 @@ func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 	cmd.AddCommand(newWatchWorkflowsCmd(containerFunc))
 	cmd.AddCommand(newImportWorkflowsCmd(containerFunc))
 	cmd.AddCommand(newInitCmd(containerFunc))
+	cmd.AddCommand(newVersionCmd(containerFunc))
 
 	return cmd
 }
