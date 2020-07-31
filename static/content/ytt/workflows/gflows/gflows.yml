@@ -12,7 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - #@ setup_go()
-    - name: install gflows
-      run: go get github.com/jbrunton/gflows
+    - uses: jbrunton/setup-gflows@v0
     - name: validate workflows
       run: gflows check
