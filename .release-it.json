@@ -7,6 +7,6 @@
   "npm": false,
   "hooks": {
     "before:init": ["make build"],
-    "after:bump": ["make compile-release"]
+    "after:bump": ["VERSION=${version} make compile-release"]
   }
 }
