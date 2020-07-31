@@ -19,6 +19,16 @@ Note: this project is very new so I expect there is room for improvement, but I'
 Either download from [Releases](https://github.com/jbrunton/gflows/releases) or install with Go:
 
     go get github.com/jbrunton/gflows
+    
+You can also install in GitHub workflows using the [setup-gflows](https://github.com/jbrunton/setup-gflows) action:
+
+```yaml
+steps:
+- uses: jbrunton/setup-gflows@v1
+  with:
+    token: ${{ secrets.GITHUB_TOKEN }}
+- run: gflows check
+```
 
 ## Getting Started
 
