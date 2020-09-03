@@ -8,7 +8,7 @@ import (
 
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
-	"github.com/jbrunton/gflows/yaml"
+	"github.com/jbrunton/gflows/yamlutil"
 
 	gojsonnet "github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/config"
@@ -102,12 +102,12 @@ func (engine *JsonnetTemplateEngine) ImportWorkflow(wf *workflow.GitHubWorkflow)
 		return "", err
 	}
 
-	normalizedContent, err := yaml.NormalizeWorkflow(string(workflowContent))
+	normalizedContent, err := yamlutil.NormalizeWorkflow(string(workflowContent))
 	if err != nil {
 		return "", err
 	}
 
-	jsonData, err := yaml.YamlToJson(string(normalizedContent))
+	jsonData, err := yamlutil.YamlToJson(string(normalizedContent))
 	if err != nil {
 		return "", err
 	}

@@ -38,7 +38,7 @@ func TestCheckCommand(t *testing.T) {
 }
 
 func TestImportCommand(t *testing.T) {
-	runTests(t, "./tests/import/jsonnet/*.yml", true)
+	//runTests(t, "./tests/import/jsonnet/*.yml", true)
 	runTests(t, "./tests/import/ytt/*.yml", true)
 }
 

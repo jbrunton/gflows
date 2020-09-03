@@ -10,7 +10,7 @@ import (
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
-	"github.com/jbrunton/gflows/yaml"
+	"github.com/jbrunton/gflows/yamlutil"
 	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
 	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
 	"github.com/k14s/ytt/pkg/files"
@@ -204,7 +204,7 @@ func (engine *YttTemplateEngine) ImportWorkflow(workflow *workflow.GitHubWorkflo
 		return "", err
 	}
 
-	templateContent, err := yaml.NormalizeWorkflow(string(workflowContent))
+	templateContent, err := yamlutil.NormalizeWorkflow(string(workflowContent))
 	if err != nil {
 		return "", err
 	}

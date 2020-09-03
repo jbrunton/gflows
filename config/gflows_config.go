@@ -7,12 +7,12 @@ import (
 
 	"github.com/jbrunton/gflows/io"
 	_ "github.com/jbrunton/gflows/static/statik"
-	"github.com/jbrunton/gflows/yaml"
+	"github.com/jbrunton/gflows/yamlutil"
 	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
 	"github.com/xeipuuv/gojsonschema"
-	goyaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // GFlowsConfig - type of current gflows context
@@ -116,7 +116,7 @@ func (config *GFlowsConfig) GetTemplateLibs(workflowName string) []string {
 
 func parseConfig(input []byte) (*GFlowsConfig, error) {
 	config := GFlowsConfig{}
-	err := goyaml.Unmarshal(input, &config)
+	err := yaml.Unmarshal(input, &config)
 	if err != nil {
 		panic(err)
 	}
@@ -135,7 +135,7 @@ func parseConfig(input []byte) (*GFlowsConfig, error) {
 }
 
 func validateConfig(config string, logger *io.Logger) error {
-	json, err := yaml.YamlToJson(config)
+	json, err := yamlutil.YamlToJson(config)
 	if err != nil {
 		return err
 	}

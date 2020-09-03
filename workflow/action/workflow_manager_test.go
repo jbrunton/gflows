@@ -7,11 +7,11 @@ import (
 
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
-	"github.com/jbrunton/gflows/yaml"
+	"github.com/jbrunton/gflows/yamlutil"
 	"github.com/spf13/afero"
 
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/fixtures"
+	"github.com/jbrunton/gflows/io"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,7 +51,7 @@ func TestGetImportedWorkflows(t *testing.T) {
 	gitHubWorkflows := workflowManager.GetWorkflows()
 
 	expectedContent := fixtures.ExampleWorkflow("test.jsonnet")
-	expectedJson, _ := yaml.YamlToJson(expectedContent)
+	expectedJson, _ := yamlutil.YamlToJson(expectedContent)
 	expectedWorflow := workflow.GitHubWorkflow{
 		Path: ".github/workflows/test.yml",
 		Definition: &workflow.Definition{

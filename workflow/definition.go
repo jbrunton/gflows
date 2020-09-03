@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jbrunton/gflows/yaml"
+	"github.com/jbrunton/gflows/yamlutil"
 )
 
 // Definition - definitoin for a workflow defined by a GFlows template
@@ -24,7 +24,7 @@ func (definition *Definition) SetContent(workflow string, templatePath string) {
 	}, "\n")
 	definition.Content = meta + "\n" + workflow
 
-	json, err := yaml.YamlToJson(definition.Content)
+	json, err := yamlutil.YamlToJson(definition.Content)
 	if err != nil {
 		definition.Status = ValidationResult{
 			Valid:  false,
