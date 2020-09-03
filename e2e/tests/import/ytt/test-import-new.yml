@@ -31,7 +31,7 @@ expect:
   - path: .github/workflows/test.yml
   - path: .gflows/workflows/test/test.yml
     content: |
-      on:
+      "on":
         push:
           branches:
           - develop

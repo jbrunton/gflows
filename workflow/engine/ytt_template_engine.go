@@ -6,10 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
+	"github.com/jbrunton/gflows/yaml"
 	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
 	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
 	"github.com/k14s/ytt/pkg/files"
@@ -203,10 +204,15 @@ func (engine *YttTemplateEngine) ImportWorkflow(workflow *workflow.GitHubWorkflo
 		return "", err
 	}
 
+	templateContent, err := yaml.NormalizeWorkflow(string(workflowContent))
+	if err != nil {
+		return "", err
+	}
+
 	_, filename := filepath.Split(workflow.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
 	templatePath := filepath.Join(engine.context.WorkflowsDir, templateName, templateName+".yml")
-	engine.contentWriter.SafelyWriteFile(templatePath, string(workflowContent))
+	engine.contentWriter.SafelyWriteFile(templatePath, string(templateContent))
 
 	return templatePath, nil
 }
