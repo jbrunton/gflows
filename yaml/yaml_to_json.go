@@ -34,13 +34,7 @@ func convertToStringDictKeysRecursive(mapping map[interface{}]interface{}, keyPr
 	for key, entry := range mapping {
 		str, ok := key.(string)
 		if !ok {
-			if keyPrefix == "" && key == true {
-				// Unfortunately GitHub workflows use the "on" reserved word, which canonically is treated as true, as a top
-				// level key. We therefore guess that any key that gets parsed as true is intended to be used for the "on" key.
-				str = "on"
-			} else {
-				return nil, formatInvalidKeyError(keyPrefix, key)
-			}
+			return nil, formatInvalidKeyError(keyPrefix, key)
 		}
 		var newKeyPrefix string
 		if keyPrefix == "" {

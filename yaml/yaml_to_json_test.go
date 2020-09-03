@@ -26,11 +26,6 @@ func TestYamlToJson(t *testing.T) {
 			expectedJson: `{"foo":"bar"}`,
 		},
 		{
-			description:  "on keyword",
-			yaml:         "on: foo",
-			expectedJson: `{"on":"foo"}`,
-		},
-		{
 			description:   "key error",
 			yaml:          "123: foo",
 			expectedError: "Non-string key at top level: 123",
