@@ -102,12 +102,12 @@ func (engine *JsonnetTemplateEngine) ImportWorkflow(wf *workflow.GitHubWorkflow)
 		return "", err
 	}
 
-	normalizedContext, err := yaml.NormalizeWorkflow(string(workflowContent))
+	normalizedContent, err := yaml.NormalizeWorkflow(string(workflowContent))
 	if err != nil {
 		return "", err
 	}
 
-	jsonData, err := yaml.YamlToJson(string(normalizedContext))
+	jsonData, err := yaml.YamlToJson(string(normalizedContent))
 	if err != nil {
 		return "", err
 	}
