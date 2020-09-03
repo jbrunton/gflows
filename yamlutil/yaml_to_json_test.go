@@ -1,4 +1,4 @@
-package yaml
+package yamlutil
 
 import (
 	"testing"

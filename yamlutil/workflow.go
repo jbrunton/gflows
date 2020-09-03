@@ -1,13 +1,12 @@
-package yaml
+package yamlutil
 
 import (
 	"gopkg.in/yaml.v2"
-	goyaml "gopkg.in/yaml.v2"
 )
 
 func NormalizeWorkflow(content string) (string, error) {
-	var yamlData goyaml.MapSlice
-	err := goyaml.Unmarshal([]byte(content), &yamlData)
+	var yamlData yaml.MapSlice
+	err := yaml.Unmarshal([]byte(content), &yamlData)
 	if err != nil {
 		return "", err
 	}
@@ -16,7 +15,7 @@ func NormalizeWorkflow(content string) (string, error) {
 		if item.Key == true {
 			// Unfortunately GitHub workflows use the "on" reserved word, which canonically is treated as true, as a top
 			// level key. We therefore guess that any key that gets parsed as true is intended to be used for the "on" key.
-			yamlData[i] = goyaml.MapItem{Key: "on", Value: item.Value}
+			yamlData[i] = yaml.MapItem{Key: "on", Value: item.Value}
 		}
 	}
 

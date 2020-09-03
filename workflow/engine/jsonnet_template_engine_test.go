@@ -7,7 +7,7 @@ import (
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
-	"github.com/jbrunton/gflows/yaml"
+	"github.com/jbrunton/gflows/yamlutil"
 
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +31,7 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
 	expectedContent := fixtures.ExampleWorkflow("test.jsonnet")
-	expectedJson, _ := yaml.YamlToJson(expectedContent)
+	expectedJson, _ := yamlutil.YamlToJson(expectedContent)
 	expectedDefinition := workflow.Definition{
 		Name:        "test",
 		Source:      ".gflows/workflows/test.jsonnet",

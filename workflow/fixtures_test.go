@@ -3,11 +3,11 @@ package workflow
 import (
 	"fmt"
 
-	"github.com/jbrunton/gflows/yaml"
+	"github.com/jbrunton/gflows/yamlutil"
 )
 
 func newTestWorkflowDefinition(name string, content string) *Definition {
-	json, _ := yaml.YamlToJson(content)
+	json, _ := yamlutil.YamlToJson(content)
 	return &Definition{
 		Name:        name,
 		Source:      fmt.Sprintf(".gflows/workflows/%s.jsonnet", name),

@@ -1,14 +1,14 @@
-package yaml
+package yamlutil
 
 import (
 	"fmt"
 
-	goyaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 func YamlToJson(input string) (json interface{}, err error) {
 	var yamlData map[interface{}]interface{}
-	err = goyaml.Unmarshal([]byte(input), &yamlData)
+	err = yaml.Unmarshal([]byte(input), &yamlData)
 	if err != nil {
 		return
 	}
