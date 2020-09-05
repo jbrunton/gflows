@@ -1,4 +1,4 @@
 # Config file for GFlows.
-# See https://github.com/jbrunton/gflows#configuration for options.
+# See https://github.com/jbrunton/gflows/wiki/Configuration for options.
 templates:
   engine: jsonnet
