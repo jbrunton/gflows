@@ -109,17 +109,22 @@ func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 			if !funk.ContainsString([]string{"jsonnet", "ytt"}, engine) {
 				return fmt.Errorf("Unexpected engine name: %q, valid options are ytt or jsonnet", engine)
 			}
+			workflowName, err := cmd.Flags().GetString("name")
+			if err != nil {
+				panic(err)
+			}
 
 			container, err := containerFunc(cmd)
 			if err != nil {
 				return err
 			}
 
-			container.WorkflowManager().InitWorkflows()
+			container.WorkflowManager().InitWorkflows(workflowName)
 			return nil
 		},
 	}
 	cmd.Flags().String("engine", "", "the template engine to use (either jsonnet or ytt)")
+	cmd.Flags().String("name", "gflows", "the name of the workflow to generate")
 	return cmd
 }
 

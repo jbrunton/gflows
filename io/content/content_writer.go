@@ -8,15 +8,27 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/io"
 	"github.com/spf13/afero"
 )
 
+type WorkflowSource struct {
+	Source      string
+	Destination string
+}
+
+func NewWorkflowSource(source string, destination string) WorkflowSource {
+	return WorkflowSource{
+		Source:      source,
+		Destination: destination,
+	}
+}
+
 type WorkflowGenerator struct {
-	Name       string
-	Sources    []string
-	TrimPrefix string // optionally trim this prefix from the destination
+	Name         string
+	WorkflowName string
+	Sources      []WorkflowSource
 }
 
 type Writer struct {
@@ -76,13 +88,17 @@ func (writer *Writer) UpdateFileContent(destination string, content string, deta
 }
 
 func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.GFlowsContext, generator WorkflowGenerator) error {
-	for _, sourcePath := range generator.Sources {
+	for _, source := range generator.Sources {
+		sourcePath := source.Source
 		file, err := sourceFs.Open(sourcePath)
 		if err != nil {
 			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)
 		}
 		defer file.Close()
-		destinationPath := filepath.Join(context.Dir, strings.TrimPrefix(sourcePath, generator.TrimPrefix))
+		destinationPath := filepath.Join(
+			context.Dir,
+			strings.ReplaceAll(source.Destination, "$WORKFLOW_NAME", generator.WorkflowName),
+		)
 		content, err := ioutil.ReadAll(file)
 		if err != nil {
 			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)

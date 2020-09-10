@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/config"
-	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io"
+	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io/diff"
 	"github.com/jbrunton/gflows/io/styles"
 	"github.com/jbrunton/gflows/workflow"
@@ -180,8 +180,8 @@ func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 	return nil
 }
 
-func (manager *WorkflowManager) InitWorkflows() {
-	generator := manager.WorkflowGenerator()
+func (manager *WorkflowManager) InitWorkflows(workflowName string) {
+	generator := manager.WorkflowGenerator(workflowName)
 	writer := content.NewWriter(manager.fs, manager.logger)
 	sourceFs, err := statikFs.New()
 	if err != nil {
