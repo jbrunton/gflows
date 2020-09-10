@@ -10,7 +10,7 @@ local check_workflows_job = {
     steps.setup_go,
     steps.uses('jbrunton/setup-gflows@v1') {
       with: {
-        token: "${{ secrets.GITHUB_TOKEN }}"},
+        token: "${{ secrets.GITHUB_TOKEN }}",
       }
     },
     steps.named('validate workflows', 'gflows check')
