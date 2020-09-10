@@ -1,0 +1,10 @@
+#@ load("@ytt:data", "data")
+
+#@ def pull_request_defaults():
+  pull_request:
+    branches:
+    - #@ data.values.git.main_branch
+  push:
+    branches:
+    - #@ data.values.git.main_branch
+#@ end
