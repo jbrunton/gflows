@@ -141,7 +141,7 @@ func (engine *JsonnetTemplateEngine) WorkflowGenerator() content.WorkflowGenerat
 		Sources: []string{
 			"/jsonnet/workflows/common/steps.libsonnet",
 			"/jsonnet/workflows/common/workflows.libsonnet",
-			"/jsonnet/workflows/config/git.libsonnet",
+			"/jsonnet/workflows/common/git.libsonnet",
 			"/jsonnet/workflows/gflows.jsonnet",
 			"/jsonnet/config.yml",
 		},

@@ -224,7 +224,7 @@ func (engine *YttTemplateEngine) WorkflowGenerator() content.WorkflowGenerator {
 		Sources: []string{
 			"/ytt/workflows/common/steps.lib.yml",
 			"/ytt/workflows/common/workflows.lib.yml",
-			"/ytt/workflows/config/git.yml",
+			"/ytt/workflows/common/values.yml",
 			"/ytt/workflows/gflows/gflows.yml",
 			"/ytt/config.yml",
 		},
