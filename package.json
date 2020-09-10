@@ -3,6 +3,7 @@
     "release": "release-it"
   },
   "devDependencies": {
+    "auto-changelog": "^2.2.0",
     "release-it": "^14.0.2"
   }
 }

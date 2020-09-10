@@ -4,9 +4,15 @@
     "assets": ["gflows-darwin-amd64", "gflows-linux-amd64"],
     "draft": true
   },
+  "git": {
+    "changelog": "npx auto-changelog --stdout --commit-limit 0 -u --template https://raw.githubusercontent.com/release-it/release-it/master/templates/changelog-compact.hbs"
+  },
   "npm": false,
   "hooks": {
     "before:init": ["make build"],
-    "after:bump": ["version=${version} make compile-release"]
+    "after:bump": [
+      "version=${version} make compile-release",
+      "npx auto-changelog --commit-limit 0 --starting-version 0.1.1"
+    ]
   }
 }
