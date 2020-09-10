@@ -85,7 +85,14 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 
 		if err != nil {
 			definition.Status.Valid = false
-			definition.Status.Errors = []string{strings.Trim(err.Error(), " \n\r")}
+			errorDescription := strings.Trim(err.Error(), " \n\r")
+			if strings.Contains(err.Error(), "expected string result") {
+				errorDescription = strings.Join([]string{
+					errorDescription,
+					"You probably need to serialize the output to YAML. See https://github.com/jbrunton/gflows/wiki/Templates#serialization",
+				}, "\n")
+			}
+			definition.Status.Errors = []string{errorDescription}
 		} else {
 			definition.SetContent(workflow, templatePath)
 		}

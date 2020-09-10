@@ -43,6 +43,32 @@ func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
 	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
 }
 
+func TestSerializationError(t *testing.T) {
+	container, _, templateEngine := newJsonnetTemplateEngine("")
+	fs := container.FileSystem()
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte("{}"), 0644)
+
+	definitions, _ := templateEngine.GetWorkflowDefinitions()
+
+	expectedError := strings.Join([]string{
+		"RUNTIME ERROR: expected string result, got: object",
+		"\tDuring manifestation\t",
+		"You probably need to serialize the output to YAML. See https://github.com/jbrunton/gflows/wiki/Templates#serialization",
+	}, "\n")
+	expectedDefinition := workflow.Definition{
+		Name:        "test",
+		Source:      ".gflows/workflows/test.jsonnet",
+		Destination: ".github/workflows/test.yml",
+		Content:     "",
+		Status: workflow.ValidationResult{
+			Valid:  false,
+			Errors: []string{expectedError},
+		},
+		JSON: nil,
+	}
+	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
+}
+
 func TestGetJsonnetWorkflowSources(t *testing.T) {
 	container, _, templateEngine := newJsonnetTemplateEngine("")
 	fs := container.FileSystem()
