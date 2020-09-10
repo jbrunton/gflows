@@ -4,13 +4,13 @@ expect:
   output: |2
          create .gflows/workflows/common/steps.lib.yml
          create .gflows/workflows/common/workflows.lib.yml
-         create .gflows/workflows/config/git.yml
+         create .gflows/workflows/common/values.yml
          create .gflows/workflows/gflows/gflows.yml
          create .gflows/config.yml
   files:
   - path: .gflows/workflows/common/steps.lib.yml
   - path: .gflows/workflows/common/workflows.lib.yml
-  - path: .gflows/workflows/config/git.yml
+  - path: .gflows/workflows/common/values.yml
   - path: .gflows/workflows/gflows/gflows.yml
   - path: .gflows/config.yml
     content: |
@@ -21,5 +21,4 @@ expect:
         defaults:
           libs:
             - workflows/common
-            - workflows/config
 

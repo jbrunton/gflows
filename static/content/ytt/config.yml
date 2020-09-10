@@ -5,4 +5,3 @@ templates:
   defaults:
     libs:
       - workflows/common
-      - workflows/config
