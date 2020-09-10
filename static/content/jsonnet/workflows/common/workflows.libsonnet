@@ -1,4 +1,4 @@
-local git_config = import '../config/git.libsonnet';
+local git_config = import 'git.libsonnet';
 
 {
   triggers: {
