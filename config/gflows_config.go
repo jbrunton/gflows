@@ -144,6 +144,7 @@ func validateConfig(config string, logger *io.Logger) error {
 	if err != nil {
 		panic(err)
 	}
+	// TODO: use sourceFs.ReadFile()?
 	schemaFile, err := sourceFs.Open("/config-schema.json")
 	if err != nil {
 		panic(err)

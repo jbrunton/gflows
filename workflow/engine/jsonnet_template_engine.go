@@ -163,6 +163,20 @@ func (engine *JsonnetTemplateEngine) createVM(workflowName string) *gojsonnet.VM
 }
 
 func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
-	jpaths := engine.context.Config.GetTemplateLibs(workflowName)
+	var jpaths []string
+	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
+		fmt.Println("considering", path)
+		if strings.HasSuffix(path, ".gflowslib") {
+			libDir, err := engine.context.PushGFlowsLib(engine.fs, path)
+			if err != nil {
+				// TODO: handle this
+				panic(err)
+			}
+			fmt.Println("adding lib:", libDir)
+			jpaths = append(jpaths, libDir)
+		} else {
+			jpaths = append(jpaths, path)
+		}
+	}
 	return engine.context.ResolvePaths(jpaths)
 }
