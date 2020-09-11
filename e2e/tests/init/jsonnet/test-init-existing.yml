@@ -4,6 +4,7 @@ setup:
     content: |
       # Config file for GFlows.
       # See https://github.com/jbrunton/gflows/wiki/Configuration for options.
+      githubDir: .github
       templates:
         engine: jsonnet
 

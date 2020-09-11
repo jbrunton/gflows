@@ -110,16 +110,28 @@ func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 				return fmt.Errorf("Unexpected engine name: %q, valid options are ytt or jsonnet", engine)
 			}
 
+			workflowName, err := cmd.Flags().GetString("workflow-name")
+			if err != nil {
+				panic(err)
+			}
+
+			githubDir, err := cmd.Flags().GetString("github-dir")
+			if err != nil {
+				panic(err)
+			}
+
 			container, err := containerFunc(cmd)
 			if err != nil {
 				return err
 			}
 
-			container.WorkflowManager().InitWorkflows()
+			container.WorkflowManager().InitWorkflows(workflowName, githubDir)
 			return nil
 		},
 	}
 	cmd.Flags().String("engine", "", "the template engine to use (either jsonnet or ytt)")
+	cmd.Flags().String("workflow-name", "gflows", "the name of the workflow to generate")
+	cmd.Flags().String("github-dir", ".github", "the relative path to the .github directory")
 	return cmd
 }
 
