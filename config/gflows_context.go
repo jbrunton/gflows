@@ -26,10 +26,17 @@ type GFlowsContext struct {
 	WorkflowsDir string
 	Config       *GFlowsConfig
 	EnableColors bool
-	Libs         map[string]string
+	Libs         map[string]*GFlowsLib
 }
 
-type LibManifest struct {
+type GFlowsLib struct {
+	ManifestUrl string
+	Files       []string
+	TempDir     string
+	FileSystem  *afero.Afero
+}
+
+type GFlowsLibManifest struct {
 	Files []string
 }
 
@@ -65,7 +72,7 @@ func NewContext(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (*GFlowsCo
 		WorkflowsDir: workflowsDir,
 		Dir:          contextDir,
 		EnableColors: opts.EnableColors,
-		Libs:         make(map[string]string),
+		Libs:         make(map[string]*GFlowsLib),
 	}
 
 	return context, nil
@@ -126,59 +133,82 @@ func (context *GFlowsContext) ResolvePath(path string) string {
 
 func (context *GFlowsContext) PushGFlowsLib(fs *afero.Afero, libUrl string) (string, error) {
 	fmt.Printf("Processing gflowslib: %s\n", libUrl)
-	libDir := context.Libs[libUrl]
-	if libDir != "" {
+	lib := context.Libs[libUrl]
+	if lib != nil {
 		// already processed
 		fmt.Println("Already processed lib")
-		return libDir, nil
+		return lib.TempDir, nil
 	}
 
-	filename := filepath.Base(libUrl)
-	libDir, err := fs.TempDir("", filename)
-	fmt.Printf("created tmpdir %s\n", libDir)
+	lib = NewGFlowsLib(libUrl, fs)
+	lib.Download()
+
+	context.Libs[libUrl] = lib
+
+	return lib.TempDir, nil
+}
+
+// ResolvePaths - returns an array of resolved paths
+func (context *GFlowsContext) ResolvePaths(paths []string) []string {
+	return funk.Map(paths, context.ResolvePath).([]string)
+}
+
+func NewGFlowsLib(manifestUrl string, fs *afero.Afero) *GFlowsLib {
+	return &GFlowsLib{
+		ManifestUrl: manifestUrl,
+		FileSystem:  fs,
+	}
+}
+
+func (lib *GFlowsLib) Download() error {
+	fmt.Printf("Processing gflowslib: %s\n", lib.ManifestUrl)
+
+	manifestFilename := filepath.Base(lib.ManifestUrl)
+	tempDir, err := lib.FileSystem.TempDir("", manifestFilename)
+	fmt.Printf("created tmpdir %s\n", tempDir)
 	if err != nil {
 		panic(err)
 	}
 	//defer fs.RemoveAll(tmpDir)
 
-	rootUrl, err := url.Parse(libUrl)
+	rootUrl, err := url.Parse(lib.ManifestUrl)
 	rootUrl.Path = path.Dir(rootUrl.Path)
-	fmt.Println("libUrl:", libUrl)
+	fmt.Println("manifestUrl:", lib.ManifestUrl)
 	//fmt.Println("filepath.Dir(libUrl):", filepath.Dir(libUrl))
 	fmt.Println("rootUrl:", rootUrl)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	manifestPath := filepath.Join(libDir, filename)
-	err = DownloadFile(libUrl, manifestPath, fs)
+	manifestPath := filepath.Join(tempDir, manifestFilename)
+	err = DownloadFile(lib.ManifestUrl, manifestPath, lib.FileSystem)
 	if err != nil {
-		return "", err
+		return err
 	}
 	fmt.Printf("Downloaded lib manifest to %s\n", manifestPath)
 
-	manifestContent, err := fs.ReadFile(manifestPath)
+	manifestContent, err := lib.FileSystem.ReadFile(manifestPath)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	manifest := LibManifest{}
+	manifest := GFlowsLibManifest{}
 	json.Unmarshal(manifestContent, &manifest)
 
 	for _, relPath := range manifest.Files {
 		//url := filepath.Join(manifestRoot, relPath)
 		url, _ := url.Parse(rootUrl.String())
 		if err != nil {
-			return "", err
+			return err
 		}
 		//fmt.Println("rootUrl:", rootUrl)
 		//fmt.Println("relUrl:", relUrl)
 		//url := rootUrl.ResolveReference(relUrl)
 		url.Path = path.Join(url.Path, relPath)
 		fmt.Println("url:", url)
-		dest := filepath.Join(libDir, relPath)
+		dest := filepath.Join(tempDir, relPath)
 		fmt.Printf("Downloading %s to %s\n", url, dest)
-		err = DownloadFile(url.String(), dest, fs)
+		err = DownloadFile(url.String(), dest, lib.FileSystem)
 		if err != nil {
 			panic(err) // TODO: handle this
 		}
@@ -186,14 +216,9 @@ func (context *GFlowsContext) PushGFlowsLib(fs *afero.Afero, libUrl string) (str
 		//TODO: download
 	}
 
-	context.Libs[libUrl] = libDir
+	lib.TempDir = tempDir
 
-	return libDir, nil
-}
-
-// ResolvePaths - returns an array of resolved paths
-func (context *GFlowsContext) ResolvePaths(paths []string) []string {
-	return funk.Map(paths, context.ResolvePath).([]string)
+	return nil
 }
 
 func DownloadFile(url string, path string, fs *afero.Afero) error {
