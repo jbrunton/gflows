@@ -24,10 +24,21 @@ type GFlowsLibManifest struct {
 	Files []string
 }
 
+var libs []*GFlowsLib
+
 func NewGFlowsLib(manifestUrl string, fs *afero.Afero) *GFlowsLib {
-	return &GFlowsLib{
+	lib := &GFlowsLib{
 		ManifestUrl: manifestUrl,
 		FileSystem:  fs,
+	}
+	libs = append(libs, lib)
+	return lib
+}
+
+func (lib *GFlowsLib) CleanUp() {
+	if lib.TempDir != "" {
+		fmt.Println("Removing temp directory", lib.TempDir)
+		lib.FileSystem.RemoveAll(lib.TempDir)
 	}
 }
 
@@ -112,4 +123,10 @@ func DownloadFile(url string, path string, fs *afero.Afero) error {
 	fmt.Println("  Downloaded", url)
 
 	return nil
+}
+
+func CleanUpLibs() {
+	for _, lib := range libs {
+		lib.CleanUp()
+	}
 }
