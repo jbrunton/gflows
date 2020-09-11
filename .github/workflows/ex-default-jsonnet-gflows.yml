@@ -2,7 +2,7 @@
 # Source: .gflows/examples/default-jsonnet/workflows/ex-default-jsonnet-gflows.jsonnet
 "jobs":
   "check_workflows":
-    "name": "check-workflows"
+    "name": "check-workflows [ex-default-jsonnet-gflows]"
     "runs-on": "ubuntu-latest"
     "steps":
     - "uses": "actions/checkout@v2"

@@ -10,7 +10,7 @@ name: gflows
     - develop
 jobs:
   check_workflows:
-    name: check-workflows
+    name: check-workflows [ex-default-ytt-gflows]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
