@@ -180,8 +180,19 @@ func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 	return nil
 }
 
-func (manager *WorkflowManager) InitWorkflows(workflowName string) {
-	generator := manager.WorkflowGenerator(workflowName)
+func (manager *WorkflowManager) InitWorkflows(workflowName string, githubDir string) {
+	jobName := "check-workflows"
+	if workflowName != "gflows" {
+		// If a custom workflow name is given then we assume the user may have several gflows contexts,
+		// in which case we need to distinguish between the different jobs
+		jobName = fmt.Sprintf("%s [%s]", jobName, workflowName)
+	}
+	templateVars := map[string]string{
+		"WORKFLOW_NAME": workflowName,
+		"JOB_NAME":      jobName,
+		"GITHUB_DIR":    githubDir,
+	}
+	generator := manager.WorkflowGenerator(templateVars)
 	writer := content.NewWriter(manager.fs, manager.logger)
 	sourceFs, err := statikFs.New()
 	if err != nil {

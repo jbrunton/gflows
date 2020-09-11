@@ -217,10 +217,10 @@ func (engine *YttTemplateEngine) ImportWorkflow(workflow *workflow.GitHubWorkflo
 	return templatePath, nil
 }
 
-func (engine *YttTemplateEngine) WorkflowGenerator(workflowName string) content.WorkflowGenerator {
+func (engine *YttTemplateEngine) WorkflowGenerator(templateVars map[string]string) content.WorkflowGenerator {
 	return content.WorkflowGenerator{
 		Name:         "gflows",
-		WorkflowName: workflowName,
+		TemplateVars: templateVars,
 		Sources: []content.WorkflowSource{
 			content.NewWorkflowSource("/ytt/workflows/common/steps.lib.yml", "/workflows/common/steps.lib.yml"),
 			content.NewWorkflowSource("/ytt/workflows/common/workflows.lib.yml", "/workflows/common/workflows.lib.yml"),

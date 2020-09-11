@@ -134,10 +134,10 @@ func (engine *JsonnetTemplateEngine) ImportWorkflow(wf *workflow.GitHubWorkflow)
 	return templatePath, nil
 }
 
-func (engine *JsonnetTemplateEngine) WorkflowGenerator(workflowName string) content.WorkflowGenerator {
+func (engine *JsonnetTemplateEngine) WorkflowGenerator(templateVars map[string]string) content.WorkflowGenerator {
 	return content.WorkflowGenerator{
 		Name:         "gflows",
-		WorkflowName: workflowName,
+		TemplateVars: templateVars,
 		Sources: []content.WorkflowSource{
 			content.NewWorkflowSource("/jsonnet/workflows/common/steps.libsonnet", "/workflows/common/steps.libsonnet"),
 			content.NewWorkflowSource("/jsonnet/workflows/common/workflows.libsonnet", "/workflows/common/workflows.libsonnet"),

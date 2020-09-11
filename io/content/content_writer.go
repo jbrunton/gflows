@@ -27,8 +27,8 @@ func NewWorkflowSource(source string, destination string) WorkflowSource {
 
 type WorkflowGenerator struct {
 	Name         string
-	WorkflowName string
 	Sources      []WorkflowSource
+	TemplateVars map[string]string
 }
 
 type Writer struct {
@@ -90,20 +90,29 @@ func (writer *Writer) UpdateFileContent(destination string, content string, deta
 func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.GFlowsContext, generator WorkflowGenerator) error {
 	for _, source := range generator.Sources {
 		sourcePath := source.Source
+
 		file, err := sourceFs.Open(sourcePath)
 		if err != nil {
 			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)
 		}
 		defer file.Close()
-		destinationPath := filepath.Join(
-			context.Dir,
-			strings.ReplaceAll(source.Destination, "$WORKFLOW_NAME", generator.WorkflowName),
-		)
-		content, err := ioutil.ReadAll(file)
+
+		destinationPath := filepath.Join(context.Dir, generator.renderTemplate(source.Destination))
+		template, err := ioutil.ReadAll(file)
 		if err != nil {
 			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)
 		}
-		writer.UpdateFileContent(destinationPath, string(content), "")
+
+		content := generator.renderTemplate(string(template))
+		writer.UpdateFileContent(destinationPath, content, "")
 	}
 	return nil
+}
+
+func (generator *WorkflowGenerator) renderTemplate(template string) string {
+	content := template
+	for varName, varVal := range generator.TemplateVars {
+		content = strings.ReplaceAll(content, "$"+varName, varVal)
+	}
+	return content
 }

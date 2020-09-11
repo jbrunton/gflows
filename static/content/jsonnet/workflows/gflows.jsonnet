@@ -3,7 +3,7 @@ local steps = import 'common/steps.libsonnet';
 local workflows = import 'common/workflows.libsonnet';
 
 local check_workflows_job = {
-  'name': 'check-workflows',
+  'name': '$JOB_NAME',
   'runs-on': 'ubuntu-latest',
   steps: [
     steps.checkout,

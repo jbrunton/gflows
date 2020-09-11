@@ -19,5 +19,5 @@ type TemplateEngine interface {
 	ImportWorkflow(workflow *GitHubWorkflow) (string, error)
 
 	// WorkflowGenerator - returns a generator to create default workflow and config files
-	WorkflowGenerator(workflowName string) content.WorkflowGenerator
+	WorkflowGenerator(templateVars map[string]string) content.WorkflowGenerator
 }
