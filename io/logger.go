@@ -11,13 +11,40 @@ import (
 type Logger struct {
 	out          io.Writer
 	enableColors bool
+	debug        bool
 }
 
-func NewLogger(out io.Writer, enableColors bool) *Logger {
+type LogLevel uint32
+
+const (
+	// DebugLevel - outputs only if the log level is debug
+	DebugLevel LogLevel = iota
+	// InfoLevel - the default level
+	InfoLevel
+)
+
+func NewLogger(out io.Writer, enableColors bool, debug bool) *Logger {
 	return &Logger{
 		out:          out,
 		enableColors: enableColors,
+		debug:        debug,
 	}
+}
+
+func (logger *Logger) Debug(a ...interface{}) (n int, err error) {
+	if logger.debug {
+		logger.Write([]byte("DEBUG: "))
+		return logger.Println(a...)
+	}
+	return 0, nil
+}
+
+func (logger *Logger) Debugf(format string, a ...interface{}) (n int, err error) {
+	if logger.debug {
+		logger.Write([]byte("DEBUG: "))
+		return logger.Printf(format, a...)
+	}
+	return 0, nil
 }
 
 func (logger *Logger) Write(p []byte) (n int, err error) {
@@ -46,12 +73,11 @@ func (logger *Logger) PrintStatusErrors(errors []string, firstLineOnly bool) {
 	}
 }
 
-// PrettyPrintDiff - highlights the given patch if pygmentize is available
+// PrettyPrintDiff - prints a diff using syntax highlighting if bat is available
 func (logger *Logger) PrettyPrintDiff(patch string) {
 	logger.prettyPrint(patch, "diff")
 }
 
-// Inspired by https://github.com/pksunkara/pygments
 func (logger *Logger) prettyPrint(code string, language string) {
 	if _, err := exec.LookPath("bat"); err != nil {
 		logger.Println(code)

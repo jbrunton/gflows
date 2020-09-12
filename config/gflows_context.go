@@ -7,6 +7,7 @@ import (
 	"github.com/jbrunton/gflows/io"
 	"github.com/thoas/go-funk"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -24,6 +25,7 @@ type GFlowsContext struct {
 type ContextOpts struct {
 	ConfigPath     string
 	EnableColors   bool
+	Debug          bool
 	Engine         string
 	AllowNoContext bool
 }
@@ -55,6 +57,8 @@ func NewContext(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (*GFlowsCo
 		EnableColors: opts.EnableColors,
 	}
 
+	logger.Debugf("Creating context: %s\n", spew.Sdump(context))
+
 	return context, nil
 }
 
@@ -70,6 +74,11 @@ func CreateContextOpts(cmd *cobra.Command) ContextOpts {
 	}
 	if configPath == "" {
 		configPath = ".gflows/config.yml"
+	}
+
+	debug, err := cmd.Flags().GetBool("debug")
+	if err != nil {
+		panic(err)
 	}
 
 	disableColors, err := cmd.Flags().GetBool("disable-colors")
@@ -94,6 +103,7 @@ func CreateContextOpts(cmd *cobra.Command) ContextOpts {
 	return ContextOpts{
 		ConfigPath:     configPath,
 		EnableColors:   !disableColors,
+		Debug:          debug,
 		Engine:         engine,
 		AllowNoContext: allowNoContext,
 	}
