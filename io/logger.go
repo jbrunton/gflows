@@ -14,15 +14,6 @@ type Logger struct {
 	debug        bool
 }
 
-type LogLevel uint32
-
-const (
-	// DebugLevel - outputs only if the log level is debug
-	DebugLevel LogLevel = iota
-	// InfoLevel - the default level
-	InfoLevel
-)
-
 func NewLogger(out io.Writer, enableColors bool, debug bool) *Logger {
 	return &Logger{
 		out:          out,
