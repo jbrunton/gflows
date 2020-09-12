@@ -18,7 +18,7 @@ func newTestContext() *GFlowsContext {
 	}
 	fs := io.CreateMemFs()
 	out := new(bytes.Buffer)
-	logger := io.NewLogger(out, false)
+	logger := io.NewLogger(out, false, false)
 	context, err := NewContext(fs, logger, opts)
 	if err != nil {
 		panic(err)
@@ -33,6 +33,7 @@ func newTestCommand(run func(*cobra.Command, []string)) *cobra.Command {
 	}
 	cmd.Flags().String("config", "", "")
 	cmd.Flags().Bool("disable-colors", false, "")
+	cmd.Flags().Bool("debug", false, "")
 	return cmd
 }
 

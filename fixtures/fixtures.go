@@ -8,8 +8,8 @@ import (
 
 	"github.com/jbrunton/gflows/io/styles"
 
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/io"
 	statikFs "github.com/rakyll/statik/fs"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -57,7 +57,7 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 func NewTestContext(configString string) (*io.Container, *config.GFlowsContext, *bytes.Buffer) {
 	fs := io.CreateMemFs()
 	out := new(bytes.Buffer)
-	container := io.NewContainer(fs, io.NewLogger(out, false), styles.NewStyles(false))
+	container := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false))
 
 	configPath := ".gflows/config.yml"
 	if configString == "" {
