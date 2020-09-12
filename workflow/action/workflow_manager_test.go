@@ -18,7 +18,7 @@ import (
 func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	container, context, out := fixtures.NewTestContext("templates:\n  engine: jsonnet")
 	fs := container.FileSystem()
-	logger := io.NewLogger(out, false)
+	logger := io.NewLogger(out, false, false)
 	styles := container.Styles()
 	validator := workflow.NewValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)

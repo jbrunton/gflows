@@ -65,7 +65,7 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 	}
 
 	out := new(bytes.Buffer)
-	ioContainer := io.NewContainer(fs, io.NewLogger(out, false), styles.NewStyles(false))
+	ioContainer := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false))
 	contentContainer := content.NewContainer(ioContainer)
 
 	return &TestRunner{
