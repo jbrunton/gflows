@@ -27,6 +27,10 @@ func (downloader *Downloader) DownloadFile(url string, path string) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("Received status code %d from %s", resp.StatusCode, url)
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
