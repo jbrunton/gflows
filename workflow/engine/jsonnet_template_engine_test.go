@@ -19,7 +19,7 @@ func newJsonnetTemplateEngine(config string) (*content.Container, *config.GFlows
 	}
 	ioContainer, context, _ := fixtures.NewTestContext(config)
 	container := content.NewContainer(ioContainer)
-	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter())
+	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter(), container.Downloader())
 	return container, context, templateEngine
 }
 
