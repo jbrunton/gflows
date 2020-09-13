@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jbrunton/gflows/workflow/env"
+	"github.com/jbrunton/gflows/env"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 )
