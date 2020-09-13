@@ -19,11 +19,11 @@ import (
 	"github.com/spf13/afero"
 )
 
-func CreateWorkflowEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer) workflow.TemplateEngine {
+func CreateWorkflowEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer, downloader *content.Downloader) workflow.TemplateEngine {
 	var templateEngine workflow.TemplateEngine
 	switch engineName := context.Config.Templates.Engine; engineName {
 	case "jsonnet":
-		templateEngine = engine.NewJsonnetTemplateEngine(fs, logger, context, contentWriter)
+		templateEngine = engine.NewJsonnetTemplateEngine(fs, logger, context, contentWriter, downloader)
 	case "ytt":
 		templateEngine = engine.NewYttTemplateEngine(fs, logger, context, contentWriter)
 	default:
@@ -198,7 +198,7 @@ func (manager *WorkflowManager) InitWorkflows(workflowName string, githubDir str
 	if err != nil {
 		panic(err)
 	}
-	err = writer.ApplyGenerator(sourceFs, manager.context, generator)
+	err = writer.ApplyGenerator(sourceFs, manager.context.Dir, generator)
 	if err != nil {
 		panic(err)
 	}

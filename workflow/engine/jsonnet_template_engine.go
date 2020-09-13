@@ -14,6 +14,7 @@ import (
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/workflow/engine/jsonnet"
+	"github.com/jbrunton/gflows/workflow/env"
 	"github.com/spf13/afero"
 )
 
@@ -22,14 +23,16 @@ type JsonnetTemplateEngine struct {
 	logger        *io.Logger
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
+	downloader    *content.Downloader
 }
 
-func NewJsonnetTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *JsonnetTemplateEngine {
+func NewJsonnetTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer, downloader *content.Downloader) *JsonnetTemplateEngine {
 	return &JsonnetTemplateEngine{
 		fs:            fs,
 		logger:        logger,
 		context:       context,
 		contentWriter: contentWriter,
+		downloader:    downloader,
 	}
 }
 
@@ -166,7 +169,7 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
 	var jpaths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
-			libDir, err := engine.context.PushGFlowsLib(engine.fs, path)
+			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, path)
 			if err != nil {
 				// TODO: handle this
 				panic(err)

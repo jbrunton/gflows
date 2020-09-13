@@ -10,6 +10,10 @@ func (container *Container) ContentWriter() *Writer {
 	return NewWriter(container.FileSystem(), container.Logger())
 }
 
+func (container *Container) Downloader() *Downloader {
+	return NewDownloader(container.FileSystem(), container.ContentWriter())
+}
+
 func NewContainer(parentContainer *io.Container) *Container {
 	return &Container{parentContainer}
 }

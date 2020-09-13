@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io"
 	"github.com/spf13/afero"
 )
@@ -87,7 +86,7 @@ func (writer *Writer) UpdateFileContent(destination string, content string, deta
 	}
 }
 
-func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.GFlowsContext, generator WorkflowGenerator) error {
+func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, contextDir string, generator WorkflowGenerator) error {
 	for _, source := range generator.Sources {
 		sourcePath := source.Source
 
@@ -97,7 +96,7 @@ func (writer *Writer) ApplyGenerator(sourceFs http.FileSystem, context *config.G
 		}
 		defer file.Close()
 
-		destinationPath := filepath.Join(context.Dir, generator.renderTemplate(source.Destination))
+		destinationPath := filepath.Join(contextDir, generator.renderTemplate(source.Destination))
 		template, err := ioutil.ReadAll(file)
 		if err != nil {
 			return fmt.Errorf("Error applying generator %s (file: %s)\n%s", generator.Name, sourcePath, err)

@@ -20,7 +20,6 @@ type GFlowsContext struct {
 	WorkflowsDir string
 	Config       *GFlowsConfig
 	EnableColors bool
-	Libs         map[string]*GFlowsLib
 }
 
 type ContextOpts struct {
@@ -56,7 +55,6 @@ func NewContext(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (*GFlowsCo
 		WorkflowsDir: workflowsDir,
 		Dir:          contextDir,
 		EnableColors: opts.EnableColors,
-		Libs:         make(map[string]*GFlowsLib),
 	}
 
 	logger.Debugf("Creating context: %s\n", spew.Sdump(context))
@@ -121,20 +119,6 @@ func (context *GFlowsContext) ResolvePath(path string) string {
 		return path
 	}
 	return filepath.Join(context.Dir, path)
-}
-
-func (context *GFlowsContext) PushGFlowsLib(fs *afero.Afero, libUrl string) (string, error) {
-	lib := context.Libs[libUrl]
-	if lib != nil {
-		// already processed
-		return lib.TempDir, nil
-	}
-
-	lib = NewGFlowsLib(libUrl, fs)
-	lib.Download()
-	context.Libs[libUrl] = lib
-
-	return lib.TempDir, nil
 }
 
 // ResolvePaths - returns an array of resolved paths

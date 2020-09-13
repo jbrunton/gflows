@@ -1,15 +1,13 @@
-package config
+package env
 
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
-	"os"
 	"path"
 	"path/filepath"
 
+	"github.com/jbrunton/gflows/io/content"
 	"github.com/spf13/afero"
 )
 
@@ -17,35 +15,35 @@ type GFlowsLib struct {
 	ManifestUrl string
 	Files       []string
 	TempDir     string
-	FileSystem  *afero.Afero
+	fs          *afero.Afero
+	downloader  *content.Downloader
 }
 
 type GFlowsLibManifest struct {
 	Files []string
 }
 
-var libs []*GFlowsLib
+var libs map[string]*GFlowsLib
 
-func NewGFlowsLib(manifestUrl string, fs *afero.Afero) *GFlowsLib {
-	lib := &GFlowsLib{
+func NewGFlowsLib(manifestUrl string, fs *afero.Afero, downloader *content.Downloader) *GFlowsLib {
+	return &GFlowsLib{
 		ManifestUrl: manifestUrl,
-		FileSystem:  fs,
+		downloader:  downloader,
+		fs:          fs,
 	}
-	libs = append(libs, lib)
-	return lib
 }
 
 func (lib *GFlowsLib) CleanUp() {
 	if lib.TempDir != "" {
 		fmt.Println("Removing temp directory", lib.TempDir)
-		lib.FileSystem.RemoveAll(lib.TempDir)
+		lib.fs.RemoveAll(lib.TempDir)
 	}
 }
 
 func (lib *GFlowsLib) Download() error {
 	fmt.Printf("Downloading lib from %s...\n", lib.ManifestUrl)
 	manifestFilename := filepath.Base(lib.ManifestUrl)
-	tempDir, err := lib.FileSystem.TempDir("", manifestFilename)
+	tempDir, err := lib.fs.TempDir("", manifestFilename)
 	if err != nil {
 		panic(err)
 	}
@@ -57,12 +55,12 @@ func (lib *GFlowsLib) Download() error {
 	rootUrl.Path = path.Dir(rootUrl.Path)
 
 	manifestPath := filepath.Join(tempDir, manifestFilename)
-	err = DownloadFile(lib.ManifestUrl, manifestPath, lib.FileSystem)
+	err = lib.downloader.DownloadFile(lib.ManifestUrl, manifestPath)
 	if err != nil {
 		return err
 	}
 
-	manifestContent, err := lib.FileSystem.ReadFile(manifestPath)
+	manifestContent, err := lib.fs.ReadFile(manifestPath)
 	if err != nil {
 		return err
 	}
@@ -75,7 +73,7 @@ func (lib *GFlowsLib) Download() error {
 		url, _ := url.Parse(rootUrl.String())
 		url.Path = path.Join(url.Path, relPath)
 		dest := filepath.Join(tempDir, relPath)
-		err = DownloadFile(url.String(), dest, lib.FileSystem)
+		err = lib.downloader.DownloadFile(url.String(), dest)
 		if err != nil {
 			return err
 		}
@@ -88,45 +86,26 @@ func (lib *GFlowsLib) Download() error {
 	return nil
 }
 
-func DownloadFile(url string, path string, fs *afero.Afero) error {
-	// Create the file
-	dir := filepath.Dir(path)
-	if _, err := fs.Stat(dir); err != nil {
-		if os.IsNotExist(err) {
-			err = fs.MkdirAll(dir, os.ModePerm)
-			if err != nil {
-				return err
-			}
-		}
+func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, libUrl string) (string, error) {
+	lib := libs[libUrl]
+	if lib != nil {
+		// already processed
+		return lib.TempDir, nil
 	}
 
-	out, err := os.Create(path)
-	if err != nil {
-		fmt.Println("Error creating file")
-		return err
-	}
-	defer out.Close()
+	lib = NewGFlowsLib(libUrl, fs, downloader)
+	lib.Download()
+	libs[libUrl] = lib
 
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("  Downloaded", url)
-
-	return nil
+	return lib.TempDir, nil
 }
 
 func CleanUpLibs() {
 	for _, lib := range libs {
 		lib.CleanUp()
 	}
+}
+
+func init() {
+	libs = make(map[string]*GFlowsLib)
 }

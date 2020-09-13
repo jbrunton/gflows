@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/workflow/env"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 )
@@ -61,7 +61,7 @@ func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
-			config.CleanUpLibs()
+			env.CleanUpLibs()
 		},
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")
