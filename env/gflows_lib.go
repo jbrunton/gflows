@@ -64,7 +64,7 @@ func (lib *GFlowsLib) Download() error {
 
 	err = lib.downloadLibFiles(rootUrl, manifest)
 
-	if err != nil {
+	if err == nil {
 		fmt.Printf("Downloaded and unpacked %s\n", lib.ManifestName)
 	}
 
