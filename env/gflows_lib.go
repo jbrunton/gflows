@@ -6,18 +6,34 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"strings"
 
+	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/spf13/afero"
 )
 
 type GFlowsLib struct {
-	ManifestUrl  string
+	// ManifestPath - the path specified as the lib manifest. Can be remote, local (relative) or
+	// local (absolute).
+	ManifestPath string
+
+	// ManifestName - the name of the manifest, which is the file name (without the path).
+	// E.g. /path/to/my-manifest.gflowslib has the name `my-manifest.gflowslib`
 	ManifestName string
-	Files        []string
-	tempDir      string
-	fs           *afero.Afero
-	downloader   *content.Downloader
+
+	// LocalDir - the local directory of the library, to add to the lib paths. If ManifestPath is
+	// local then this will simply be ManifestPath. If ManifestPath is remote, then this will be
+	// a local temp directory.
+	LocalDir string
+
+	// Files - the list of files in the library. If the manifest is remote, this list is used to
+	// download the files.
+	Files []string
+
+	fs         *afero.Afero
+	downloader *content.Downloader
+	context    *config.GFlowsContext
 }
 
 type GFlowsLibManifest struct {
@@ -26,32 +42,44 @@ type GFlowsLibManifest struct {
 
 var libs map[string]*GFlowsLib
 
-func NewGFlowsLib(manifestUrl string, fs *afero.Afero, downloader *content.Downloader) *GFlowsLib {
-	manifestName := filepath.Base(manifestUrl)
+func NewGFlowsLib(manifestPath string, fs *afero.Afero, downloader *content.Downloader, context *config.GFlowsContext) *GFlowsLib {
+	manifestName := filepath.Base(manifestPath)
 	return &GFlowsLib{
-		ManifestUrl:  manifestUrl,
+		ManifestPath: manifestPath,
 		ManifestName: manifestName,
 		downloader:   downloader,
 		fs:           fs,
+		context:      context,
 	}
 }
 
+func (lib *GFlowsLib) isRemote() bool {
+	return strings.HasPrefix(lib.ManifestPath, "http://") || strings.HasPrefix(lib.ManifestPath, "https://")
+}
+
 func (lib *GFlowsLib) CleanUp() {
-	if lib.tempDir != "" {
-		fmt.Println("Removing temp directory", lib.tempDir)
-		lib.fs.RemoveAll(lib.tempDir)
+	if lib.isRemote() {
+		fmt.Println("Removing temp directory", lib.LocalDir)
+		lib.fs.RemoveAll(lib.LocalDir)
 	}
 }
 
 func (lib *GFlowsLib) Download() error {
-	fmt.Printf("Downloading %s from %s...\n", lib.ManifestName, lib.ManifestUrl)
+	if !lib.isRemote() {
+		// TODO: maybe move this out of the lib class
+		lib.LocalDir = lib.context.ResolvePath(path.Dir(lib.ManifestPath))
+		fmt.Printf("Using %s (%s)\n", lib.ManifestName, lib.LocalDir)
+		return nil
+	}
+
+	fmt.Printf("Downloading %s from %s...\n", lib.ManifestName, lib.ManifestPath)
 	tempDir, err := lib.fs.TempDir("", lib.ManifestName)
 	if err != nil {
 		return err
 	}
-	lib.tempDir = tempDir
+	lib.LocalDir = tempDir
 
-	rootUrl, err := url.Parse(lib.ManifestUrl)
+	rootUrl, err := url.Parse(lib.ManifestPath)
 	if err != nil {
 		return err
 	}
@@ -72,13 +100,13 @@ func (lib *GFlowsLib) Download() error {
 }
 
 func (lib *GFlowsLib) downloadManifest() (*GFlowsLibManifest, error) {
-	manifestPath := filepath.Join(lib.tempDir, lib.ManifestName)
-	err := lib.downloader.DownloadFile(lib.ManifestUrl, manifestPath)
+	localPath := filepath.Join(lib.LocalDir, lib.ManifestName)
+	err := lib.downloader.DownloadFile(lib.ManifestPath, localPath)
 	if err != nil {
 		return nil, err
 	}
 
-	manifestContent, err := lib.fs.ReadFile(manifestPath)
+	manifestContent, err := lib.fs.ReadFile(localPath)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +121,7 @@ func (lib *GFlowsLib) downloadLibFiles(rootUrl *url.URL, manifest *GFlowsLibMani
 		// should be safe to ignore the error since we know it's valid
 		url, _ := url.Parse(rootUrl.String())
 		url.Path = path.Join(url.Path, relPath)
-		dest := filepath.Join(lib.tempDir, relPath)
+		dest := filepath.Join(lib.LocalDir, relPath)
 		err := lib.downloader.DownloadFile(url.String(), dest)
 		if err != nil {
 			return err
@@ -102,21 +130,21 @@ func (lib *GFlowsLib) downloadLibFiles(rootUrl *url.URL, manifest *GFlowsLibMani
 	return nil
 }
 
-func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, libUrl string) (string, error) {
+func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, libUrl string, context *config.GFlowsContext) (string, error) {
 	lib := libs[libUrl]
 	if lib != nil {
 		// already processed
-		return lib.tempDir, nil
+		return lib.LocalDir, nil
 	}
 
-	lib = NewGFlowsLib(libUrl, fs, downloader)
+	lib = NewGFlowsLib(libUrl, fs, downloader, context)
 	err := lib.Download()
 	if err != nil {
 		return "", err
 	}
 
 	libs[libUrl] = lib
-	return lib.tempDir, nil
+	return lib.LocalDir, nil
 }
 
 func CleanUpLibs() {

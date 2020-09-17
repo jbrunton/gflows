@@ -158,8 +158,9 @@ func (engine *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filena
 
 func (engine *JsonnetTemplateEngine) createVM(workflowName string) *gojsonnet.VM {
 	vm := gojsonnet.MakeVM()
+	jpaths := engine.getJPath(workflowName)
 	vm.Importer(&gojsonnet.FileImporter{
-		JPaths: engine.getJPath(workflowName),
+		JPaths: jpaths,
 	})
 	vm.StringOutput = true
 	return vm
@@ -169,10 +170,18 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
 	var jpaths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
-			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, path)
+			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, path, engine.context)
 			if err != nil {
 				// TODO: handle this
 				panic(err)
+			}
+			cd, err := os.Getwd()
+			if err != nil {
+				// TODO: handle this
+				panic(err)
+			}
+			if !filepath.IsAbs(libDir) {
+				libDir = filepath.Join(cd, libDir)
 			}
 			jpaths = append(jpaths, libDir)
 		} else {

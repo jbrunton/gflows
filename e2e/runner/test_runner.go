@@ -2,7 +2,9 @@ package runner
 
 import (
 	"bytes"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jbrunton/gflows/cmd"
@@ -19,6 +21,7 @@ import (
 type TestFile struct {
 	Path    string
 	Content string
+	Copy    string
 }
 
 type TestSetup struct {
@@ -41,6 +44,7 @@ type TestRunner struct {
 	testPath  string
 	test      *Test
 	useMemFs  bool
+	fs        *afero.Afero
 	out       *bytes.Buffer
 	container *content.Container
 	assert    Assertions
@@ -75,12 +79,23 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 		out:       out,
 		container: contentContainer,
 		assert:    assert,
+		fs:        fs,
 	}
 }
 
-func (runner *TestRunner) setup() error {
+func (runner *TestRunner) setup(e2eDirectory string) error {
+	projectDirectory := filepath.Dir(e2eDirectory)
+	fmt.Println("projectDirectory:", projectDirectory)
 	for _, file := range runner.test.Setup.Files {
-		err := runner.container.ContentWriter().SafelyWriteFile(file.Path, file.Content)
+		content := file.Content
+		if file.Copy != "" {
+			source, err := runner.fs.ReadFile(filepath.Join(projectDirectory, file.Copy))
+			if err != nil {
+				return err
+			}
+			content = string(source)
+		}
+		err := runner.container.ContentWriter().SafelyWriteFile(file.Path, content)
 		if err != nil {
 			return err
 		}
@@ -90,6 +105,10 @@ func (runner *TestRunner) setup() error {
 
 func (runner *TestRunner) Run() {
 	fs := runner.container.FileSystem()
+	cd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 	if !runner.useMemFs {
 		tmpDir, err := fs.TempDir("", "gflows-e2e")
 		if err != nil {
@@ -97,15 +116,11 @@ func (runner *TestRunner) Run() {
 		}
 		defer fs.RemoveAll(tmpDir)
 
-		cd, err := os.Getwd()
-		if err != nil {
-			panic(err)
-		}
 		os.Chdir(tmpDir)
 		defer os.Chdir(cd)
 	}
 
-	err := runner.setup()
+	err = runner.setup(cd)
 	if err != nil {
 		panic(err)
 	}

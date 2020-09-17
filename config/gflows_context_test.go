@@ -40,6 +40,7 @@ func newTestCommand(run func(*cobra.Command, []string)) *cobra.Command {
 func TestResolvePath(t *testing.T) {
 	context := newTestContext()
 	assert.Equal(t, ".gflows/foo", context.ResolvePath("foo"))
+	assert.Equal(t, "foo", context.ResolvePath("../foo"))
 	assert.Equal(t, "http://example.com", context.ResolvePath("http://example.com"))
 	assert.Equal(t, "https://example.com", context.ResolvePath("https://example.com"))
 	assert.Equal(t, ".gflows/http/lib", context.ResolvePath("http/lib"))
