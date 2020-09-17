@@ -110,9 +110,12 @@ func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, libUrl strin
 	}
 
 	lib = NewGFlowsLib(libUrl, fs, downloader)
-	lib.Download()
-	libs[libUrl] = lib
+	err := lib.Download()
+	if err != nil {
+		return "", err
+	}
 
+	libs[libUrl] = lib
 	return lib.tempDir, nil
 }
 
