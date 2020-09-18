@@ -1,5 +1,9 @@
 setup:
   files:
+    - path: https://example.com/libs/my-lib.gflowslib
+      copy: e2e/gflowslibs/jsonnet/my-lib.gflowslib
+    - path: https://example.com/libs/libs/workflows/steps.libsonnet
+      copy: e2e/gflowslibs/jsonnet/workflows/steps.libsonnet
     - path: .gflows/config.yml
       # TODO: target master branch in link below (or make configurable)
       content: |
@@ -7,7 +11,7 @@ setup:
           engine: jsonnet
           defaults:
             libs:
-            - https://raw.githubusercontent.com/jbrunton/gflows/remote-libs/e2e/gflowslibs/jsonnet/my-lib.gflowslib
+            - https://example.com/libs/my-lib.gflowslib
     - path: .gflows/workflows/test.jsonnet
       content: |
         local steps = import 'workflows/steps.libsonnet';
