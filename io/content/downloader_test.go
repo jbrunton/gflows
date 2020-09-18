@@ -1,9 +1,10 @@
 package content
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/jbrunton/gflows/fixtures"
@@ -11,34 +12,33 @@ import (
 )
 
 func TestDownloadFile(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, "my file")
-	}))
-	defer server.Close()
+	testClient := fixtures.NewTestClient()
+	testClient.StubBody("https://example.com/my-file.txt", "my file")
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer)
+	downloader := NewDownloader(fs, writer, testClient.Client)
 
-	err := downloader.DownloadFile(server.URL, "/my/file")
+	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
 
 	content, _ := fs.ReadFile("/my/file")
-	assert.Equal(t, "my file\n", string(content))
+	assert.Equal(t, "my file", string(content))
 	assert.Nil(t, err)
 }
 
 func TestHttpError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	}))
-	defer server.Close()
+	testClient := fixtures.NewTestClient()
+	testClient.StubResponse("https://example.com/my-file.txt", &http.Response{
+		StatusCode: http.StatusInternalServerError,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+		Header:     make(http.Header),
+	})
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer)
+	downloader := NewDownloader(fs, writer, testClient.Client)
 
-	err := downloader.DownloadFile(server.URL, "/my/file")
+	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
 
-	assert.EqualError(t, err, fmt.Sprintf("Received status code 500 from %s", server.URL))
+	assert.EqualError(t, err, fmt.Sprintf("Received status code 500 from https://example.com/my-file.txt"))
 }

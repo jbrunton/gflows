@@ -14,7 +14,7 @@ import (
 
 func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsContext, *YttTemplateEngine) {
 	ioContainer, context, _ := fixtures.NewTestContext(config)
-	container := content.NewContainer(ioContainer)
+	container := content.NewContainer(ioContainer, fixtures.NewTestClient().Client)
 	templateEngine := NewYttTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter())
 	return container, context, templateEngine
 }

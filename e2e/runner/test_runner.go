@@ -3,14 +3,13 @@ package runner
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/fixtures"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io/styles"
@@ -19,47 +18,6 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
-
-type TestRoundTripper struct {
-	responses map[string]*http.Response
-}
-
-type TestHttpClient struct {
-	*http.Client
-	roundTripper *TestRoundTripper
-}
-
-func (httpClient *TestHttpClient) stubResponse(url string, response *http.Response) {
-	fmt.Println("stubbing response for", url)
-	httpClient.roundTripper.responses[url] = response
-}
-
-func (httpClient *TestHttpClient) stubBody(url string, responseBody string) {
-	httpClient.stubResponse(url, &http.Response{
-		StatusCode: 200,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(responseBody)),
-		Header:     make(http.Header),
-	})
-}
-
-func (roundTripper *TestRoundTripper) RoundTrip(request *http.Request) (*http.Response, error) {
-	url := request.URL.String()
-	response := roundTripper.responses[url]
-	if response == nil {
-		return nil, fmt.Errorf("Missing response for %s", url)
-	}
-	return response, nil
-}
-
-func NewTestClient() *TestHttpClient {
-	testRoundTripper := &TestRoundTripper{
-		responses: make(map[string]*http.Response),
-	}
-	return &TestHttpClient{
-		&http.Client{Transport: testRoundTripper},
-		testRoundTripper,
-	}
-}
 
 type TestFile struct {
 	Path    string
@@ -91,7 +49,7 @@ type TestRunner struct {
 	out        *bytes.Buffer
 	container  *content.Container
 	assert     Assertions
-	httpClient *TestHttpClient
+	httpClient *fixtures.TestHttpClient
 }
 
 func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *TestRunner {
@@ -113,7 +71,7 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 	}
 
 	out := new(bytes.Buffer)
-	httpClient := NewTestClient()
+	httpClient := fixtures.NewTestClient()
 	ioContainer := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false))
 	contentContainer := content.NewContainer(ioContainer, httpClient.Client)
 
@@ -142,7 +100,7 @@ func (runner *TestRunner) setup(e2eDirectory string) error {
 			content = string(source)
 		}
 		if strings.HasPrefix(file.Path, "http://") || strings.HasPrefix(file.Path, "https://") {
-			runner.httpClient.stubBody(file.Path, content)
+			runner.httpClient.StubBody(file.Path, content)
 		} else {
 			err := runner.container.ContentWriter().SafelyWriteFile(file.Path, content)
 			if err != nil {
