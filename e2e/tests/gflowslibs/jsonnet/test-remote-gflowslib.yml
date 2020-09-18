@@ -2,7 +2,7 @@ setup:
   files:
     - path: https://example.com/libs/my-lib.gflowslib
       copy: e2e/gflowslibs/jsonnet/my-lib.gflowslib
-    - path: https://example.com/libs/libs/workflows/steps.libsonnet
+    - path: https://example.com/libs/workflows/steps.libsonnet
       copy: e2e/gflowslibs/jsonnet/workflows/steps.libsonnet
     - path: .gflows/config.yml
       # TODO: target master branch in link below (or make configurable)

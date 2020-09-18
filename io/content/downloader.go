@@ -9,19 +9,21 @@ import (
 )
 
 type Downloader struct {
-	fs     *afero.Afero
-	writer *Writer
+	fs         *afero.Afero
+	writer     *Writer
+	httpClient *http.Client
 }
 
-func NewDownloader(fs *afero.Afero, writer *Writer) *Downloader {
+func NewDownloader(fs *afero.Afero, writer *Writer, httpClient *http.Client) *Downloader {
 	return &Downloader{
-		fs:     fs,
-		writer: writer,
+		fs:         fs,
+		writer:     writer,
+		httpClient: httpClient,
 	}
 }
 
 func (downloader *Downloader) DownloadFile(url string, path string) error {
-	resp, err := http.Get(url)
+	resp, err := downloader.httpClient.Get(url)
 	if err != nil {
 		return err
 	}
