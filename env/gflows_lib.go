@@ -27,17 +27,15 @@ type GFlowsLib struct {
 	// a local temp directory.
 	LocalDir string
 
-	// Files - the list of files in the library. If the manifest is remote, this list is used to
-	// download the files.
-	Files []string
-
 	fs         *afero.Afero
 	downloader *content.Downloader
 	context    *config.GFlowsContext
 }
 
 type GFlowsLibManifest struct {
-	Files []string
+	// Libs - the list of files in the library. If the manifest is remote, this list is used to
+	// download the files.
+	Libs []string
 }
 
 var libs map[string]*GFlowsLib
@@ -117,7 +115,7 @@ func (lib *GFlowsLib) downloadManifest() (*GFlowsLibManifest, error) {
 }
 
 func (lib *GFlowsLib) downloadLibFiles(rootUrl *url.URL, manifest *GFlowsLibManifest) error {
-	for _, relPath := range manifest.Files {
+	for _, relPath := range manifest.Libs {
 		// should be safe to ignore the error since we know it's valid
 		url, _ := url.Parse(rootUrl.String())
 		url.Path = path.Join(url.Path, relPath)
