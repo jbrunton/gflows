@@ -23,7 +23,7 @@ import (
 type TestFile struct {
 	Path    string
 	Content string
-	Copy    string
+	Source  string
 }
 
 type TestSetup struct {
@@ -93,8 +93,8 @@ func (runner *TestRunner) setup(e2eDirectory string) error {
 	fmt.Println("projectDirectory:", projectDirectory)
 	for _, file := range runner.test.Setup.Files {
 		content := file.Content
-		if file.Copy != "" {
-			source, err := runner.fs.ReadFile(filepath.Join(projectDirectory, file.Copy))
+		if file.Source != "" {
+			source, err := runner.fs.ReadFile(filepath.Join(projectDirectory, file.Source))
 			if err != nil {
 				return err
 			}
