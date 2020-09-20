@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -22,7 +23,7 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	styles := container.Styles()
 	validator := workflow.NewValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)
-	downloader := content.NewDownloader(fs, contentWriter, fixtures.NewTestClient().Client)
+	downloader := content.NewDownloader(fs, contentWriter, &http.Client{Transport: fixtures.NewTestRoundTripper()})
 	templateEngine := CreateWorkflowEngine(fs, logger, context, contentWriter, downloader)
 	return fs, out, NewWorkflowManager(
 		fs,

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -18,7 +19,7 @@ func newJsonnetTemplateEngine(config string) (*content.Container, *config.GFlows
 		config = "templates:\n  engine: jsonnet"
 	}
 	ioContainer, context, _ := fixtures.NewTestContext(config)
-	container := content.NewContainer(ioContainer, fixtures.NewTestClient().Client)
+	container := content.NewContainer(ioContainer, &http.Client{Transport: fixtures.NewTestRoundTripper()})
 	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter(), container.Downloader())
 	return container, context, templateEngine
 }

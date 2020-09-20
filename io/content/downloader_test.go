@@ -12,12 +12,12 @@ import (
 )
 
 func TestDownloadFile(t *testing.T) {
-	testClient := fixtures.NewTestClient()
-	testClient.StubBody("https://example.com/my-file.txt", "my file")
+	roundTripper := fixtures.NewTestRoundTripper()
+	roundTripper.StubBody("https://example.com/my-file.txt", "my file")
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer, testClient.Client)
+	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper})
 
 	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
 
@@ -27,8 +27,8 @@ func TestDownloadFile(t *testing.T) {
 }
 
 func TestHttpError(t *testing.T) {
-	testClient := fixtures.NewTestClient()
-	testClient.StubResponse("https://example.com/my-file.txt", &http.Response{
+	roundTripper := fixtures.NewTestRoundTripper()
+	roundTripper.StubResponse("https://example.com/my-file.txt", &http.Response{
 		StatusCode: http.StatusInternalServerError,
 		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
 		Header:     make(http.Header),
@@ -36,7 +36,7 @@ func TestHttpError(t *testing.T) {
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer, testClient.Client)
+	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper})
 
 	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
 

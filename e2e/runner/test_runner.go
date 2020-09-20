@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,14 +43,14 @@ type Test struct {
 }
 
 type TestRunner struct {
-	testPath   string
-	test       *Test
-	useMemFs   bool
-	fs         *afero.Afero
-	out        *bytes.Buffer
-	container  *content.Container
-	assert     Assertions
-	httpClient *fixtures.TestHttpClient
+	testPath     string
+	test         *Test
+	useMemFs     bool
+	fs           *afero.Afero
+	out          *bytes.Buffer
+	container    *content.Container
+	assert       Assertions
+	roundTripper *fixtures.TestRoundTripper
 }
 
 func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *TestRunner {
@@ -71,19 +72,19 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 	}
 
 	out := new(bytes.Buffer)
-	httpClient := fixtures.NewTestClient()
+	roundTripper := fixtures.NewTestRoundTripper()
 	ioContainer := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false))
-	contentContainer := content.NewContainer(ioContainer, httpClient.Client)
+	contentContainer := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
 
 	return &TestRunner{
-		testPath:   testPath,
-		test:       &test,
-		useMemFs:   useMemFs,
-		out:        out,
-		container:  contentContainer,
-		assert:     assert,
-		fs:         fs,
-		httpClient: httpClient,
+		testPath:     testPath,
+		test:         &test,
+		useMemFs:     useMemFs,
+		out:          out,
+		container:    contentContainer,
+		assert:       assert,
+		fs:           fs,
+		roundTripper: roundTripper,
 	}
 }
 
@@ -100,7 +101,7 @@ func (runner *TestRunner) setup(e2eDirectory string) error {
 			content = string(source)
 		}
 		if strings.HasPrefix(file.Path, "http://") || strings.HasPrefix(file.Path, "https://") {
-			runner.httpClient.StubBody(file.Path, content)
+			runner.roundTripper.StubBody(file.Path, content)
 		} else {
 			err := runner.container.ContentWriter().SafelyWriteFile(file.Path, content)
 			if err != nil {
