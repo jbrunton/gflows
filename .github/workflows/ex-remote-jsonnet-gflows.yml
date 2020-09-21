@@ -2,7 +2,7 @@
 # Source: .gflows/examples/remote-lib-jsonnet/workflows/ex-remote-jsonnet-gflows.jsonnet
 "jobs":
   "check_workflows":
-    "name": "check-workflows [ex-default-jsonnet-gflows]"
+    "name": "check-workflows [ex-remote-jsonnet-gflows]"
     "runs-on": "ubuntu-latest"
     "steps":
     - "uses": "actions/checkout@v2"
@@ -12,7 +12,9 @@
     - "uses": "jbrunton/setup-gflows@v1"
       "with":
         "token": "${{ secrets.GITHUB_TOKEN }}"
-    - "name": "validate workflows"
+    - "env":
+        "GFLOWS_CONFIG": ".gflows/examples/remote-lib-jsonnet/config.yml"
+      "name": "validate workflows"
       "run": "gflows check"
 "name": "gflows"
 "on":

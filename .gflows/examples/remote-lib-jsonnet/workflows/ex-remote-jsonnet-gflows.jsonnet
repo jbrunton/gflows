@@ -3,7 +3,7 @@ local steps = import 'common/steps.libsonnet';
 local workflows = import 'common/workflows.libsonnet';
 
 local check_workflows_job = {
-  'name': 'check-workflows [ex-default-jsonnet-gflows]',
+  'name': 'check-workflows [ex-remote-jsonnet-gflows]',
   'runs-on': 'ubuntu-latest',
   steps: [
     steps.checkout,
@@ -13,7 +13,11 @@ local check_workflows_job = {
         token: "${{ secrets.GITHUB_TOKEN }}",
       }
     },
-    steps.named('validate workflows', 'gflows check')
+    steps.named('validate workflows', 'gflows check') {
+      env: {
+        GFLOWS_CONFIG: '.gflows/examples/remote-lib-jsonnet/config.yml'
+      },
+    },
   ]
 };
 
