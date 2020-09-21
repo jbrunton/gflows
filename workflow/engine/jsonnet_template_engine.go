@@ -70,7 +70,10 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 	definitions := []*workflow.Definition{}
 	for _, templatePath := range templates {
 		workflowName := engine.getWorkflowName(engine.context.WorkflowsDir, templatePath)
-		vm := engine.createVM(workflowName)
+		vm, err := engine.createVM(workflowName)
+		if err != nil {
+			return []*workflow.Definition{}, err
+		}
 		input, err := engine.fs.ReadFile(templatePath)
 		if err != nil {
 			return []*workflow.Definition{}, err
@@ -156,29 +159,30 @@ func (engine *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filena
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
-func (engine *JsonnetTemplateEngine) createVM(workflowName string) *gojsonnet.VM {
+func (engine *JsonnetTemplateEngine) createVM(workflowName string) (*gojsonnet.VM, error) {
 	vm := gojsonnet.MakeVM()
-	jpaths := engine.getJPath(workflowName)
+	jpaths, err := engine.getJPath(workflowName)
+	if err != nil {
+		return nil, err
+	}
 	vm.Importer(&gojsonnet.FileImporter{
 		JPaths: jpaths,
 	})
 	vm.StringOutput = true
-	return vm
+	return vm, nil
 }
 
-func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
+func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, error) {
 	var jpaths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
 			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, engine.logger, path, engine.context)
 			if err != nil {
-				// TODO: handle this
-				panic(err)
+				return []string{}, err
 			}
 			cd, err := os.Getwd()
 			if err != nil {
-				// TODO: handle this
-				panic(err)
+				return []string{}, err
 			}
 			if !filepath.IsAbs(libDir) {
 				libDir = filepath.Join(cd, libDir)
@@ -188,5 +192,5 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
 			jpaths = append(jpaths, path)
 		}
 	}
-	return engine.context.ResolvePaths(jpaths)
+	return engine.context.ResolvePaths(jpaths), nil
 }

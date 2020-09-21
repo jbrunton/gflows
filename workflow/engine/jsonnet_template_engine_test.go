@@ -102,6 +102,9 @@ func TestGetJPath(t *testing.T) {
 	}, "\n")
 	_, _, engine := newJsonnetTemplateEngine(config)
 
-	assert.Equal(t, []string{".gflows/some-lib", ".gflows/my-lib"}, engine.getJPath("my-workflow"))
-	assert.Equal(t, []string{".gflows/some-lib"}, engine.getJPath("other-workflow"))
+	jpath, _ := engine.getJPath("my-workflow")
+	assert.Equal(t, []string{".gflows/some-lib", ".gflows/my-lib"}, jpath)
+
+	jpath, _ = engine.getJPath("other-workflow")
+	assert.Equal(t, []string{".gflows/some-lib"}, jpath)
 }

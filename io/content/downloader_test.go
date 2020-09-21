@@ -17,7 +17,7 @@ func TestDownloadFile(t *testing.T) {
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper})
+	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper}, container.Logger())
 
 	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
 
@@ -36,7 +36,7 @@ func TestHttpError(t *testing.T) {
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
 	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper})
+	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper}, container.Logger())
 
 	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
 
