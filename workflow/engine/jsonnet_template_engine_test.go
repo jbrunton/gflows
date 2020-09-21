@@ -108,3 +108,16 @@ func TestGetJPath(t *testing.T) {
 	jpath, _ = engine.getJPath("other-workflow")
 	assert.Equal(t, []string{".gflows/some-lib"}, jpath)
 }
+
+func TestJPathErrors(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: jsonnet",
+		"  defaults:",
+		"    libs: [https://example.com/my-lib.gflowslib]",
+	}, "\n")
+	_, _, engine := newJsonnetTemplateEngine(config)
+
+	_, err := engine.getJPath("my-workflow")
+	assert.EqualError(t, err, `Get "https://example.com/my-lib.gflowslib": Missing response for https://example.com/my-lib.gflowslib`)
+}
