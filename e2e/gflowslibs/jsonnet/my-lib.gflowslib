@@ -1,7 +1,7 @@
 {
   "libs": [
-    "workflows/steps.libsonnet",
-    "workflows/git.libsonnet",
-    "workflows/workflows.libsonnet"
+    "common/steps.libsonnet",
+    "common/git.libsonnet",
+    "common/workflows.libsonnet"
   ]
 }
