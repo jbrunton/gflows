@@ -17,5 +17,5 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: validate workflows
       env:
-        GFLOWS_CONFIG: $GFLOWS_CONFIG
+        GFLOWS_CONFIG: $CONFIG_PATH
       run: gflows check
