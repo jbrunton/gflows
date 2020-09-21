@@ -16,7 +16,7 @@ import (
 func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsContext, *YttTemplateEngine) {
 	ioContainer, context, _ := fixtures.NewTestContext(config)
 	container := content.NewContainer(ioContainer, &http.Client{Transport: fixtures.NewTestRoundTripper()})
-	templateEngine := NewYttTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter())
+	templateEngine := NewYttTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter(), container.Downloader())
 	return container, context, templateEngine
 }
 
@@ -97,8 +97,10 @@ func TestGetYttLibs(t *testing.T) {
 	}, "\n")
 	_, _, engine := newYttTemplateEngine(config)
 
-	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, engine.getYttLibs("my-workflow"))
-	assert.Equal(t, []string{".gflows/common", ".gflows/config"}, engine.getYttLibs("other-workflow"))
+	paths, _ := engine.getYttLibs("my-workflow")
+	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, paths)
+	paths, _ = engine.getYttLibs("other-workflow")
+	assert.Equal(t, []string{".gflows/common", ".gflows/config"}, paths)
 }
 
 func TestIsLib(t *testing.T) {

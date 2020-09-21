@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
@@ -24,14 +25,16 @@ type YttTemplateEngine struct {
 	logger        *io.Logger
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
+	downloader    *content.Downloader
 }
 
-func NewYttTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *YttTemplateEngine {
+func NewYttTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer, downloader *content.Downloader) *YttTemplateEngine {
 	return &YttTemplateEngine{
 		fs:            fs,
 		logger:        logger,
 		context:       context,
 		contentWriter: contentWriter,
+		downloader:    downloader,
 	}
 }
 
@@ -129,7 +132,12 @@ func (engine *YttTemplateEngine) getInput(workflowName string, templateDir strin
 		}
 		in.Files = append(in.Files, file)
 	}
-	libs, err := files.NewSortedFilesFromPaths(engine.getYttLibs(workflowName), files.SymlinkAllowOpts{})
+	paths, err := engine.getYttLibs(workflowName)
+	if err != nil {
+		// TODO: handle this
+		panic(err)
+	}
+	libs, err := files.NewSortedFilesFromPaths(paths, files.SymlinkAllowOpts{})
 	if err != nil {
 		panic(err)
 	}
@@ -246,9 +254,27 @@ func (engine *YttTemplateEngine) getAllYttLibs() []string {
 	return engine.context.ResolvePaths(libs)
 }
 
-func (engine *YttTemplateEngine) getYttLibs(workflowName string) []string {
-	libs := engine.context.Config.GetTemplateLibs(workflowName)
-	return engine.context.ResolvePaths(libs)
+func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, error) {
+	var paths []string
+	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
+		if strings.HasSuffix(path, ".gflowslib") {
+			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, engine.logger, path, engine.context)
+			if err != nil {
+				return []string{}, err
+			}
+			cd, err := os.Getwd()
+			if err != nil {
+				return []string{}, err
+			}
+			if !filepath.IsAbs(libDir) {
+				libDir = filepath.Join(cd, libDir)
+			}
+			paths = append(paths, libDir)
+		} else {
+			paths = append(paths, path)
+		}
+	}
+	return engine.context.ResolvePaths(paths), nil
 }
 
 func (engine *YttTemplateEngine) isLib(path string) bool {
