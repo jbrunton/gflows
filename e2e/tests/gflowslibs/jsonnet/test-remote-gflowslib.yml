@@ -2,8 +2,12 @@ setup:
   files:
     - path: https://example.com/libs/my-lib.gflowslib
       source: e2e/gflowslibs/jsonnet/my-lib.gflowslib
-    - path: https://example.com/libs/workflows/steps.libsonnet
-      source: e2e/gflowslibs/jsonnet/workflows/steps.libsonnet
+    - path: https://example.com/libs/common/steps.libsonnet
+      source: e2e/gflowslibs/jsonnet/common/steps.libsonnet
+    - path: https://example.com/libs/common/git.libsonnet
+      source: e2e/gflowslibs/jsonnet/common/git.libsonnet
+    - path: https://example.com/libs/common/workflows.libsonnet
+      source: e2e/gflowslibs/jsonnet/common/workflows.libsonnet
     - path: .gflows/config.yml
       content: |
         templates:
@@ -13,7 +17,7 @@ setup:
             - https://example.com/libs/my-lib.gflowslib
     - path: .gflows/workflows/test.jsonnet
       content: |
-        local steps = import 'workflows/steps.libsonnet';
+        local steps = import 'common/steps.libsonnet';
         local workflow = {
           'on': {
             push: {},

@@ -3,7 +3,7 @@ setup:
     - path: libs/my-lib.gflowslib
       source: e2e/gflowslibs/jsonnet/my-lib.gflowslib
     - path: libs/workflows/steps.libsonnet
-      source: e2e/gflowslibs/jsonnet/workflows/steps.libsonnet
+      source: e2e/gflowslibs/jsonnet/common/steps.libsonnet
     - path: .gflows/config.yml
       content: |
         templates:
