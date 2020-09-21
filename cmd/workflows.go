@@ -125,13 +125,14 @@ func newInitCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 				return err
 			}
 
-			container.WorkflowManager().InitWorkflows(workflowName, githubDir)
+			container.WorkflowManager().InitWorkflows(workflowName, githubDir, container.Context().ConfigPath)
 			return nil
 		},
 	}
 	cmd.Flags().String("engine", "", "the template engine to use (either jsonnet or ytt)")
 	cmd.Flags().String("workflow-name", "gflows", "the name of the workflow to generate")
 	cmd.Flags().String("github-dir", ".github", "the relative path to the .github directory")
+	cmd.Flags().String("config-path", ".gflows/config.yml", "the relative path to the gflows config.yml file")
 	return cmd
 }
 
