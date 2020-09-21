@@ -16,4 +16,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: validate workflows
+      env:
+        GFLOWS_CONFIG: .gflows/examples/default-ytt/config.yml
       run: gflows check
