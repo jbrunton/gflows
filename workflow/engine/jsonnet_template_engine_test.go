@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -18,8 +19,8 @@ func newJsonnetTemplateEngine(config string) (*content.Container, *config.GFlows
 		config = "templates:\n  engine: jsonnet"
 	}
 	ioContainer, context, _ := fixtures.NewTestContext(config)
-	container := content.NewContainer(ioContainer)
-	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter())
+	container := content.NewContainer(ioContainer, &http.Client{Transport: fixtures.NewTestRoundTripper()})
+	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter(), container.Downloader())
 	return container, context, templateEngine
 }
 
@@ -101,6 +102,22 @@ func TestGetJPath(t *testing.T) {
 	}, "\n")
 	_, _, engine := newJsonnetTemplateEngine(config)
 
-	assert.Equal(t, []string{".gflows/some-lib", ".gflows/my-lib"}, engine.getJPath("my-workflow"))
-	assert.Equal(t, []string{".gflows/some-lib"}, engine.getJPath("other-workflow"))
+	jpath, _ := engine.getJPath("my-workflow")
+	assert.Equal(t, []string{".gflows/some-lib", ".gflows/my-lib"}, jpath)
+
+	jpath, _ = engine.getJPath("other-workflow")
+	assert.Equal(t, []string{".gflows/some-lib"}, jpath)
+}
+
+func TestJPathErrors(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: jsonnet",
+		"  defaults:",
+		"    libs: [https://example.com/my-lib.gflowslib]",
+	}, "\n")
+	_, _, engine := newJsonnetTemplateEngine(config)
+
+	_, err := engine.getJPath("my-workflow")
+	assert.EqualError(t, err, `Get "https://example.com/my-lib.gflowslib": Missing response for https://example.com/my-lib.gflowslib`)
 }

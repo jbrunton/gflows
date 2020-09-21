@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jbrunton/gflows/env"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 )
@@ -59,6 +60,9 @@ func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 		Short:         "Generate GitHub workflows from jsonnet templates",
 		SilenceErrors: true,
 		SilenceUsage:  true,
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			env.CleanUpLibs()
+		},
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")
 	cmd.PersistentFlags().Bool("disable-colors", false, "Disable colors in output")

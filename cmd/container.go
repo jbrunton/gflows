@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/jbrunton/gflows/config"
@@ -23,6 +24,6 @@ func buildContainer(cmd *cobra.Command) (*action.Container, error) {
 		return nil, err
 	}
 	ioContainer := io.NewContainer(fs, logger, styles.NewStyles(context.EnableColors))
-	contentContainer := content.NewContainer(ioContainer)
+	contentContainer := content.NewContainer(ioContainer, http.DefaultClient)
 	return action.NewContainer(contentContainer, context), nil
 }

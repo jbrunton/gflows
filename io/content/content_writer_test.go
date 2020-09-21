@@ -88,7 +88,7 @@ func TestApplyGenerator(t *testing.T) {
 	writer.SafelyWriteFile(".gflows/bar.txt", "baz")
 
 	// act
-	writer.ApplyGenerator(sourceFs, context, generator)
+	writer.ApplyGenerator(sourceFs, context.Dir, generator)
 
 	// assert
 	assert.Equal(t, strings.Join([]string{

@@ -145,11 +145,12 @@ func checkWorkflows(workflowManager *action.WorkflowManager, container *action.C
 }
 
 func newCheckWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
+	var container *action.Container
 	cmd := &cobra.Command{
 		Use:   "check",
 		Short: "Check workflow files are up to date",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			container, err := containerFunc(cmd)
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			container, err = containerFunc(cmd)
 			if err != nil {
 				return err
 			}

@@ -2,11 +2,14 @@ package runner
 
 import (
 	"bytes"
+	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/fixtures"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io/styles"
@@ -19,6 +22,7 @@ import (
 type TestFile struct {
 	Path    string
 	Content string
+	Source  string
 }
 
 type TestSetup struct {
@@ -38,12 +42,14 @@ type Test struct {
 }
 
 type TestRunner struct {
-	testPath  string
-	test      *Test
-	useMemFs  bool
-	out       *bytes.Buffer
-	container *content.Container
-	assert    Assertions
+	testPath     string
+	test         *Test
+	useMemFs     bool
+	fs           *afero.Afero
+	out          *bytes.Buffer
+	container    *content.Container
+	assert       Assertions
+	roundTripper *fixtures.TestRoundTripper
 }
 
 func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *TestRunner {
@@ -65,24 +71,40 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 	}
 
 	out := new(bytes.Buffer)
+	roundTripper := fixtures.NewTestRoundTripper()
 	ioContainer := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false))
-	contentContainer := content.NewContainer(ioContainer)
+	contentContainer := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
 
 	return &TestRunner{
-		testPath:  testPath,
-		test:      &test,
-		useMemFs:  useMemFs,
-		out:       out,
-		container: contentContainer,
-		assert:    assert,
+		testPath:     testPath,
+		test:         &test,
+		useMemFs:     useMemFs,
+		out:          out,
+		container:    contentContainer,
+		assert:       assert,
+		fs:           fs,
+		roundTripper: roundTripper,
 	}
 }
 
-func (runner *TestRunner) setup() error {
+func (runner *TestRunner) setup(e2eDirectory string) error {
+	projectDirectory := filepath.Dir(e2eDirectory)
 	for _, file := range runner.test.Setup.Files {
-		err := runner.container.ContentWriter().SafelyWriteFile(file.Path, file.Content)
-		if err != nil {
-			return err
+		content := file.Content
+		if file.Source != "" {
+			source, err := runner.fs.ReadFile(filepath.Join(projectDirectory, file.Source))
+			if err != nil {
+				return err
+			}
+			content = string(source)
+		}
+		if strings.HasPrefix(file.Path, "http://") || strings.HasPrefix(file.Path, "https://") {
+			runner.roundTripper.StubBody(file.Path, content)
+		} else {
+			err := runner.container.ContentWriter().SafelyWriteFile(file.Path, content)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -90,6 +112,10 @@ func (runner *TestRunner) setup() error {
 
 func (runner *TestRunner) Run() {
 	fs := runner.container.FileSystem()
+	cd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 	if !runner.useMemFs {
 		tmpDir, err := fs.TempDir("", "gflows-e2e")
 		if err != nil {
@@ -97,15 +123,11 @@ func (runner *TestRunner) Run() {
 		}
 		defer fs.RemoveAll(tmpDir)
 
-		cd, err := os.Getwd()
-		if err != nil {
-			panic(err)
-		}
 		os.Chdir(tmpDir)
 		defer os.Chdir(cd)
 	}
 
-	err := runner.setup()
+	err = runner.setup(cd)
 	if err != nil {
 		panic(err)
 	}

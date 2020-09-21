@@ -65,3 +65,7 @@ func TestJPath(t *testing.T) {
 func TestMiscErrors(t *testing.T) {
 	runTests(t, "./tests/misc-errors/*.yml", false)
 }
+
+func TestGFlowsLibs(t *testing.T) {
+	runTests(t, "./tests/gflowslibs/jsonnet/*.yml", false)
+}

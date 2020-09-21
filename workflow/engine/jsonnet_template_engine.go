@@ -12,6 +12,7 @@ import (
 
 	gojsonnet "github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/workflow/engine/jsonnet"
 	"github.com/spf13/afero"
@@ -22,14 +23,16 @@ type JsonnetTemplateEngine struct {
 	logger        *io.Logger
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
+	downloader    *content.Downloader
 }
 
-func NewJsonnetTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer) *JsonnetTemplateEngine {
+func NewJsonnetTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer, downloader *content.Downloader) *JsonnetTemplateEngine {
 	return &JsonnetTemplateEngine{
 		fs:            fs,
 		logger:        logger,
 		context:       context,
 		contentWriter: contentWriter,
+		downloader:    downloader,
 	}
 }
 
@@ -67,7 +70,10 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 	definitions := []*workflow.Definition{}
 	for _, templatePath := range templates {
 		workflowName := engine.getWorkflowName(engine.context.WorkflowsDir, templatePath)
-		vm := engine.createVM(workflowName)
+		vm, err := engine.createVM(workflowName)
+		if err != nil {
+			return []*workflow.Definition{}, err
+		}
 		input, err := engine.fs.ReadFile(templatePath)
 		if err != nil {
 			return []*workflow.Definition{}, err
@@ -153,16 +159,38 @@ func (engine *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filena
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
 
-func (engine *JsonnetTemplateEngine) createVM(workflowName string) *gojsonnet.VM {
+func (engine *JsonnetTemplateEngine) createVM(workflowName string) (*gojsonnet.VM, error) {
 	vm := gojsonnet.MakeVM()
+	jpaths, err := engine.getJPath(workflowName)
+	if err != nil {
+		return nil, err
+	}
 	vm.Importer(&gojsonnet.FileImporter{
-		JPaths: engine.getJPath(workflowName),
+		JPaths: jpaths,
 	})
 	vm.StringOutput = true
-	return vm
+	return vm, nil
 }
 
-func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
-	jpaths := engine.context.Config.GetTemplateLibs(workflowName)
-	return engine.context.ResolvePaths(jpaths)
+func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, error) {
+	var jpaths []string
+	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
+		if strings.HasSuffix(path, ".gflowslib") {
+			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, engine.logger, path, engine.context)
+			if err != nil {
+				return []string{}, err
+			}
+			cd, err := os.Getwd()
+			if err != nil {
+				return []string{}, err
+			}
+			if !filepath.IsAbs(libDir) {
+				libDir = filepath.Join(cd, libDir)
+			}
+			jpaths = append(jpaths, libDir)
+		} else {
+			jpaths = append(jpaths, path)
+		}
+	}
+	return engine.context.ResolvePaths(jpaths), nil
 }
