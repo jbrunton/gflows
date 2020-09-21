@@ -114,6 +114,7 @@ func (lib *GFlowsLib) downloadManifest() (*GFlowsLibManifest, error) {
 	}
 
 	manifestContent, err := lib.fs.ReadFile(localPath)
+	lib.logger.Debugf("manifest: %s\n", string(manifestContent))
 	if err != nil {
 		return nil, err
 	}
