@@ -170,7 +170,7 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) []string {
 	var jpaths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
-			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, path, engine.context)
+			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, engine.logger, path, engine.context)
 			if err != nil {
 				// TODO: handle this
 				panic(err)

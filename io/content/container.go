@@ -20,7 +20,7 @@ func (container *Container) ContentWriter() *Writer {
 }
 
 func (container *Container) Downloader() *Downloader {
-	return NewDownloader(container.FileSystem(), container.ContentWriter(), container.HttpClient())
+	return NewDownloader(container.FileSystem(), container.ContentWriter(), container.HttpClient(), container.Logger())
 }
 
 func NewContainer(parentContainer *io.Container, httpClient *http.Client) *Container {

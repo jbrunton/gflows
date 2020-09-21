@@ -2,7 +2,6 @@ package runner
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -90,7 +89,6 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 
 func (runner *TestRunner) setup(e2eDirectory string) error {
 	projectDirectory := filepath.Dir(e2eDirectory)
-	fmt.Println("projectDirectory:", projectDirectory)
 	for _, file := range runner.test.Setup.Files {
 		content := file.Content
 		if file.Source != "" {

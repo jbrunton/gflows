@@ -12,7 +12,6 @@ type TestRoundTripper struct {
 }
 
 func (roundTripper *TestRoundTripper) StubResponse(url string, response *http.Response) {
-	fmt.Println("stubbing response for", url)
 	roundTripper.responses[url] = response
 }
 

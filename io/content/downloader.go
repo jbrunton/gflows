@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/jbrunton/gflows/io"
 	"github.com/spf13/afero"
 )
 
@@ -12,13 +13,15 @@ type Downloader struct {
 	fs         *afero.Afero
 	writer     *Writer
 	httpClient *http.Client
+	logger     *io.Logger
 }
 
-func NewDownloader(fs *afero.Afero, writer *Writer, httpClient *http.Client) *Downloader {
+func NewDownloader(fs *afero.Afero, writer *Writer, httpClient *http.Client, logger *io.Logger) *Downloader {
 	return &Downloader{
 		fs:         fs,
 		writer:     writer,
 		httpClient: httpClient,
+		logger:     logger,
 	}
 }
 
@@ -39,7 +42,7 @@ func (downloader *Downloader) DownloadFile(url string, path string) error {
 	}
 
 	downloader.writer.SafelyWriteFile(path, string(body))
-	fmt.Println("  Downloaded", url)
+	downloader.logger.Debug("Downloaded", url)
 
 	return nil
 }

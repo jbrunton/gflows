@@ -2,13 +2,13 @@ package env
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/spf13/afero"
 )
@@ -23,13 +23,14 @@ type GFlowsLib struct {
 	ManifestName string
 
 	// LocalDir - the local directory of the library, to add to the lib paths. If ManifestPath is
-	// local then this will simply be ManifestPath. If ManifestPath is remote, then this will be
-	// a local temp directory.
+	// local then this will simply be the directory containing ManifestPath. If ManifestPath is
+	// remote, then this will be a local temp directory.
 	LocalDir string
 
 	fs         *afero.Afero
 	downloader *content.Downloader
 	context    *config.GFlowsContext
+	logger     *io.Logger
 }
 
 type GFlowsLibManifest struct {
@@ -40,7 +41,7 @@ type GFlowsLibManifest struct {
 
 var libs map[string]*GFlowsLib
 
-func NewGFlowsLib(manifestPath string, fs *afero.Afero, downloader *content.Downloader, context *config.GFlowsContext) *GFlowsLib {
+func NewGFlowsLib(fs *afero.Afero, downloader *content.Downloader, logger *io.Logger, manifestPath string, context *config.GFlowsContext) *GFlowsLib {
 	manifestName := filepath.Base(manifestPath)
 	return &GFlowsLib{
 		ManifestPath: manifestPath,
@@ -48,6 +49,7 @@ func NewGFlowsLib(manifestPath string, fs *afero.Afero, downloader *content.Down
 		downloader:   downloader,
 		fs:           fs,
 		context:      context,
+		logger:       logger,
 	}
 }
 
@@ -57,20 +59,19 @@ func (lib *GFlowsLib) isRemote() bool {
 
 func (lib *GFlowsLib) CleanUp() {
 	if lib.isRemote() {
-		fmt.Println("Removing temp directory", lib.LocalDir)
+		lib.logger.Debug("Removing temp directory", lib.LocalDir)
 		lib.fs.RemoveAll(lib.LocalDir)
 	}
 }
 
 func (lib *GFlowsLib) Download() error {
 	if !lib.isRemote() {
-		// TODO: maybe move this out of the lib class
 		lib.LocalDir = lib.context.ResolvePath(path.Dir(lib.ManifestPath))
-		fmt.Printf("Using %s (%s)\n", lib.ManifestName, lib.LocalDir)
+		lib.logger.Debugf("Using %s (%s)\n", lib.ManifestName, lib.LocalDir)
 		return nil
 	}
 
-	fmt.Printf("Downloading %s from %s...\n", lib.ManifestName, lib.ManifestPath)
+	lib.logger.Debugf("Downloading %s (%s)\n", lib.ManifestName, lib.ManifestPath)
 	tempDir, err := lib.fs.TempDir("", lib.ManifestName)
 	if err != nil {
 		return err
@@ -91,7 +92,7 @@ func (lib *GFlowsLib) Download() error {
 	err = lib.downloadLibFiles(rootUrl, manifest)
 
 	if err == nil {
-		fmt.Printf("Downloaded and unpacked %s\n", lib.ManifestName)
+		lib.logger.Debugf("Downloaded and unpacked %s\n", lib.ManifestName)
 	}
 
 	return err
@@ -128,14 +129,14 @@ func (lib *GFlowsLib) downloadLibFiles(rootUrl *url.URL, manifest *GFlowsLibMani
 	return nil
 }
 
-func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, libUrl string, context *config.GFlowsContext) (string, error) {
+func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, logger *io.Logger, libUrl string, context *config.GFlowsContext) (string, error) {
 	lib := libs[libUrl]
 	if lib != nil {
 		// already processed
 		return lib.LocalDir, nil
 	}
 
-	lib = NewGFlowsLib(libUrl, fs, downloader, context)
+	lib = NewGFlowsLib(fs, downloader, logger, libUrl, context)
 	err := lib.Download()
 	if err != nil {
 		return "", err
