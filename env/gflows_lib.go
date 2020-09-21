@@ -64,13 +64,21 @@ func (lib *GFlowsLib) CleanUp() {
 	}
 }
 
-func (lib *GFlowsLib) Download() error {
+func (lib *GFlowsLib) Setup() error {
 	if !lib.isRemote() {
-		lib.LocalDir = lib.context.ResolvePath(path.Dir(lib.ManifestPath))
-		lib.logger.Debugf("Using %s (%s)\n", lib.ManifestName, lib.LocalDir)
+		lib.setupLocalLib()
 		return nil
 	}
 
+	return lib.setupRemoteLib()
+}
+
+func (lib *GFlowsLib) setupLocalLib() {
+	lib.LocalDir = lib.context.ResolvePath(path.Dir(lib.ManifestPath))
+	lib.logger.Debugf("Using %s (%s)\n", lib.ManifestName, lib.LocalDir)
+}
+
+func (lib *GFlowsLib) setupRemoteLib() error {
 	lib.logger.Debugf("Downloading %s (%s)\n", lib.ManifestName, lib.ManifestPath)
 	tempDir, err := lib.fs.TempDir("", lib.ManifestName)
 	if err != nil {
@@ -137,7 +145,7 @@ func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, logger *io.L
 	}
 
 	lib = NewGFlowsLib(fs, downloader, logger, libUrl, context)
-	err := lib.Download()
+	err := lib.Setup()
 	if err != nil {
 		return "", err
 	}
