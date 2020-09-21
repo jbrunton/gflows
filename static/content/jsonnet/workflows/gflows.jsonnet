@@ -13,7 +13,11 @@ local check_workflows_job = {
         token: "${{ secrets.GITHUB_TOKEN }}",
       }
     },
-    steps.named('validate workflows', 'gflows check')
+    steps.named('validate workflows', 'gflows check') {
+      env: {
+        GFLOWS_CONFIG: '$CONFIG_PATH'
+      },
+    },
   ]
 };
 

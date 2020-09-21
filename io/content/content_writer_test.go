@@ -76,6 +76,7 @@ func TestApplyGenerator(t *testing.T) {
 			"WORKFLOW_NAME": "gflows",
 			"JOB_NAME":      "check-workflows",
 			"GITHUB_DIR":    ".github",
+			"CONFIG_PATH":   ".gflows/config.yml",
 		},
 		Sources: []WorkflowSource{
 			NewWorkflowSource("/foo.txt", "/foo.txt"),
