@@ -58,8 +58,8 @@ func TestUpdateCommand(t *testing.T) {
 	runTests(t, "./tests/update/ytt/*.yml", true)
 }
 
-func TestJPath(t *testing.T) {
-	runTests(t, "./tests/jpath/*.yml", false)
+func TestLocalLibs(t *testing.T) {
+	runTests(t, "./tests/local-libs/jsonnet/*.yml", false)
 }
 
 func TestMiscErrors(t *testing.T) {
