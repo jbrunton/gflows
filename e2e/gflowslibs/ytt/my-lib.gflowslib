@@ -1,0 +1,7 @@
+{
+  "libs": [
+    "common/steps.lib.yml",
+    "common/values.yml",
+    "common/workflows.lib.yml"
+  ]
+}
