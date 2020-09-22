@@ -1,0 +1,22 @@
+#@ load("common/workflows.lib.yml", "pull_request_defaults")
+#@ load("common/steps.lib.yml", "setup_go")
+
+name: gflows
+
+"on": #@ pull_request_defaults()
+
+jobs:
+  check_workflows:
+    name: check-workflows [ex-remote-ytt-gflows]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - #@ setup_go()
+    - uses: jbrunton/setup-gflows@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: validate workflows
+      env:
+        GFLOWS_CONFIG: .gflows/examples/remote-lib-ytt/config.yml
+      # TODO: update this to run `gflows check` following next release
+      run: go run main.go check
