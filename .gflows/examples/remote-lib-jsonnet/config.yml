@@ -5,4 +5,4 @@ templates:
   engine: jsonnet
   defaults:
     libs:
-    - https://raw.githubusercontent.com/jbrunton/gflows/ex-remote-jsonnet-lib/e2e/gflowslibs/jsonnet/my-lib.gflowslib
+    - https://raw.githubusercontent.com/jbrunton/gflows/develop/e2e/gflowslibs/jsonnet/my-lib.gflowslib
