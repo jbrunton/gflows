@@ -7,7 +7,7 @@ name: gflows
 
 jobs:
   check_workflows:
-    name: check-workflows [ex-default-ytt-gflows]
+    name: check-workflows [ex-remote-ytt-gflows]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -17,5 +17,5 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: validate workflows
       env:
-        GFLOWS_CONFIG: .gflows/examples/default-ytt/config.yml
+        GFLOWS_CONFIG: .gflows/examples/remote-lib-ytt/config.yml
       run: gflows check
