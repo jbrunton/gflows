@@ -13,15 +13,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsContext, *YttTemplateEngine) {
+func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsContext, *YttTemplateEngine, *fixtures.TestRoundTripper) {
 	ioContainer, context, _ := fixtures.NewTestContext(config)
-	container := content.NewContainer(ioContainer, &http.Client{Transport: fixtures.NewTestRoundTripper()})
+	roundTripper := fixtures.NewTestRoundTripper()
+	container := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
 	templateEngine := NewYttTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter(), container.Downloader())
-	return container, context, templateEngine
+	return container, context, templateEngine, roundTripper
 }
 
 func TestGenerateYttWorkflowDefinitions(t *testing.T) {
-	container, _, templateEngine := newYttTemplateEngine("")
+	container, _, templateEngine, _ := newYttTemplateEngine("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test/config.yml", []byte(""), 0644)
 
@@ -41,7 +42,7 @@ func TestGenerateYttWorkflowDefinitions(t *testing.T) {
 }
 
 func TestGetYttWorkflowSources(t *testing.T) {
-	container, _, templateEngine := newYttTemplateEngine("")
+	container, _, templateEngine, _ := newYttTemplateEngine("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte("config1"), 0644)
 	fs.WriteFile(".gflows/workflows/my-workflow/config2.yaml", []byte("config2"), 0644)
@@ -55,7 +56,7 @@ func TestGetYttWorkflowSources(t *testing.T) {
 }
 
 func TestGetYttWorkflowTemplates(t *testing.T) {
-	container, _, templateEngine := newYttTemplateEngine("")
+	container, _, templateEngine, _ := newYttTemplateEngine("")
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte("config1"), 0644)
 	fs.WriteFile(".gflows/workflows/my-workflow/nested-dir/config2.yaml", []byte("config2"), 0644)
@@ -80,7 +81,7 @@ func TestGetAllYttLibs(t *testing.T) {
 		"    my-workflow:",
 		"      libs: [my-lib]",
 	}, "\n")
-	_, _, engine := newYttTemplateEngine(config)
+	_, _, engine, _ := newYttTemplateEngine(config)
 
 	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, engine.getAllYttLibs())
 }
@@ -95,12 +96,36 @@ func TestGetYttLibs(t *testing.T) {
 		"    my-workflow:",
 		"      libs: [my-lib]",
 	}, "\n")
-	_, _, engine := newYttTemplateEngine(config)
+	_, _, engine, _ := newYttTemplateEngine(config)
 
-	paths, _ := engine.getYttLibs("my-workflow")
+	paths, err := engine.getYttLibs("my-workflow")
+	assert.NoError(t, err)
 	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, paths)
-	paths, _ = engine.getYttLibs("other-workflow")
+
+	paths, err = engine.getYttLibs("other-workflow")
+	assert.NoError(t, err)
 	assert.Equal(t, []string{".gflows/common", ".gflows/config"}, paths)
+}
+
+func TestRemoteLibs(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    libs: [https://example.com/my-lib.gflowslib]",
+		"  overrides:",
+		"    my-workflow:",
+		"      libs: [https://example.com/other-lib.gflowslib]",
+	}, "\n")
+	_, _, engine, roundTripper := newYttTemplateEngine(config)
+	roundTripper.StubBody("https://example.com/my-lib.gflowslib", `{"libs":[]}`)
+	roundTripper.StubBody("https://example.com/other-lib.gflowslib", `{"libs":[]}`)
+
+	paths, err := engine.getYttLibs("my-workflow")
+	assert.NoError(t, err)
+	assert.Equal(t, len(paths), 2)
+	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", paths[0])
+	assert.Regexp(t, "other-lib.gflowslib[0-9]+$", paths[1])
 }
 
 func TestIsLib(t *testing.T) {
@@ -113,7 +138,7 @@ func TestIsLib(t *testing.T) {
 		"    my-workflow:",
 		"      libs: [my-lib]",
 	}, "\n")
-	_, _, engine := newYttTemplateEngine(config)
+	_, _, engine, _ := newYttTemplateEngine(config)
 
 	assert.Equal(t, true, engine.isLib(".gflows/common"))
 	assert.Equal(t, true, engine.isLib(".gflows/my-lib"))
