@@ -46,7 +46,6 @@ setup:
             "branches":
             - "develop"
 
-
 run: check --show-diffs
 
 expect:
