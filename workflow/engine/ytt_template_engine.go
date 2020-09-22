@@ -122,7 +122,7 @@ func (s FileSource) RelativePath() (string, error) {
 
 func (s FileSource) Bytes() ([]byte, error) { return s.fs.ReadFile(s.path) }
 
-func (engine *YttTemplateEngine) getInput(workflowName string, templateDir string) cmdtpl.TemplateInput {
+func (engine *YttTemplateEngine) getInput(workflowName string, templateDir string) (*cmdtpl.TemplateInput, error) {
 	var in cmdtpl.TemplateInput
 	for _, sourcePath := range engine.getWorkflowSourcesInDir(templateDir) {
 		source := NewFileSource(engine.fs, sourcePath, filepath.Dir(sourcePath))
@@ -134,20 +134,22 @@ func (engine *YttTemplateEngine) getInput(workflowName string, templateDir strin
 	}
 	paths, err := engine.getYttLibs(workflowName)
 	if err != nil {
-		// TODO: handle this
-		panic(err)
+		return nil, err
 	}
 	libs, err := files.NewSortedFilesFromPaths(paths, files.SymlinkAllowOpts{})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	in.Files = append(in.Files, libs...)
-	return in
+	return &in, nil
 }
 
 func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) (string, error) {
 	ui := cmdcore.NewPlainUI(false)
-	in := engine.getInput(workflowName, templateDir)
+	in, err := engine.getInput(workflowName, templateDir)
+	if err != nil {
+		return "", err
+	}
 	rootLibrary := workspace.NewRootLibrary(in.Files)
 
 	libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
