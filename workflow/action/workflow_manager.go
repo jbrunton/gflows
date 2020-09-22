@@ -25,7 +25,7 @@ func CreateWorkflowEngine(fs *afero.Afero, logger *io.Logger, context *config.GF
 	case "jsonnet":
 		templateEngine = engine.NewJsonnetTemplateEngine(fs, logger, context, contentWriter, downloader)
 	case "ytt":
-		templateEngine = engine.NewYttTemplateEngine(fs, logger, context, contentWriter)
+		templateEngine = engine.NewYttTemplateEngine(fs, logger, context, contentWriter, downloader)
 	default:
 		panic(fmt.Errorf("Unexpected engine: %s", engineName))
 	}

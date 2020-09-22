@@ -159,6 +159,7 @@ func CleanUpLibs() {
 	for _, lib := range libs {
 		lib.CleanUp()
 	}
+	libs = make(map[string]*GFlowsLib)
 }
 
 func init() {
