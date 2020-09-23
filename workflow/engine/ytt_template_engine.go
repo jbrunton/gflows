@@ -257,7 +257,7 @@ func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, erro
 	var paths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
-			libDir, err := engine.env.LoadLib(path)
+			lib, err := engine.env.LoadLib(path)
 			if err != nil {
 				return []string{}, err
 			}
@@ -265,6 +265,7 @@ func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, erro
 			if err != nil {
 				return []string{}, err
 			}
+			libDir := lib.LocalDir
 			if !filepath.IsAbs(libDir) {
 				libDir = filepath.Join(cd, libDir)
 			}

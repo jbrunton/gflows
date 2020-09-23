@@ -32,19 +32,19 @@ func (env *GFlowsEnv) CleanUp() {
 	env.libs = make(map[string]*GFlowsLib)
 }
 
-func (env *GFlowsEnv) LoadLib(libUrl string) (string, error) {
+func (env *GFlowsEnv) LoadLib(libUrl string) (*GFlowsLib, error) {
 	lib := env.libs[libUrl]
 	if lib != nil {
 		// already processed
-		return lib.LocalDir, nil
+		return lib, nil
 	}
 
 	lib = NewGFlowsLib(env.fs, env.downloader, env.logger, libUrl, env.context)
 	err := lib.Setup()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	env.libs[libUrl] = lib
-	return lib.LocalDir, nil
+	return lib, nil
 }
