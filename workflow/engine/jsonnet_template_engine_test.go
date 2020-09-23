@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jbrunton/gflows/env"
+
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
@@ -20,7 +22,8 @@ func newJsonnetTemplateEngine(config string) (*content.Container, *config.GFlows
 	}
 	ioContainer, context, _ := fixtures.NewTestContext(config)
 	container := content.NewContainer(ioContainer, &http.Client{Transport: fixtures.NewTestRoundTripper()})
-	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter(), container.Downloader())
+	env := env.NewGFlowsEnv(container.FileSystem(), container.Downloader(), context, container.Logger())
+	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), context, container.ContentWriter(), env)
 	return container, context, templateEngine
 }
 

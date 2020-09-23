@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
@@ -17,7 +18,8 @@ func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsCont
 	ioContainer, context, _ := fixtures.NewTestContext(config)
 	roundTripper := fixtures.NewTestRoundTripper()
 	container := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
-	templateEngine := NewYttTemplateEngine(container.FileSystem(), container.Logger(), context, container.ContentWriter(), container.Downloader())
+	env := env.NewGFlowsEnv(container.FileSystem(), container.Downloader(), context, container.Logger())
+	templateEngine := NewYttTemplateEngine(container.FileSystem(), context, container.ContentWriter(), env)
 	return container, context, templateEngine, roundTripper
 }
 

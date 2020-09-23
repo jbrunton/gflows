@@ -15,7 +15,13 @@ import (
 // ContainerBuilderFunc - factory function to create a new container for the given command
 type ContainerBuilderFunc func(cmd *cobra.Command) (*action.Container, error)
 
+var containers map[*cobra.Command]*action.Container
+
 func buildContainer(cmd *cobra.Command) (*action.Container, error) {
+	if containers[cmd] != nil {
+		return containers[cmd], nil
+	}
+
 	fs := io.CreateOsFs()
 	opts := config.CreateContextOpts(cmd)
 	logger := io.NewLogger(os.Stdout, opts.EnableColors, opts.Debug)
@@ -25,5 +31,21 @@ func buildContainer(cmd *cobra.Command) (*action.Container, error) {
 	}
 	ioContainer := io.NewContainer(fs, logger, styles.NewStyles(context.EnableColors))
 	contentContainer := content.NewContainer(ioContainer, http.DefaultClient)
-	return action.NewContainer(contentContainer, context), nil
+	container, err := action.NewContainer(contentContainer, context), nil
+	if err == nil {
+		containers[cmd.Root()] = container
+	}
+	return container, err
+}
+
+func init() {
+	containers = make(map[*cobra.Command]*action.Container)
+}
+
+func CleanUp(cmd *cobra.Command) {
+	container := containers[cmd.Root()]
+	if container != nil {
+		container.Environment().CleanUp()
+		delete(containers, cmd)
+	}
 }

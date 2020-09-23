@@ -39,8 +39,6 @@ type GFlowsLibManifest struct {
 	Libs []string
 }
 
-var libs map[string]*GFlowsLib
-
 func NewGFlowsLib(fs *afero.Afero, downloader *content.Downloader, logger *io.Logger, manifestPath string, context *config.GFlowsContext) *GFlowsLib {
 	manifestName := filepath.Base(manifestPath)
 	return &GFlowsLib{
@@ -136,32 +134,4 @@ func (lib *GFlowsLib) downloadLibFiles(rootUrl *url.URL, manifest *GFlowsLibMani
 		}
 	}
 	return nil
-}
-
-func PushGFlowsLib(fs *afero.Afero, downloader *content.Downloader, logger *io.Logger, libUrl string, context *config.GFlowsContext) (string, error) {
-	lib := libs[libUrl]
-	if lib != nil {
-		// already processed
-		return lib.LocalDir, nil
-	}
-
-	lib = NewGFlowsLib(fs, downloader, logger, libUrl, context)
-	err := lib.Setup()
-	if err != nil {
-		return "", err
-	}
-
-	libs[libUrl] = lib
-	return lib.LocalDir, nil
-}
-
-func CleanUpLibs() {
-	for _, lib := range libs {
-		lib.CleanUp()
-	}
-	libs = make(map[string]*GFlowsLib)
-}
-
-func init() {
-	libs = make(map[string]*GFlowsLib)
 }

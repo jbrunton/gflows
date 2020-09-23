@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jbrunton/gflows/env"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 )
@@ -30,8 +29,10 @@ func Execute() {
 	rootCmd := NewRootCommand(buildContainer)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(aurora.Red(err.Error()).Bold())
-		os.Exit(1)
+		defer os.Exit(1)
 	}
+	// Note: it's important this comes after the os.Exit call to ensure it always runs
+	defer CleanUp(rootCmd)
 }
 
 // Version - the build version
@@ -60,9 +61,6 @@ func NewRootCommand(containerFunc ContainerBuilderFunc) *cobra.Command {
 		Short:         "Generate GitHub workflows from jsonnet templates",
 		SilenceErrors: true,
 		SilenceUsage:  true,
-		PersistentPostRun: func(cmd *cobra.Command, args []string) {
-			env.CleanUpLibs()
-		},
 	}
 	cmd.PersistentFlags().StringP("config", "c", "", "Location of config file")
 	cmd.PersistentFlags().Bool("disable-colors", false, "Disable colors in output")
