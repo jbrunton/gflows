@@ -12,7 +12,7 @@ import (
 )
 
 func TestDownloadFile(t *testing.T) {
-	roundTripper := fixtures.NewTestRoundTripper()
+	roundTripper := fixtures.NewMockRoundTripper()
 	roundTripper.StubBody("https://example.com/my-file.txt", "my file")
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
@@ -27,7 +27,7 @@ func TestDownloadFile(t *testing.T) {
 }
 
 func TestHttpError(t *testing.T) {
-	roundTripper := fixtures.NewTestRoundTripper()
+	roundTripper := fixtures.NewMockRoundTripper()
 	roundTripper.StubResponse("https://example.com/my-file.txt", &http.Response{
 		StatusCode: http.StatusInternalServerError,
 		Body:       ioutil.NopCloser(bytes.NewBufferString("")),

@@ -12,9 +12,9 @@ import (
 	"github.com/jbrunton/gflows/io/content"
 )
 
-func newTestLib(manifestPath string) (*GFlowsLib, *io.Container, *fixtures.TestRoundTripper) {
+func newTestLib(manifestPath string) (*GFlowsLib, *io.Container, *fixtures.MockRoundTripper) {
 	container, context, out := fixtures.NewTestContext("")
-	roundTripper := fixtures.NewTestRoundTripper()
+	roundTripper := fixtures.NewMockRoundTripper()
 	fs := container.FileSystem()
 	logger := io.NewLogger(out, false, false)
 	writer := content.NewWriter(fs, logger)

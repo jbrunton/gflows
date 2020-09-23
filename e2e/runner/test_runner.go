@@ -49,7 +49,7 @@ type TestRunner struct {
 	out          *bytes.Buffer
 	container    *content.Container
 	assert       Assertions
-	roundTripper *fixtures.TestRoundTripper
+	roundTripper *fixtures.MockRoundTripper
 }
 
 func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Assertions) *TestRunner {
@@ -71,7 +71,7 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 	}
 
 	out := new(bytes.Buffer)
-	roundTripper := fixtures.NewTestRoundTripper()
+	roundTripper := fixtures.NewMockRoundTripper()
 	ioContainer := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false))
 	contentContainer := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
 
