@@ -1,6 +1,7 @@
 package action
 
 import (
+	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 
@@ -10,6 +11,7 @@ import (
 type Container struct {
 	*content.Container
 	context         *config.GFlowsContext
+	env             *env.GFlowsEnv
 	workflowManager *WorkflowManager
 }
 
@@ -21,10 +23,9 @@ func (container *Container) WorkflowManager() *WorkflowManager {
 	if container.workflowManager == nil {
 		templateEngine := CreateWorkflowEngine(
 			container.FileSystem(),
-			container.Logger(),
 			container.Context(),
 			container.ContentWriter(),
-			container.Downloader())
+			container.Environment())
 		container.workflowManager = NewWorkflowManager(
 			container.FileSystem(),
 			container.Logger(),
@@ -35,6 +36,18 @@ func (container *Container) WorkflowManager() *WorkflowManager {
 			templateEngine)
 	}
 	return container.workflowManager
+}
+
+func (container *Container) Environment() *env.GFlowsEnv {
+	if container.env == nil {
+		container.env = env.NewGFlowsEnv(
+			container.FileSystem(),
+			container.Downloader(),
+			container.Context(),
+			container.Logger(),
+		)
+	}
+	return container.env
 }
 
 func (container *Container) Validator() *workflow.Validator {

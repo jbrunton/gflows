@@ -8,7 +8,6 @@ import (
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/env"
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
@@ -22,19 +21,17 @@ import (
 
 type YttTemplateEngine struct {
 	fs            *afero.Afero
-	logger        *io.Logger
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
-	downloader    *content.Downloader
+	env           *env.GFlowsEnv
 }
 
-func NewYttTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer, downloader *content.Downloader) *YttTemplateEngine {
+func NewYttTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, contentWriter *content.Writer, env *env.GFlowsEnv) *YttTemplateEngine {
 	return &YttTemplateEngine{
 		fs:            fs,
-		logger:        logger,
 		context:       context,
 		contentWriter: contentWriter,
-		downloader:    downloader,
+		env:           env,
 	}
 }
 
@@ -260,7 +257,7 @@ func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, erro
 	var paths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
-			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, engine.logger, path, engine.context)
+			lib, err := engine.env.LoadLib(path)
 			if err != nil {
 				return []string{}, err
 			}
@@ -268,6 +265,7 @@ func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, erro
 			if err != nil {
 				return []string{}, err
 			}
+			libDir := lib.LocalDir
 			if !filepath.IsAbs(libDir) {
 				libDir = filepath.Join(cd, libDir)
 			}

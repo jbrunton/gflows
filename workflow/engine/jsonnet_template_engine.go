@@ -13,26 +13,23 @@ import (
 	gojsonnet "github.com/google/go-jsonnet"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/env"
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/workflow/engine/jsonnet"
 	"github.com/spf13/afero"
 )
 
 type JsonnetTemplateEngine struct {
 	fs            *afero.Afero
-	logger        *io.Logger
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
-	downloader    *content.Downloader
+	env           *env.GFlowsEnv
 }
 
-func NewJsonnetTemplateEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer, downloader *content.Downloader) *JsonnetTemplateEngine {
+func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, contentWriter *content.Writer, env *env.GFlowsEnv) *JsonnetTemplateEngine {
 	return &JsonnetTemplateEngine{
 		fs:            fs,
-		logger:        logger,
 		context:       context,
 		contentWriter: contentWriter,
-		downloader:    downloader,
+		env:           env,
 	}
 }
 
@@ -176,7 +173,7 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, er
 	var jpaths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
-			libDir, err := env.PushGFlowsLib(engine.fs, engine.downloader, engine.logger, path, engine.context)
+			lib, err := engine.env.LoadLib(path)
 			if err != nil {
 				return []string{}, err
 			}
@@ -184,6 +181,7 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, er
 			if err != nil {
 				return []string{}, err
 			}
+			libDir := lib.LocalDir
 			if !filepath.IsAbs(libDir) {
 				libDir = filepath.Join(cd, libDir)
 			}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
@@ -23,8 +24,9 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	styles := container.Styles()
 	validator := workflow.NewValidator(fs, context)
 	contentWriter := content.NewWriter(fs, logger)
-	downloader := content.NewDownloader(fs, contentWriter, &http.Client{Transport: fixtures.NewTestRoundTripper()}, logger)
-	templateEngine := CreateWorkflowEngine(fs, logger, context, contentWriter, downloader)
+	downloader := content.NewDownloader(fs, contentWriter, &http.Client{Transport: fixtures.NewMockRoundTripper()}, logger)
+	env := env.NewGFlowsEnv(fs, downloader, context, logger)
+	templateEngine := CreateWorkflowEngine(fs, context, contentWriter, env)
 	return fs, out, NewWorkflowManager(
 		fs,
 		logger,

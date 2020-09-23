@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/config"
+	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/io/diff"
@@ -19,13 +20,13 @@ import (
 	"github.com/spf13/afero"
 )
 
-func CreateWorkflowEngine(fs *afero.Afero, logger *io.Logger, context *config.GFlowsContext, contentWriter *content.Writer, downloader *content.Downloader) workflow.TemplateEngine {
+func CreateWorkflowEngine(fs *afero.Afero, context *config.GFlowsContext, contentWriter *content.Writer, env *env.GFlowsEnv) workflow.TemplateEngine {
 	var templateEngine workflow.TemplateEngine
 	switch engineName := context.Config.Templates.Engine; engineName {
 	case "jsonnet":
-		templateEngine = engine.NewJsonnetTemplateEngine(fs, logger, context, contentWriter, downloader)
+		templateEngine = engine.NewJsonnetTemplateEngine(fs, context, contentWriter, env)
 	case "ytt":
-		templateEngine = engine.NewYttTemplateEngine(fs, logger, context, contentWriter, downloader)
+		templateEngine = engine.NewYttTemplateEngine(fs, context, contentWriter, env)
 	default:
 		panic(fmt.Errorf("Unexpected engine: %s", engineName))
 	}
