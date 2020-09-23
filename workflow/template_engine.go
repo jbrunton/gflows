@@ -6,10 +6,10 @@ import (
 
 type TemplateEngine interface {
 	// GetWorkflowSources - returns a list of all the files (i.e. templates + library files) used
-	// to generate workflow.
+	// to generate workflows.
 	GetWorkflowSources() []string
 
-	// GetWorkflowTemplates - returns a list of all the templates used to generator workflow.
+	// GetWorkflowTemplates - returns a list of all the templates used to generate workflows.
 	GetWorkflowTemplates() []string
 
 	// GetWorkflowDefinitions - returns definitions generated from workflow templates.
