@@ -46,3 +46,11 @@ func (downloader *Downloader) DownloadFile(url string, path string) error {
 
 	return nil
 }
+
+func (downloader *Downloader) CopyFile(sourcePath string, destPath string) error {
+	data, err := downloader.fs.ReadFile(sourcePath)
+	if err != nil {
+		return err
+	}
+	return downloader.writer.SafelyWriteFile(destPath, string(data))
+}

@@ -2,6 +2,7 @@ package env
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"path"
 	"path/filepath"
@@ -56,34 +57,63 @@ func (lib *GFlowsLib) isRemote() bool {
 }
 
 func (lib *GFlowsLib) CleanUp() {
-	if lib.isRemote() {
-		lib.logger.Debug("Removing temp directory", lib.LocalDir)
-		lib.fs.RemoveAll(lib.LocalDir)
-	}
+	//if lib.isRemote() {
+	lib.logger.Debug("Removing temp directory", lib.LocalDir)
+	lib.fs.RemoveAll(lib.LocalDir)
+	//}
 }
 
 func (lib *GFlowsLib) Setup() error {
-	if !lib.isRemote() {
-		lib.setupLocalLib()
-		return nil
-	}
+	lib.logger.Debugf("Installing %s (%s)\n", lib.ManifestName, lib.ManifestPath)
 
-	return lib.setupRemoteLib()
-}
-
-func (lib *GFlowsLib) setupLocalLib() {
-	lib.LocalDir = lib.context.ResolvePath(path.Dir(lib.ManifestPath))
-	lib.logger.Debugf("Using %s (%s)\n", lib.ManifestName, lib.LocalDir)
-}
-
-func (lib *GFlowsLib) setupRemoteLib() error {
-	lib.logger.Debugf("Downloading %s (%s)\n", lib.ManifestName, lib.ManifestPath)
 	tempDir, err := lib.fs.TempDir("", lib.ManifestName)
 	if err != nil {
 		return err
 	}
 	lib.LocalDir = tempDir
 
+	if lib.isRemote() {
+		err = lib.setupRemoteLib()
+	} else {
+		err = lib.setupLocalLib()
+	}
+
+	if err == nil {
+		lib.logger.Debugf("Installed %s\n", lib.ManifestName)
+	}
+
+	return err
+}
+
+func (lib *GFlowsLib) setupLocalLib() error {
+	manifestPath := lib.context.ResolvePath(lib.ManifestPath)
+	manifestContent, err := lib.fs.ReadFile(manifestPath)
+	lib.logger.Debugf("manifest: %s\n", string(manifestContent))
+	if err != nil {
+		return err
+	}
+
+	manifest := GFlowsLibManifest{}
+	err = json.Unmarshal(manifestContent, &manifest)
+	if err != nil {
+		return err
+	}
+
+	rootPath := filepath.Dir(manifestPath)
+	for _, relPath := range manifest.Libs {
+		// should be safe to ignore the error since we know it's valid
+		src := filepath.Join(rootPath, relPath)
+		dest := filepath.Join(lib.LocalDir, relPath)
+		fmt.Println("manifestPath:", manifestPath, "rootPath:", rootPath, "src:", src, "dest:", dest)
+		err := lib.downloader.CopyFile(src, dest)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (lib *GFlowsLib) setupRemoteLib() error {
 	rootUrl, err := url.Parse(lib.ManifestPath)
 	if err != nil {
 		return err
@@ -97,14 +127,11 @@ func (lib *GFlowsLib) setupRemoteLib() error {
 
 	err = lib.downloadLibFiles(rootUrl, manifest)
 
-	if err == nil {
-		lib.logger.Debugf("Downloaded and unpacked %s\n", lib.ManifestName)
-	}
-
 	return err
 }
 
 func (lib *GFlowsLib) downloadManifest() (*GFlowsLibManifest, error) {
+	// TODO: could just read manifest, doesn't need to be stored on filesystem
 	localPath := filepath.Join(lib.LocalDir, lib.ManifestName)
 	err := lib.downloader.DownloadFile(lib.ManifestPath, localPath)
 	if err != nil {
