@@ -22,7 +22,8 @@ func newJsonnetTemplateEngine(config string, roundTripper http.RoundTripper) (*c
 	}
 	ioContainer, context, _ := fixtures.NewTestContext(config)
 	container := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
-	env := env.NewGFlowsEnv(container.FileSystem(), container.Downloader(), context, container.Logger())
+	installer := env.NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
+	env := env.NewGFlowsEnv(container.FileSystem(), installer, context, container.Logger())
 	templateEngine := NewJsonnetTemplateEngine(container.FileSystem(), context, container.ContentWriter(), env)
 	return container, context, templateEngine
 }
