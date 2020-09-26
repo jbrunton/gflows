@@ -11,18 +11,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDownloadFile(t *testing.T) {
+func TestReadRemoteFile(t *testing.T) {
 	roundTripper := fixtures.NewMockRoundTripper()
 	roundTripper.StubBody("https://example.com/my-file.txt", "my file")
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
-	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper}, container.Logger())
+	reader := NewReader(fs, &http.Client{Transport: roundTripper})
 
-	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
+	content, err := reader.ReadContent("https://example.com/my-file.txt")
 
-	content, _ := fs.ReadFile("/my/file")
-	assert.Equal(t, "my file", string(content))
+	assert.Equal(t, "my file", content)
+	assert.Nil(t, err)
+}
+
+func TestReadLocalFile(t *testing.T) {
+	roundTripper := fixtures.NewMockRoundTripper()
+	container, _, _ := fixtures.NewTestContext("")
+	fs := container.FileSystem()
+	reader := NewReader(fs, &http.Client{Transport: roundTripper})
+	fs.WriteFile("/my-file", []byte("my file"), 0644)
+
+	content, err := reader.ReadContent("/my-file")
+
+	assert.Equal(t, "my file", content)
 	assert.Nil(t, err)
 }
 
@@ -35,10 +46,9 @@ func TestHttpError(t *testing.T) {
 	})
 	container, _, _ := fixtures.NewTestContext("")
 	fs := container.FileSystem()
-	writer := NewWriter(fs, container.Logger())
-	downloader := NewDownloader(fs, writer, &http.Client{Transport: roundTripper}, container.Logger())
+	reader := NewReader(fs, &http.Client{Transport: roundTripper})
 
-	err := downloader.DownloadFile("https://example.com/my-file.txt", "/my/file")
+	_, err := reader.ReadContent("https://example.com/my-file.txt")
 
 	assert.EqualError(t, err, fmt.Sprintf("Received status code 500 from https://example.com/my-file.txt"))
 }

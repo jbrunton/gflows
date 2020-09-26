@@ -12,6 +12,7 @@ type Container struct {
 	*content.Container
 	context         *config.GFlowsContext
 	env             *env.GFlowsEnv
+	installer       *env.GFlowsLibInstaller
 	workflowManager *WorkflowManager
 }
 
@@ -42,12 +43,24 @@ func (container *Container) Environment() *env.GFlowsEnv {
 	if container.env == nil {
 		container.env = env.NewGFlowsEnv(
 			container.FileSystem(),
-			container.Downloader(),
+			container.Installer(),
 			container.Context(),
 			container.Logger(),
 		)
 	}
 	return container.env
+}
+
+func (container *Container) Installer() *env.GFlowsLibInstaller {
+	if container.installer == nil {
+		container.installer = env.NewGFlowsLibInstaller(
+			container.FileSystem(),
+			container.ContentReader(),
+			container.ContentWriter(),
+			container.Logger(),
+		)
+	}
+	return container.installer
 }
 
 func (container *Container) Validator() *workflow.Validator {

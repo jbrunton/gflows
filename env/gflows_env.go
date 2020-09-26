@@ -3,25 +3,24 @@ package env
 import (
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io"
-	"github.com/jbrunton/gflows/io/content"
 	"github.com/spf13/afero"
 )
 
 type GFlowsEnv struct {
-	libs       map[string]*GFlowsLib
-	fs         *afero.Afero
-	downloader *content.Downloader
-	context    *config.GFlowsContext
-	logger     *io.Logger
+	libs      map[string]*GFlowsLib
+	fs        *afero.Afero
+	installer *GFlowsLibInstaller
+	context   *config.GFlowsContext
+	logger    *io.Logger
 }
 
-func NewGFlowsEnv(fs *afero.Afero, downloader *content.Downloader, context *config.GFlowsContext, logger *io.Logger) *GFlowsEnv {
+func NewGFlowsEnv(fs *afero.Afero, installer *GFlowsLibInstaller, context *config.GFlowsContext, logger *io.Logger) *GFlowsEnv {
 	return &GFlowsEnv{
-		libs:       make(map[string]*GFlowsLib),
-		fs:         fs,
-		downloader: downloader,
-		context:    context,
-		logger:     logger,
+		libs:      make(map[string]*GFlowsLib),
+		fs:        fs,
+		installer: installer,
+		context:   context,
+		logger:    logger,
 	}
 }
 
@@ -39,7 +38,7 @@ func (env *GFlowsEnv) LoadLib(libUrl string) (*GFlowsLib, error) {
 		return lib, nil
 	}
 
-	lib = NewGFlowsLib(env.fs, env.downloader, env.logger, libUrl, env.context)
+	lib = NewGFlowsLib(env.fs, env.installer, env.logger, libUrl, env.context)
 	err := lib.Setup()
 	if err != nil {
 		return nil, err
