@@ -35,18 +35,17 @@ func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, co
 
 func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
 	files := []string{}
-	err := engine.fs.Walk(engine.context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
-		ext := filepath.Ext(path)
-		if ext == ".jsonnet" || ext == ".libsonnet" {
-			files = append(files, path)
+	for _, workflowsDir := range engine.env.GetWorkflowDirs() {
+		err := engine.fs.Walk(workflowsDir, func(path string, f os.FileInfo, err error) error {
+			ext := filepath.Ext(path)
+			if ext == ".jsonnet" || ext == ".libsonnet" {
+				files = append(files, path)
+			}
+			return nil
+		})
+		if err != nil {
+			panic(err)
 		}
-		return nil
-	})
-
-	// TODO: Add remote workflow sources in libaries
-
-	if err != nil {
-		panic(err)
 	}
 
 	return files
@@ -68,7 +67,7 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 	templates := engine.GetWorkflowTemplates()
 	definitions := []*workflow.Definition{}
 	for _, templatePath := range templates {
-		workflowName := engine.getWorkflowName(engine.context.WorkflowsDir, templatePath)
+		workflowName := engine.getWorkflowName(templatePath)
 		vm, err := engine.createVM(workflowName)
 		if err != nil {
 			return []*workflow.Definition{}, err
@@ -133,7 +132,7 @@ func (engine *JsonnetTemplateEngine) ImportWorkflow(wf *workflow.GitHubWorkflow)
 
 	_, filename := filepath.Split(wf.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
-	templatePath := filepath.Join(engine.context.WorkflowsDir, templateName+".jsonnet")
+	templatePath := filepath.Join(engine.context.Dir, "workflows", templateName+".jsonnet")
 	engine.contentWriter.SafelyWriteFile(templatePath, templateContent)
 
 	return templatePath, nil
@@ -153,7 +152,7 @@ func (engine *JsonnetTemplateEngine) WorkflowGenerator(templateVars map[string]s
 	}
 }
 
-func (engine *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
+func (engine *JsonnetTemplateEngine) getWorkflowName(filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
