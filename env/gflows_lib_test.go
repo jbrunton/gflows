@@ -30,7 +30,7 @@ func TestSetupLocalLib(t *testing.T) {
 	err := lib.Setup()
 
 	assert.NoError(t, err)
-	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", lib.LocalDir) // test it's a temp dir
+	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 	assert.False(t, lib.isRemote(), "expected local lib")
@@ -45,7 +45,7 @@ func TestSetupRemoteLib(t *testing.T) {
 	err := lib.Setup()
 
 	assert.NoError(t, err)
-	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", lib.LocalDir) // test it's a temp dir
+	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 }

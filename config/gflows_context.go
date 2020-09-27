@@ -14,9 +14,10 @@ import (
 
 // GFlowsContext - current command context
 type GFlowsContext struct {
-	Dir          string
-	ConfigPath   string
-	GitHubDir    string
+	Dir        string
+	ConfigPath string
+	GitHubDir  string
+	// TODO: consider removing WorkflowsDir from context. Env should own path definitions.
 	WorkflowsDir string
 	Config       *GFlowsConfig
 	EnableColors bool
