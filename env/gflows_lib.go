@@ -46,10 +46,8 @@ func (lib *GFlowsLib) isRemote() bool {
 }
 
 func (lib *GFlowsLib) CleanUp() {
-	//if lib.isRemote() {
 	lib.logger.Debug("Removing temp directory", lib.LocalDir)
 	lib.fs.RemoveAll(lib.LocalDir)
-	//}
 }
 
 func (lib *GFlowsLib) Setup() error {

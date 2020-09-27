@@ -49,3 +49,26 @@ func TestSetupRemoteLib(t *testing.T) {
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 }
+
+func TestCleanUp(t *testing.T) {
+	// arrange
+	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
+	fs := container.FileSystem()
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/lib/lib.yml", "foo: bar")
+
+	err := lib.Setup()
+	assert.NoError(t, err)
+
+	exists, err := fs.Exists(lib.LocalDir)
+	assert.NoError(t, err)
+	assert.True(t, exists, "expected LocalDir to exist")
+
+	// act
+	lib.CleanUp()
+
+	// assert
+	exists, err = fs.Exists(lib.LocalDir)
+	assert.NoError(t, err)
+	assert.False(t, exists, "expected LocalDir to have been removed")
+}
