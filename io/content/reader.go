@@ -38,9 +38,5 @@ func (reader *Reader) ReadContent(path string) (string, error) {
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(body), nil
+	return string(body), err
 }
