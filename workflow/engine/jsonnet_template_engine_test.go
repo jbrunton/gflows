@@ -90,8 +90,8 @@ func TestGetJsonnetWorkflowSources(t *testing.T) {
 
 func TestGetJsonnetWorkflowName(t *testing.T) {
 	_, _, templateEngine := newJsonnetTemplateEngine("", fixtures.NewMockRoundTripper())
-	assert.Equal(t, "my-workflow-1", templateEngine.getWorkflowName("/workflows", "/workflows/my-workflow-1.jsonnet"))
-	assert.Equal(t, "my-workflow-2", templateEngine.getWorkflowName("/workflows", "/workflows/workflows/my-workflow-2.jsonnet"))
+	assert.Equal(t, "my-workflow-1", templateEngine.getWorkflowName("/workflows/my-workflow-1.jsonnet"))
+	assert.Equal(t, "my-workflow-2", templateEngine.getWorkflowName("/workflows/workflows/my-workflow-2.jsonnet"))
 }
 
 func TestGetJPath(t *testing.T) {
