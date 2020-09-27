@@ -8,28 +8,30 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/jbrunton/gflows/fixtures"
-	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 )
 
-func newTestEnv(roundTripper http.RoundTripper) (*GFlowsEnv, *io.Container) {
-	container, context, out := fixtures.NewTestContext("")
-	fs := container.FileSystem()
-	logger := io.NewLogger(out, false, false)
-	writer := content.NewWriter(fs, logger)
+func newTestEnv(roundTripper http.RoundTripper) (*GFlowsEnv, *content.Container) {
+	ioContainer, context, _ := fixtures.NewTestContext("")
 	httpClient := &http.Client{Transport: roundTripper}
-	downloader := content.NewDownloader(fs, writer, httpClient, logger)
-	env := NewGFlowsEnv(fs, downloader, context, logger)
+	container := content.NewContainer(ioContainer, httpClient)
+	installer := NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
+	env := NewGFlowsEnv(container.FileSystem(), installer, context, container.Logger())
 	return env, container
 }
 
 func TestLoadLocalLibrary(t *testing.T) {
-	env, _ := newTestEnv(fixtures.NewMockRoundTripper())
+	env, container := newTestEnv(fixtures.NewMockRoundTripper())
+	fs := container.FileSystem()
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/lib/lib.yml", "foo: bar")
 
 	lib, err := env.LoadLib("/path/to/my-lib.gflowslib")
 
 	assert.NoError(t, err)
-	assert.Equal(t, "/path/to", lib.LocalDir)
+	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", lib.LocalDir) // test it's a temp dir
+	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
+	assert.Equal(t, "foo: bar", string(libContent))
 	assert.False(t, lib.isRemote(), "expected local lib")
 }
 

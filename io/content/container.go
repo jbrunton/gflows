@@ -19,8 +19,8 @@ func (container *Container) ContentWriter() *Writer {
 	return NewWriter(container.FileSystem(), container.Logger())
 }
 
-func (container *Container) Downloader() *Downloader {
-	return NewDownloader(container.FileSystem(), container.ContentWriter(), container.HttpClient(), container.Logger())
+func (container *Container) ContentReader() *Reader {
+	return NewReader(container.FileSystem(), container.HttpClient())
 }
 
 func NewContainer(parentContainer *io.Container, httpClient *http.Client) *Container {

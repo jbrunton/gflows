@@ -13,27 +13,25 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/jbrunton/gflows/fixtures"
-	"github.com/jbrunton/gflows/io"
 	"github.com/stretchr/testify/assert"
 )
 
 func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
-	container, context, out := fixtures.NewTestContext("templates:\n  engine: jsonnet")
-	fs := container.FileSystem()
-	logger := io.NewLogger(out, false, false)
-	styles := container.Styles()
+	ioContainer, context, out := fixtures.NewTestContext("templates:\n  engine: jsonnet")
+	httpClient := &http.Client{Transport: fixtures.NewMockRoundTripper()}
+	fs := ioContainer.FileSystem()
 	validator := workflow.NewValidator(fs, context)
-	contentWriter := content.NewWriter(fs, logger)
-	downloader := content.NewDownloader(fs, contentWriter, &http.Client{Transport: fixtures.NewMockRoundTripper()}, logger)
-	env := env.NewGFlowsEnv(fs, downloader, context, logger)
-	templateEngine := CreateWorkflowEngine(fs, context, contentWriter, env)
+	container := content.NewContainer(ioContainer, httpClient)
+	installer := env.NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
+	env := env.NewGFlowsEnv(fs, installer, context, container.Logger())
+	templateEngine := CreateWorkflowEngine(fs, context, container.ContentWriter(), env)
 	return fs, out, NewWorkflowManager(
 		fs,
-		logger,
-		styles,
+		container.Logger(),
+		container.Styles(),
 		validator,
 		context,
-		contentWriter,
+		container.ContentWriter(),
 		templateEngine,
 	)
 }
