@@ -1,6 +1,8 @@
 package env
 
 import (
+	"path"
+
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/spf13/afero"
@@ -22,24 +24,26 @@ func NewGFlowsLibInstaller(fs *afero.Afero, reader *content.Reader, writer *cont
 	}
 }
 
-func (installer *GFlowsLibInstaller) install(manifestPath string, installDir string) error {
-	manifest, err := installer.loadManifest(manifestPath)
+func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*LibFileInfo, error) {
+	manifest, err := installer.loadManifest(lib.ManifestPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	rootPath, err := content.ParentPath(manifestPath)
+	rootPath, err := content.ParentPath(lib.ManifestPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	files := []*LibFileInfo{}
 	for _, relPath := range manifest.Libs {
-		err := installer.copyFile(rootPath, installDir, relPath)
+		fileInfo, err := installer.copyFile(lib, rootPath, relPath)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		files = append(files, fileInfo)
 	}
-	return nil
+	return files, nil
 }
 
 func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsLibManifest, error) {
@@ -50,23 +54,29 @@ func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsL
 	return ParseManifest(manifestContent)
 }
 
-func (installer *GFlowsLibInstaller) copyFile(rootPath string, installDir string, relPath string) error {
+func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (*LibFileInfo, error) {
 	sourcePath, err := content.JoinRelativePath(rootPath, relPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if content.IsRemotePath(rootPath) {
 		installer.logger.Debugf("Downloading %s\n", sourcePath)
 	} else {
 		installer.logger.Debugf("Copying %s\n", sourcePath)
 	}
-	destPath, err := content.JoinRelativePath(installDir, relPath)
+	destPath, err := content.JoinRelativePath(lib.LocalDir, relPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	sourceContent, err := installer.reader.ReadContent(sourcePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return installer.writer.SafelyWriteFile(destPath, sourceContent)
+	info := &LibFileInfo{
+		SourcePath:  sourcePath,
+		LocalPath:   destPath,
+		Description: path.Join(lib.ManifestName, relPath),
+	}
+	err = installer.writer.SafelyWriteFile(destPath, sourceContent)
+	return info, err
 }
