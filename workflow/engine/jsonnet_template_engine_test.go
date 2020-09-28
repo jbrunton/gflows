@@ -28,10 +28,33 @@ func newJsonnetTemplateEngine(config string, roundTripper http.RoundTripper) (*c
 	return container, context, templateEngine
 }
 
-func TestGenerateJsonnetWorkflowDefinitions(t *testing.T) {
+func TestGetJsonnetWorkflowDefinitions(t *testing.T) {
 	container, _, templateEngine := newJsonnetTemplateEngine("", fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+
+	definitions, _ := templateEngine.GetWorkflowDefinitions()
+
+	expectedContent := fixtures.ExampleWorkflow("test.jsonnet")
+	expectedJson, _ := yamlutil.YamlToJson(expectedContent)
+	expectedDefinition := workflow.Definition{
+		Name:        "test",
+		Source:      ".gflows/workflows/test.jsonnet",
+		Destination: ".github/workflows/test.yml",
+		Content:     expectedContent,
+		Status:      workflow.ValidationResult{Valid: true},
+		JSON:        expectedJson,
+	}
+	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
+}
+
+func TestGetJsonnetWorkflowDefinitionsWithLibs(t *testing.T) {
+	container, _, templateEngine := newJsonnetTemplateEngine("", fixtures.NewMockRoundTripper())
+	fs := container.FileSystem()
+	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["workflows/lib-workflow.jsonnet"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/workflows/lib-workflow.jsonnet", `std.manifestYamlDoc({})`)
+	templateEngine.env.LoadLib("/path/to/my-lib.gflowslib")
 
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
