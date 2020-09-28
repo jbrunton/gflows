@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io"
 	"github.com/spf13/afero"
@@ -23,6 +24,9 @@ type GFlowsLib struct {
 	// remote, then this will be a local temp directory.
 	LocalDir string
 
+	// Files - content of the package as an array of FileInfo
+	Files []*LibFileInfo
+
 	fs        *afero.Afero
 	installer *GFlowsLibInstaller
 	context   *config.GFlowsContext
@@ -30,10 +34,9 @@ type GFlowsLib struct {
 }
 
 func NewGFlowsLib(fs *afero.Afero, installer *GFlowsLibInstaller, logger *io.Logger, manifestPath string, context *config.GFlowsContext) *GFlowsLib {
-	manifestName := filepath.Base(manifestPath)
 	return &GFlowsLib{
-		ManifestPath: manifestPath,
-		ManifestName: manifestName,
+		ManifestPath: context.ResolvePath(manifestPath),
+		ManifestName: filepath.Base(manifestPath),
 		installer:    installer,
 		fs:           fs,
 		context:      context,
@@ -59,11 +62,11 @@ func (lib *GFlowsLib) Setup() error {
 	}
 	lib.LocalDir = tempDir
 
-	manifestPath := lib.context.ResolvePath(lib.ManifestPath)
-	err = lib.installer.install(manifestPath, tempDir)
+	lib.Files, err = lib.installer.install(lib)
 
 	if err == nil {
 		lib.logger.Debugf("Installed %s\n", lib.ManifestName)
+		lib.logger.Debugf("Installed %s\n", spew.Sdump(lib.Files))
 	}
 
 	return err
