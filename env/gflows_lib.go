@@ -29,7 +29,7 @@ type GFlowsLib struct {
 	LocalDir string
 
 	// Files - content of the package as an array of FileInfo
-	Files []*LibFileInfo
+	Files []*pkg.PathInfo
 
 	fs        *afero.Afero
 	installer *GFlowsLibInstaller
@@ -57,7 +57,7 @@ func (lib *GFlowsLib) CleanUp() {
 	lib.fs.RemoveAll(lib.LocalDir)
 }
 
-func (lib *GFlowsLib) GetPathInfo(localPath string) (*LibFileInfo, error) {
+func (lib *GFlowsLib) GetPathInfo(localPath string) (*pkg.PathInfo, error) {
 	if !filepath.IsAbs(localPath) {
 		return nil, fmt.Errorf("Expected %s to be absolute", localPath)
 	}
@@ -73,7 +73,7 @@ func (lib *GFlowsLib) GetPathInfo(localPath string) (*LibFileInfo, error) {
 		return nil, err
 	}
 	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
-	return &LibFileInfo{
+	return &pkg.PathInfo{
 		LocalPath:   localPath,
 		SourcePath:  sourcePath,                           // TODO: fix this for remote urls
 		Description: path.Join(lib.ManifestName, relPath), // TODO: also fix this

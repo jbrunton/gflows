@@ -1,6 +1,6 @@
-package env
+package pkg
 
-type LibFileInfo struct {
+type PathInfo struct {
 	SourcePath  string
 	LocalPath   string
 	Description string

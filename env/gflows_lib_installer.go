@@ -25,7 +25,7 @@ func NewGFlowsLibInstaller(fs *afero.Afero, reader *content.Reader, writer *cont
 	}
 }
 
-func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*LibFileInfo, error) {
+func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*pkg.PathInfo, error) {
 	manifest, err := installer.loadManifest(lib.ManifestPath)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*LibFileInfo, er
 		return nil, err
 	}
 
-	files := []*LibFileInfo{}
+	files := []*pkg.PathInfo{}
 	for _, relPath := range manifest.Libs {
 		fileInfo, err := installer.copyFile(lib, rootPath, relPath)
 		if err != nil {
@@ -55,7 +55,7 @@ func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsL
 	return ParseManifest(manifestContent)
 }
 
-func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (*LibFileInfo, error) {
+func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (*pkg.PathInfo, error) {
 	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, r
 	if err != nil {
 		return nil, err
 	}
-	info := &LibFileInfo{
+	info := &pkg.PathInfo{
 		SourcePath:  sourcePath,
 		LocalPath:   destPath,
 		Description: path.Join(lib.ManifestName, relPath),

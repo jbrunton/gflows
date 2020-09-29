@@ -10,6 +10,7 @@ import (
 
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 )
 
 func newTestLib(manifestPath string) (*GFlowsLib, *content.Container, *fixtures.MockRoundTripper) {
@@ -84,7 +85,7 @@ func TestGetLocalPathInfo(t *testing.T) {
 	info, err := lib.GetPathInfo(localPath)
 
 	assert.NoError(t, err)
-	assert.Equal(t, &LibFileInfo{
+	assert.Equal(t, &pkg.PathInfo{
 		LocalPath:   localPath,
 		SourcePath:  "/path/to/foo/bar.yml",
 		Description: "my-lib.gflowslib/foo/bar.yml",
@@ -101,7 +102,7 @@ func TestGetRemotePathInfo(t *testing.T) {
 	info, err := lib.GetPathInfo(localPath)
 
 	assert.NoError(t, err)
-	assert.Equal(t, &LibFileInfo{
+	assert.Equal(t, &pkg.PathInfo{
 		LocalPath:   localPath,
 		SourcePath:  "https://example.com/path/to/foo/bar.yml",
 		Description: "my-lib.gflowslib/foo/bar.yml",
