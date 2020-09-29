@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/spf13/afero"
 )
 
@@ -22,7 +23,7 @@ func NewReader(fs *afero.Afero, httpClient *http.Client) *Reader {
 }
 
 func (reader *Reader) ReadContent(path string) (string, error) {
-	if !IsRemotePath(path) {
+	if !pkg.IsRemotePath(path) {
 		data, err := reader.fs.ReadFile(path)
 		return string(data), err
 	}

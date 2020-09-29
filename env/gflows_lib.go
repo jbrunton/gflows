@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jbrunton/gflows/config"
@@ -68,11 +68,11 @@ func (lib *GFlowsLib) GetPathInfo(localPath string) (*LibFileInfo, error) {
 	if strings.HasPrefix(relPath, "..") {
 		return nil, fmt.Errorf("Expected %s to be a subdirectory of %s", localPath, lib.LocalDir)
 	}
-	rootPath, err := content.ParentPath(lib.ManifestPath)
+	rootPath, err := pkg.ParentPath(lib.ManifestPath)
 	if err != nil {
 		return nil, err
 	}
-	sourcePath, err := content.JoinRelativePath(rootPath, relPath)
+	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
 	return &LibFileInfo{
 		LocalPath:   localPath,
 		SourcePath:  sourcePath,                           // TODO: fix this for remote urls

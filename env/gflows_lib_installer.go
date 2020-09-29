@@ -5,6 +5,7 @@ import (
 
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/spf13/afero"
 )
 
@@ -30,7 +31,7 @@ func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*LibFileInfo, er
 		return nil, err
 	}
 
-	rootPath, err := content.ParentPath(lib.ManifestPath)
+	rootPath, err := pkg.ParentPath(lib.ManifestPath)
 	if err != nil {
 		return nil, err
 	}
@@ -55,16 +56,16 @@ func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsL
 }
 
 func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (*LibFileInfo, error) {
-	sourcePath, err := content.JoinRelativePath(rootPath, relPath)
+	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
 	if err != nil {
 		return nil, err
 	}
-	if content.IsRemotePath(rootPath) {
+	if pkg.IsRemotePath(rootPath) {
 		installer.logger.Debugf("Downloading %s\n", sourcePath)
 	} else {
 		installer.logger.Debugf("Copying %s\n", sourcePath)
 	}
-	destPath, err := content.JoinRelativePath(lib.LocalDir, relPath)
+	destPath, err := pkg.JoinRelativePath(lib.LocalDir, relPath)
 	if err != nil {
 		return nil, err
 	}
