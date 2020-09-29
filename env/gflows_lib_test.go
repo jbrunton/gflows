@@ -1,6 +1,7 @@
 package env
 
 import (
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -71,4 +72,51 @@ func TestCleanUp(t *testing.T) {
 	exists, err = fs.Exists(lib.LocalDir)
 	assert.NoError(t, err)
 	assert.False(t, exists, "expected LocalDir to have been removed")
+}
+
+func TestGetLocalPathInfo(t *testing.T) {
+	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": []}`)
+	err := lib.Setup()
+	assert.NoError(t, err)
+
+	localPath := filepath.Join(lib.LocalDir, "foo/bar.yml")
+	info, err := lib.GetPathInfo(localPath)
+
+	assert.NoError(t, err)
+	assert.Equal(t, &LibFileInfo{
+		LocalPath:   localPath,
+		SourcePath:  "/path/to/foo/bar.yml",
+		Description: "my-lib.gflowslib/foo/bar.yml",
+	}, info)
+}
+
+func TestGetRemotePathInfo(t *testing.T) {
+	lib, _, roundTripper := newTestLib("https://example.com/path/to/my-lib.gflowslib")
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": []}`)
+	err := lib.Setup()
+	assert.NoError(t, err)
+
+	localPath := filepath.Join(lib.LocalDir, "foo/bar.yml")
+	info, err := lib.GetPathInfo(localPath)
+
+	assert.NoError(t, err)
+	assert.Equal(t, &LibFileInfo{
+		LocalPath:   localPath,
+		SourcePath:  "https://example.com/path/to/foo/bar.yml",
+		Description: "my-lib.gflowslib/foo/bar.yml",
+	}, info)
+}
+
+func TestGetPathInfoErrors(t *testing.T) {
+	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": []}`)
+	err := lib.Setup()
+	assert.NoError(t, err)
+
+	_, err = lib.GetPathInfo("foo/bar.yml")
+	assert.EqualError(t, err, "Expected foo/bar.yml to be absolute")
+
+	_, err = lib.GetPathInfo("/path")
+	assert.Regexp(t, fmt.Sprintf("^Expected /path to be a subdirectory of %s", lib.LocalDir), err)
 }

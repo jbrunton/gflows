@@ -1,8 +1,12 @@
 package env
 
 import (
+	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/jbrunton/gflows/io/content"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jbrunton/gflows/config"
@@ -51,6 +55,29 @@ func (lib *GFlowsLib) isRemote() bool {
 func (lib *GFlowsLib) CleanUp() {
 	lib.logger.Debug("Removing temp directory", lib.LocalDir)
 	lib.fs.RemoveAll(lib.LocalDir)
+}
+
+func (lib *GFlowsLib) GetPathInfo(localPath string) (*LibFileInfo, error) {
+	if !filepath.IsAbs(localPath) {
+		return nil, fmt.Errorf("Expected %s to be absolute", localPath)
+	}
+	relPath, err := filepath.Rel(lib.LocalDir, localPath)
+	if err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(relPath, "..") {
+		return nil, fmt.Errorf("Expected %s to be a subdirectory of %s", localPath, lib.LocalDir)
+	}
+	rootPath, err := content.ParentPath(lib.ManifestPath)
+	if err != nil {
+		return nil, err
+	}
+	sourcePath, err := content.JoinRelativePath(rootPath, relPath)
+	return &LibFileInfo{
+		LocalPath:   localPath,
+		SourcePath:  sourcePath,                           // TODO: fix this for remote urls
+		Description: path.Join(lib.ManifestName, relPath), // TODO: also fix this
+	}, err
 }
 
 func (lib *GFlowsLib) Setup() error {
