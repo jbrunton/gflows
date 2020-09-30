@@ -269,15 +269,7 @@ func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, erro
 			if err != nil {
 				return []string{}, err
 			}
-			cd, err := os.Getwd()
-			if err != nil {
-				return []string{}, err
-			}
-			libDir := lib.LocalDir
-			if !filepath.IsAbs(libDir) {
-				libDir = filepath.Join(cd, libDir)
-			}
-			paths = append(paths, libDir)
+			paths = append(paths, lib.LibsDir())
 		} else {
 			paths = append(paths, path)
 		}

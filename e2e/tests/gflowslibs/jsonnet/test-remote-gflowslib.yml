@@ -17,7 +17,7 @@ setup:
             - https://example.com/my-lib.gflowslib
     - path: .gflows/workflows/test.jsonnet
       content: |
-        local steps = import 'libs/common/steps.libsonnet';
+        local steps = import 'common/steps.libsonnet';
         local workflow = {
           'on': {
             push: {},

@@ -17,7 +17,7 @@ setup:
               - https://example.com/my-lib.gflowslib
     - path: .gflows/workflows/test/config.yml
       content: |
-        #@ load("libs/common/steps.lib.yml", "run")
+        #@ load("common/steps.lib.yml", "run")
         "on":
           push:
             branches: [develop]

@@ -26,14 +26,14 @@ func newTestLib(manifestPath string) (*GFlowsLib, *content.Container, *fixtures.
 func TestSetupLocalLib(t *testing.T) {
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/lib/lib.yml", "foo: bar")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
 
 	assert.NoError(t, err)
 	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
-	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
+	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 	assert.False(t, lib.isRemote(), "expected local lib")
 }
@@ -41,14 +41,14 @@ func TestSetupLocalLib(t *testing.T) {
 func TestSetupRemoteLib(t *testing.T) {
 	lib, container, roundTripper := newTestLib("https://example.com/path/to/my-lib.gflowslib")
 	fs := container.FileSystem()
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
-	roundTripper.StubBody("https://example.com/path/to/lib/lib.yml", "foo: bar")
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
 
 	assert.NoError(t, err)
 	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
-	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
+	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 }
 
@@ -66,8 +66,8 @@ func TestCleanUp(t *testing.T) {
 	// arrange
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/lib/lib.yml", "foo: bar")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
 	assert.NoError(t, err)

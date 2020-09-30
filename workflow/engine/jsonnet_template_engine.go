@@ -191,15 +191,7 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, er
 			if err != nil {
 				return []string{}, err
 			}
-			cd, err := os.Getwd()
-			if err != nil {
-				return []string{}, err
-			}
-			libDir := lib.LocalDir
-			if !filepath.IsAbs(libDir) {
-				libDir = filepath.Join(cd, libDir)
-			}
-			jpaths = append(jpaths, libDir)
+			jpaths = append(jpaths, lib.LibsDir())
 		} else {
 			jpaths = append(jpaths, path)
 		}

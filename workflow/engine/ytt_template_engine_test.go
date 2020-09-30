@@ -140,8 +140,8 @@ func TestRemoteLibs(t *testing.T) {
 	paths, err := engine.getYttLibs("my-workflow")
 	assert.NoError(t, err)
 	assert.Equal(t, len(paths), 2)
-	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", paths[0])
-	assert.Regexp(t, "other-lib.gflowslib[0-9]+$", paths[1])
+	assert.Regexp(t, "my-lib.gflowslib[0-9]+/libs$", paths[0])
+	assert.Regexp(t, "other-lib.gflowslib[0-9]+/libs$", paths[1])
 }
 
 func TestIsLib(t *testing.T) {
