@@ -1,7 +1,8 @@
 package env
 
 import (
-	"path"
+	"fmt"
+	"strings"
 
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
@@ -38,11 +39,17 @@ func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*pkg.PathInfo, e
 
 	files := []*pkg.PathInfo{}
 	for _, relPath := range manifest.Libs {
-		fileInfo, err := installer.copyFile(lib, rootPath, relPath)
+		localPath, err := installer.copyFile(lib, rootPath, relPath)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, fileInfo)
+
+		pathInfo, err := lib.GetPathInfo(localPath)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, pathInfo)
 	}
 	return files, nil
 }
@@ -55,29 +62,27 @@ func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsL
 	return ParseManifest(manifestContent)
 }
 
-func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (*pkg.PathInfo, error) {
+func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (string, error) {
+	if !strings.HasPrefix(relPath, "libs/") && !strings.HasPrefix(relPath, "workflows/") {
+		return "", fmt.Errorf("Unexpected directory %s, file must be in libs/ or workflows/", relPath)
+	}
 	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if pkg.IsRemotePath(rootPath) {
 		installer.logger.Debugf("Downloading %s\n", sourcePath)
 	} else {
 		installer.logger.Debugf("Copying %s\n", sourcePath)
 	}
-	destPath, err := pkg.JoinRelativePath(lib.LocalDir, relPath)
+	localPath, err := pkg.JoinRelativePath(lib.LocalDir, relPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	sourceContent, err := installer.reader.ReadContent(sourcePath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	info := &pkg.PathInfo{
-		SourcePath:  sourcePath,
-		LocalPath:   destPath,
-		Description: path.Join(lib.ManifestName, relPath),
-	}
-	err = installer.writer.SafelyWriteFile(destPath, sourceContent)
-	return info, err
+	err = installer.writer.SafelyWriteFile(localPath, sourceContent)
+	return localPath, err
 }

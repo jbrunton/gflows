@@ -52,6 +52,16 @@ func TestSetupRemoteLib(t *testing.T) {
 	assert.Equal(t, "foo: bar", string(libContent))
 }
 
+func TestLibStructureErrors(t *testing.T) {
+	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["foo/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/foo/lib.yml", "foo: bar")
+
+	err := lib.Setup()
+
+	assert.EqualError(t, err, "Unexpected directory foo/lib.yml, file must be in libs/ or workflows/")
+}
+
 func TestCleanUp(t *testing.T) {
 	// arrange
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
