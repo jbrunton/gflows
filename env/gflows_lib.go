@@ -57,6 +57,14 @@ func (lib *GFlowsLib) CleanUp() {
 	lib.fs.RemoveAll(lib.LocalDir)
 }
 
+func (lib *GFlowsLib) WorkflowsDir() string {
+	return filepath.Join(lib.LocalDir, "/workflows")
+}
+
+func (lib *GFlowsLib) LibsDir() string {
+	return filepath.Join(lib.LocalDir, "/libs")
+}
+
 func (lib *GFlowsLib) GetPathInfo(localPath string) (*pkg.PathInfo, error) {
 	if !filepath.IsAbs(localPath) {
 		return nil, fmt.Errorf("Expected %s to be absolute", localPath)

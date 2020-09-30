@@ -3,8 +3,11 @@ package env
 import (
 	"path/filepath"
 
+	"github.com/thoas/go-funk"
+
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/spf13/afero"
 )
 
@@ -57,6 +60,16 @@ func (env *GFlowsEnv) GetLibDirs() []string {
 		paths = append(paths, filepath.Join(lib.LocalDir, "libs"))
 	}
 	return paths
+}
+
+func (env *GFlowsEnv) getLibPackages() []pkg.GFlowsPackage {
+	return funk.Map(funk.Values(env.libs), func(lib *GFlowsLib) pkg.GFlowsPackage {
+		return lib
+	}).([]pkg.GFlowsPackage)
+}
+
+func (env *GFlowsEnv) GetPackages() []pkg.GFlowsPackage {
+	return append(env.getLibPackages(), env.context)
 }
 
 func (env *GFlowsEnv) CleanUp() {

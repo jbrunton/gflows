@@ -4,5 +4,5 @@ type GFlowsPackage interface {
 	WorkflowsDir() string
 	LibsDir() string
 	GetPathInfo(localPath string) (*PathInfo, error)
-	// Validate?
+	// Validate()?
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
 	"github.com/stretchr/testify/assert"
@@ -71,7 +72,19 @@ func TestGetYttWorkflowTemplates(t *testing.T) {
 
 	templates := templateEngine.GetWorkflowTemplates()
 
-	assert.Equal(t, []string{".gflows/workflows/another-workflow", ".gflows/workflows/my-workflow"}, templates)
+	expectedPaths := []*pkg.PathInfo{
+		&pkg.PathInfo{
+			SourcePath:  ".gflows/workflows/another-workflow",
+			LocalPath:   ".gflows/workflows/another-workflow",
+			Description: ".gflows/workflows/another-workflow",
+		},
+		&pkg.PathInfo{
+			SourcePath:  ".gflows/workflows/my-workflow",
+			LocalPath:   ".gflows/workflows/my-workflow",
+			Description: ".gflows/workflows/my-workflow",
+		},
+	}
+	assert.Equal(t, expectedPaths, templates)
 }
 
 func TestGetAllYttLibs(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
 
@@ -38,9 +39,11 @@ func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
 	// TODO: replace GetWorkflowDirs() with GetLibs() and add .WorkflowDir() and .LibDir() to each lib.
 	// ..altho: how to deal with local dir?
 	// Perhaps add GFlowsPackage interface or something to abstract over libs and context.
-	for _, workflowsDir := range engine.env.GetWorkflowDirs() {
-		err := engine.fs.Walk(workflowsDir, func(path string, f os.FileInfo, err error) error {
+	for _, pkg := range engine.env.GetPackages() {
+		// TODO: this should include *all* files in both workflows and libs dirs
+		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
 			ext := filepath.Ext(path)
+			// TODO: should probably include other files, since jsonnet can include json (and maybe text? any other types?)
 			if ext == ".jsonnet" || ext == ".libsonnet" {
 				files = append(files, path)
 			}
@@ -54,12 +57,22 @@ func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
 	return files
 }
 
-func (engine *JsonnetTemplateEngine) GetWorkflowTemplates() []string {
-	sources := engine.GetWorkflowSources()
-	var templates []string
-	for _, source := range sources {
-		if filepath.Ext(source) == ".jsonnet" {
-			templates = append(templates, source)
+func (engine *JsonnetTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
+	templates := []*pkg.PathInfo{}
+	for _, pkg := range engine.env.GetPackages() {
+		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
+			ext := filepath.Ext(path)
+			if ext == ".jsonnet" {
+				pathInfo, err := pkg.GetPathInfo(path)
+				if err != nil {
+					return err
+				}
+				templates = append(templates, pathInfo)
+			}
+			return nil
+		})
+		if err != nil {
+			panic(err)
 		}
 	}
 	return templates
@@ -69,13 +82,13 @@ func (engine *JsonnetTemplateEngine) GetWorkflowTemplates() []string {
 func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
 	templates := engine.GetWorkflowTemplates()
 	definitions := []*workflow.Definition{}
-	for _, templatePath := range templates {
-		workflowName := engine.getWorkflowName(templatePath)
+	for _, template := range templates {
+		workflowName := engine.getWorkflowName(template.LocalPath)
 		vm, err := engine.createVM(workflowName)
 		if err != nil {
 			return []*workflow.Definition{}, err
 		}
-		input, err := engine.fs.ReadFile(templatePath)
+		input, err := engine.fs.ReadFile(template.LocalPath)
 		if err != nil {
 			return []*workflow.Definition{}, err
 		}
@@ -83,12 +96,12 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 		destinationPath := filepath.Join(engine.context.GitHubDir, "workflows/", workflowName+".yml")
 		definition := &workflow.Definition{
 			Name:        workflowName,
-			Source:      templatePath,
+			Source:      template.LocalPath,
 			Destination: destinationPath,
 			Status:      workflow.ValidationResult{Valid: true},
 		}
 
-		workflow, err := vm.EvaluateSnippet(templatePath, string(input))
+		workflow, err := vm.EvaluateSnippet(template.LocalPath, string(input))
 
 		if err != nil {
 			definition.Status.Valid = false
@@ -101,7 +114,7 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 			}
 			definition.Status.Errors = []string{errorDescription}
 		} else {
-			definition.SetContent(workflow, templatePath)
+			definition.SetContent(workflow, template)
 		}
 
 		definitions = append(definitions, definition)

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/io/pkg"
+
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io/content"
@@ -38,7 +40,7 @@ func NewYttTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, conten
 func (engine *YttTemplateEngine) getWorkflowSourcesInDir(dir string) []string {
 	files := []string{}
 	err := engine.fs.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		if filepath.Dir(path) == engine.context.WorkflowsDir {
+		if filepath.Dir(path) == engine.context.WorkflowsDir() {
 			// ignore files in the top level workflows dir, as we need them to be in a nested directory to infer the template name
 			return nil
 		}
@@ -57,27 +59,33 @@ func (engine *YttTemplateEngine) getWorkflowSourcesInDir(dir string) []string {
 }
 
 func (engine *YttTemplateEngine) GetWorkflowSources() []string {
-	return engine.getWorkflowSourcesInDir(engine.context.WorkflowsDir)
+	return engine.getWorkflowSourcesInDir(engine.context.WorkflowsDir())
 }
 
-func (engine *YttTemplateEngine) GetWorkflowTemplates() []string {
-	templates := []string{}
-	paths, err := afero.Glob(engine.fs, filepath.Join(engine.context.WorkflowsDir, "/*"))
-	if err != nil {
-		panic(err)
-	}
-	for _, path := range paths {
-		isDir, err := engine.fs.IsDir(path)
+func (engine *YttTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
+	templates := []*pkg.PathInfo{}
+	for _, pkg := range engine.env.GetPackages() {
+		paths, err := afero.Glob(engine.fs, filepath.Join(engine.context.WorkflowsDir(), "/*"))
 		if err != nil {
 			panic(err)
 		}
-		if !isDir || engine.isLib(path) {
-			continue
-		}
-		sources := engine.getWorkflowSourcesInDir(path)
-		if len(sources) > 0 {
-			// only add directories with genuine source files
-			templates = append(templates, path)
+		for _, path := range paths {
+			isDir, err := engine.fs.IsDir(path)
+			if err != nil {
+				panic(err)
+			}
+			if !isDir || engine.isLib(path) {
+				continue
+			}
+			sources := engine.getWorkflowSourcesInDir(path)
+			if len(sources) > 0 {
+				// only add directories with genuine source files
+				pathInfo, err := pkg.GetPathInfo(path)
+				if err != nil {
+					panic(err)
+				}
+				templates = append(templates, pathInfo)
+			}
 		}
 	}
 	return templates
@@ -180,23 +188,23 @@ func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) 
 func (engine *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
 	templates := engine.GetWorkflowTemplates()
 	definitions := []*workflow.Definition{}
-	for _, templatePath := range templates {
-		workflowName := filepath.Base(templatePath)
+	for _, template := range templates {
+		workflowName := filepath.Base(template.LocalPath)
 		destinationPath := filepath.Join(engine.context.GitHubDir, "workflows/", workflowName+".yml")
 		definition := &workflow.Definition{
 			Name:        workflowName,
-			Source:      templatePath,
+			Source:      template.LocalPath,
 			Destination: destinationPath,
 			Status:      workflow.ValidationResult{Valid: true},
 		}
 
-		workflow, err := engine.apply(workflowName, templatePath)
+		workflow, err := engine.apply(workflowName, template.LocalPath)
 
 		if err != nil {
 			definition.Status.Valid = false
 			definition.Status.Errors = []string{strings.Trim(err.Error(), " \n\r")}
 		} else {
-			definition.SetContent(workflow, templatePath)
+			definition.SetContent(workflow, template)
 		}
 
 		definitions = append(definitions, definition)
@@ -218,7 +226,7 @@ func (engine *YttTemplateEngine) ImportWorkflow(workflow *workflow.GitHubWorkflo
 
 	_, filename := filepath.Split(workflow.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
-	templatePath := filepath.Join(engine.context.WorkflowsDir, templateName, templateName+".yml")
+	templatePath := filepath.Join(engine.context.WorkflowsDir(), templateName, templateName+".yml")
 	engine.contentWriter.SafelyWriteFile(templatePath, string(templateContent))
 
 	return templatePath, nil

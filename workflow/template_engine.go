@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 )
 
 type TemplateEngine interface {
@@ -10,7 +11,7 @@ type TemplateEngine interface {
 	GetWorkflowSources() []string
 
 	// GetWorkflowTemplates - returns a list of all the templates used to generate workflows.
-	GetWorkflowTemplates() []string
+	GetWorkflowTemplates() []*pkg.PathInfo
 
 	// GetWorkflowDefinitions - returns definitions generated from workflow templates.
 	GetWorkflowDefinitions() ([]*Definition, error)
