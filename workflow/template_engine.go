@@ -2,16 +2,12 @@ package workflow
 
 import (
 	"github.com/jbrunton/gflows/io/content"
-	"github.com/jbrunton/gflows/io/pkg"
 )
 
 type TemplateEngine interface {
-	// GetWorkflowSources - returns a list of all the files (i.e. templates + library files) used
-	// to generate workflows.
-	GetWorkflowSources() []string
-
-	// GetWorkflowTemplates - returns a list of all the templates used to generate workflows.
-	GetWorkflowTemplates() []*pkg.PathInfo
+	// GetObservableSources - returns a list of all the local files used to generate workflows. Used
+	// to get the list of files to watch for changes.
+	GetObservableSources() []string
 
 	// GetWorkflowDefinitions - returns definitions generated from workflow templates.
 	GetWorkflowDefinitions() ([]*Definition, error)

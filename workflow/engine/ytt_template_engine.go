@@ -37,7 +37,7 @@ func NewYttTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, conten
 	}
 }
 
-func (engine *YttTemplateEngine) getWorkflowSourcesInDir(dir string) []string {
+func (engine *YttTemplateEngine) GetObservableSourcesInDir(dir string) []string {
 	files := []string{}
 	err := engine.fs.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		// TODO: should this check apply to all package workflow dirs? (or is it even still needed?)
@@ -59,8 +59,8 @@ func (engine *YttTemplateEngine) getWorkflowSourcesInDir(dir string) []string {
 	return files
 }
 
-func (engine *YttTemplateEngine) GetWorkflowSources() []string {
-	return engine.getWorkflowSourcesInDir(engine.context.WorkflowsDir())
+func (engine *YttTemplateEngine) GetObservableSources() []string {
+	return engine.GetObservableSourcesInDir(engine.context.WorkflowsDir())
 }
 
 func (engine *YttTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
@@ -82,7 +82,7 @@ func (engine *YttTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
 			if !isDir || engine.isLib(path) {
 				continue
 			}
-			sources := engine.getWorkflowSourcesInDir(path)
+			sources := engine.GetObservableSourcesInDir(path)
 			if len(sources) > 0 {
 				// only add directories with genuine source files
 				pathInfo, err := pkg.GetPathInfo(path)
@@ -134,7 +134,7 @@ func (s FileSource) Bytes() ([]byte, error) { return s.fs.ReadFile(s.path) }
 
 func (engine *YttTemplateEngine) getInput(workflowName string, templateDir string) (*cmdtpl.TemplateInput, error) {
 	var in cmdtpl.TemplateInput
-	for _, sourcePath := range engine.getWorkflowSourcesInDir(templateDir) {
+	for _, sourcePath := range engine.GetObservableSourcesInDir(templateDir) {
 		source := NewFileSource(engine.fs, sourcePath, filepath.Dir(sourcePath))
 		file, err := files.NewFileFromSource(source)
 		if err != nil {

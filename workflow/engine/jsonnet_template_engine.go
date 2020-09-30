@@ -34,7 +34,7 @@ func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, co
 	}
 }
 
-func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
+func (engine *JsonnetTemplateEngine) GetObservableSources() []string {
 	files := []string{}
 	packages, err := engine.env.GetPackages()
 	if err != nil {

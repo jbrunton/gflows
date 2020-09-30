@@ -23,7 +23,7 @@ func NewWatcher(manager *WorkflowManager, context *config.GFlowsContext) *Watche
 }
 
 func (watcher *Watcher) getWatchFiles() []string {
-	files := watcher.manager.GetWorkflowSources()
+	files := watcher.manager.GetObservableSources()
 	for _, workflow := range watcher.manager.GetWorkflows() {
 		files = append(files, workflow.Path)
 	}
