@@ -82,9 +82,11 @@ func (lib *GFlowsLib) GetPathInfo(localPath string) (*pkg.PathInfo, error) {
 	}
 	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
 	return &pkg.PathInfo{
-		LocalPath:   localPath,
-		SourcePath:  sourcePath,                           // TODO: fix this for remote urls
-		Description: path.Join(lib.ManifestName, relPath), // TODO: also fix this
+		LocalPath:  localPath,
+		SourcePath: sourcePath,
+		// TODO: Description should be SourcePath if remote, relative SourcePath if within context dir (i.e. in source control),
+		// and in terms of library name otherwise (since in that case the path is local but outside the repo, so not v useful)
+		Description: path.Join(lib.ManifestName, relPath),
 	}, err
 }
 
