@@ -23,7 +23,7 @@ func newTestEnv(roundTripper http.RoundTripper) (*GFlowsEnv, *content.Container)
 func TestLoadLocalLibrary(t *testing.T) {
 	env, container := newTestEnv(fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 
 	lib, err := env.LoadLib("/path/to/my-lib.gflowslib")
@@ -39,7 +39,7 @@ func TestLoadRemoteLib(t *testing.T) {
 	roundTripper := fixtures.NewMockRoundTripper()
 	env, container := newTestEnv(roundTripper)
 	fs := container.FileSystem()
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
 	lib, err := env.LoadLib("https://example.com/path/to/my-lib.gflowslib")
@@ -54,7 +54,7 @@ func TestLoadRemoteLib(t *testing.T) {
 func TestCacheRemoteLibs(t *testing.T) {
 	roundTripper := fixtures.NewMockRoundTripper()
 	env, _ := newTestEnv(roundTripper)
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
 	libOne, err := env.LoadLib("https://example.com/path/to/my-lib.gflowslib")
@@ -70,7 +70,7 @@ func TestCacheRemoteLibs(t *testing.T) {
 func TestGetPackages(t *testing.T) {
 	// arrange
 	env, container := newTestEnv(fixtures.NewMockRoundTripper())
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 	lib, _ := env.LoadLib("/path/to/my-lib.gflowslib")
 

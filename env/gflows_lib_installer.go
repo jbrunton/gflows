@@ -38,7 +38,7 @@ func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*pkg.PathInfo, e
 	}
 
 	files := []*pkg.PathInfo{}
-	for _, relPath := range manifest.Libs {
+	for _, relPath := range manifest.Files {
 		localPath, err := installer.copyFile(lib, rootPath, relPath)
 		if err != nil {
 			return nil, err
@@ -59,7 +59,14 @@ func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsL
 	if err != nil {
 		return nil, err
 	}
-	return ParseManifest(manifestContent)
+	manifest, err := ParseManifest(manifestContent)
+	if err == nil {
+		if manifest.Libs != nil {
+			installer.logger.Printfln(`WARNING: "libs" field is deprecated. Use "files" in %s`, manifestPath)
+			manifest.Files = manifest.Libs
+		}
+	}
+	return manifest, err
 }
 
 func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (string, error) {

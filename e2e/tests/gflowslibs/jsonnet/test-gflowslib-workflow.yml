@@ -3,7 +3,7 @@ setup:
     - path: https://example.com/my-lib.gflowslib
       content: |
         {
-          "libs": [
+          "files": [
             "libs/common/steps.libsonnet",
             "workflows/test.jsonnet"
           ]

@@ -135,8 +135,8 @@ func TestRemoteLibs(t *testing.T) {
 		"      libs: [https://example.com/other-lib.gflowslib]",
 	}, "\n")
 	_, _, engine, roundTripper := newYttTemplateEngine(config)
-	roundTripper.StubBody("https://example.com/my-lib.gflowslib", `{"libs":[]}`)
-	roundTripper.StubBody("https://example.com/other-lib.gflowslib", `{"libs":[]}`)
+	roundTripper.StubBody("https://example.com/my-lib.gflowslib", `{"files":[]}`)
+	roundTripper.StubBody("https://example.com/other-lib.gflowslib", `{"files":[]}`)
 
 	paths, err := engine.getYttLibs("my-workflow")
 	assert.NoError(t, err)

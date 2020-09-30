@@ -55,7 +55,7 @@ func TestGetJsonnetWorkflowDefinitionsWithLibs(t *testing.T) {
 	container, _, templateEngine := newJsonnetTemplateEngine("", fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["workflows/lib-workflow.jsonnet"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["workflows/lib-workflow.jsonnet"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/workflows/lib-workflow.jsonnet", `std.manifestYamlDoc({})`)
 	lib, _ := templateEngine.env.LoadLib("/path/to/my-lib.gflowslib")
 

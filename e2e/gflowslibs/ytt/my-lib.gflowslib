@@ -1,5 +1,5 @@
 {
-  "libs": [
+  "files": [
     "libs/common/steps.lib.yml",
     "libs/common/values.yml",
     "libs/common/workflows.lib.yml"

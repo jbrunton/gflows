@@ -26,7 +26,7 @@ func newTestLib(manifestPath string) (*GFlowsLib, *content.Container, *fixtures.
 func TestSetupLocalLib(t *testing.T) {
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
@@ -41,7 +41,7 @@ func TestSetupLocalLib(t *testing.T) {
 func TestSetupRemoteLib(t *testing.T) {
 	lib, container, roundTripper := newTestLib("https://example.com/path/to/my-lib.gflowslib")
 	fs := container.FileSystem()
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
@@ -54,7 +54,7 @@ func TestSetupRemoteLib(t *testing.T) {
 
 func TestLibStructureErrors(t *testing.T) {
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["foo/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["foo/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/foo/lib.yml", "foo: bar")
 
 	err := lib.Setup()
@@ -66,7 +66,7 @@ func TestCleanUp(t *testing.T) {
 	// arrange
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
@@ -87,7 +87,7 @@ func TestCleanUp(t *testing.T) {
 
 func TestGetLocalPathInfo(t *testing.T) {
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": []}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": []}`)
 	err := lib.Setup()
 	assert.NoError(t, err)
 
@@ -104,7 +104,7 @@ func TestGetLocalPathInfo(t *testing.T) {
 
 func TestGetRemotePathInfo(t *testing.T) {
 	lib, _, roundTripper := newTestLib("https://example.com/path/to/my-lib.gflowslib")
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": []}`)
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": []}`)
 	err := lib.Setup()
 	assert.NoError(t, err)
 
@@ -121,7 +121,7 @@ func TestGetRemotePathInfo(t *testing.T) {
 
 func TestGetPathInfoErrors(t *testing.T) {
 	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": []}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": []}`)
 	err := lib.Setup()
 	assert.NoError(t, err)
 
