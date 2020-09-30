@@ -38,6 +38,7 @@ func TestGenerateYttWorkflowDefinitions(t *testing.T) {
 		Name:        "test",
 		Source:      ".gflows/workflows/test",
 		Destination: ".github/workflows/test.yml",
+		Description: ".gflows/workflows/test",
 		Content:     expectedContent,
 		Status:      workflow.ValidationResult{Valid: true},
 		JSON:        expectedJson,

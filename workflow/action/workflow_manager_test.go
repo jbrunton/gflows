@@ -59,6 +59,7 @@ func TestGetImportedWorkflows(t *testing.T) {
 		Definition: &workflow.Definition{
 			Name:        "test",
 			Source:      ".gflows/workflows/test.jsonnet",
+			Description: ".gflows/workflows/test.jsonnet",
 			Destination: ".github/workflows/test.yml",
 			Content:     expectedContent,
 			Status:      workflow.ValidationResult{Valid: true},
