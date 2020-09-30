@@ -1,8 +1,6 @@
 package env
 
 import (
-	"path/filepath"
-
 	"github.com/thoas/go-funk"
 
 	"github.com/jbrunton/gflows/config"
@@ -46,30 +44,11 @@ func (env *GFlowsEnv) LoadLib(libUrl string) (*GFlowsLib, error) {
 	return lib, nil
 }
 
-func (env *GFlowsEnv) GetWorkflowDirs() []string {
-	paths := []string{filepath.Join(env.context.Dir, "workflows")}
-	for _, lib := range env.libs {
-		paths = append(paths, filepath.Join(lib.LocalDir, "workflows"))
-	}
-	return paths
-}
-
-func (env *GFlowsEnv) GetLibDirs() []string {
-	paths := []string{filepath.Join(env.context.Dir, "libs")}
-	for _, lib := range env.libs {
-		paths = append(paths, filepath.Join(lib.LocalDir, "libs"))
-	}
-	return paths
-}
-
-func (env *GFlowsEnv) getLibPackages() []pkg.GFlowsPackage {
-	return funk.Map(funk.Values(env.libs), func(lib *GFlowsLib) pkg.GFlowsPackage {
+func (env *GFlowsEnv) GetPackages() []pkg.GFlowsPackage {
+	libs := funk.Map(funk.Values(env.libs), func(lib *GFlowsLib) pkg.GFlowsPackage {
 		return lib
 	}).([]pkg.GFlowsPackage)
-}
-
-func (env *GFlowsEnv) GetPackages() []pkg.GFlowsPackage {
-	return append(env.getLibPackages(), env.context)
+	return append(libs, env.context)
 }
 
 func (env *GFlowsEnv) CleanUp() {

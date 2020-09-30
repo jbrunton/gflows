@@ -36,9 +36,6 @@ func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, co
 
 func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
 	files := []string{}
-	// TODO: replace GetWorkflowDirs() with GetLibs() and add .WorkflowDir() and .LibDir() to each lib.
-	// ..altho: how to deal with local dir?
-	// Perhaps add GFlowsPackage interface or something to abstract over libs and context.
 	for _, pkg := range engine.env.GetPackages() {
 		// TODO: this should include *all* files in both workflows and libs dirs
 		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {

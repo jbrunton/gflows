@@ -67,28 +67,24 @@ func TestCacheRemoteLibs(t *testing.T) {
 	roundTripper.AssertExpectations(t)
 }
 
-func TestGetLibPaths(t *testing.T) {
+func TestGetPackages(t *testing.T) {
+	// arrange
 	env, container := newTestEnv(fixtures.NewMockRoundTripper())
 	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/lib/lib.yml", "foo: bar")
 	lib, _ := env.LoadLib("/path/to/my-lib.gflowslib")
 
-	libDirs := env.GetLibDirs()
+	// act
+	packages := env.GetPackages()
 
-	assert.Len(t, libDirs, 2)
-	assert.Equal(t, ".gflows/libs", libDirs[0])
-	assert.Equal(t, filepath.Join(lib.LocalDir, "libs"), libDirs[1])
-}
+	// assert
+	libPackage := packages[0]
+	contextPackage := packages[1]
+	assert.Len(t, packages, 2)
 
-func TestGetWorkflowPaths(t *testing.T) {
-	env, container := newTestEnv(fixtures.NewMockRoundTripper())
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/lib/lib.yml", "foo: bar")
-	lib, _ := env.LoadLib("/path/to/my-lib.gflowslib")
+	assert.Equal(t, ".gflows/workflows", contextPackage.WorkflowsDir())
+	assert.Equal(t, ".gflows/libs", contextPackage.LibsDir())
 
-	libDirs := env.GetWorkflowDirs()
-
-	assert.Len(t, libDirs, 2)
-	assert.Equal(t, ".gflows/workflows", libDirs[0])
-	assert.Equal(t, filepath.Join(lib.LocalDir, "workflows"), libDirs[1])
+	assert.Equal(t, filepath.Join(lib.LocalDir, "workflows"), libPackage.WorkflowsDir())
+	assert.Equal(t, filepath.Join(lib.LocalDir, "libs"), libPackage.LibsDir())
 }
