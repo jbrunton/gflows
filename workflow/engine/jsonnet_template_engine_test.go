@@ -111,16 +111,33 @@ func TestSerializationError(t *testing.T) {
 }
 
 func TestGetJsonnetWorkflowSources(t *testing.T) {
-	container, _, templateEngine := newJsonnetTemplateEngine("", fixtures.NewMockRoundTripper())
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: jsonnet",
+		"  defaults:",
+		"    libs:",
+		"    - vendor",
+		"    - foo/bar.libsonnet",
+	}, "\n")
+	container, _, templateEngine := newJsonnetTemplateEngine(config, fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile(".gflows/libs/lib.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile("vendor/lib.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile("foo/bar.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 
 	sources, err := templateEngine.GetObservableSources()
 
 	assert.NoError(t, err)
-	assert.Equal(t, []string{".gflows/workflows/test.jsonnet", ".gflows/workflows/test.libsonnet"}, sources)
+	assert.Equal(t, []string{
+		"vendor/lib.libsonnet",
+		"foo/bar.libsonnet",
+		".gflows/workflows/test.jsonnet",
+		".gflows/workflows/test.libsonnet",
+		".gflows/libs/lib.libsonnet",
+	}, sources)
 }
 
 func TestGetJsonnetWorkflowTemplates(t *testing.T) {
