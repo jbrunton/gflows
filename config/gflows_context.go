@@ -17,11 +17,9 @@ import (
 
 // GFlowsContext - current command context
 type GFlowsContext struct {
-	Dir        string
-	ConfigPath string
-	GitHubDir  string
-	// TODO: consider removing WorkflowsDir from context. Env should own path definitions.
-	//WorkflowsDir string
+	Dir          string
+	ConfigPath   string
+	GitHubDir    string
 	Config       *GFlowsConfig
 	EnableColors bool
 }
@@ -50,13 +48,10 @@ func NewContext(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (*GFlowsCo
 		githubDir = filepath.Join(filepath.Dir(contextDir), githubDir)
 	}
 
-	//workflowsDir := filepath.Join(contextDir, "/workflows")
-
 	context := &GFlowsContext{
-		Config:     config,
-		ConfigPath: opts.ConfigPath,
-		GitHubDir:  githubDir,
-		//WorkflowsDir: workflowsDir,
+		Config:       config,
+		ConfigPath:   opts.ConfigPath,
+		GitHubDir:    githubDir,
 		Dir:          contextDir,
 		EnableColors: opts.EnableColors,
 	}
@@ -122,9 +117,6 @@ func (context *GFlowsContext) LibsDir() string {
 }
 
 func (context *GFlowsContext) GetPathInfo(localPath string) (*pkg.PathInfo, error) {
-	// if !filepath.IsAbs(localPath) {
-	// 	return nil, fmt.Errorf("Expected %s to be absolute", localPath)
-	// }
 	relPath, err := filepath.Rel(context.Dir, localPath)
 	if err != nil {
 		return nil, err
@@ -132,7 +124,6 @@ func (context *GFlowsContext) GetPathInfo(localPath string) (*pkg.PathInfo, erro
 	if strings.HasPrefix(relPath, "..") {
 		return nil, fmt.Errorf("Expected %s to be a subdirectory of %s", localPath, context.Dir)
 	}
-	//	sourcePath, err := pkg.JoinRelativePath(context.Dir, relPath)
 	return &pkg.PathInfo{
 		LocalPath:   localPath,
 		SourcePath:  localPath,
