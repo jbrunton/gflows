@@ -9,7 +9,8 @@ import (
 )
 
 func AssertTempDir(t *testing.T, fs *afero.Afero, dirName string, path string) {
-	assert.Regexp(t, fmt.Sprintf("^/var/folders.*/%s[0-9]+$", dirName), path)
+	// On a Mac, temp dirs are in /var/folders. On GitHub, at /tmp.
+	assert.Regexp(t, fmt.Sprintf("^(/var/folders|/tmp).*/%s[0-9]+$", dirName), path)
 	exists, err := fs.Exists(path)
 	assert.NoError(t, err)
 	assert.True(t, exists, "expected %s to exist", path)
