@@ -72,7 +72,8 @@ func (watcher *Watcher) WatchWorkflows(onChange func()) {
 
 	sources, err := watcher.getWatchFiles()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+		os.Exit(1)
 	}
 
 	for _, source := range sources {
