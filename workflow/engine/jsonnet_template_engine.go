@@ -36,7 +36,11 @@ func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, co
 
 func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
 	files := []string{}
-	for _, pkg := range engine.env.GetPackages() {
+	packages, err := engine.env.GetPackages()
+	if err != nil {
+		panic(err)
+	}
+	for _, pkg := range packages {
 		// TODO: this should include *all* files in both workflows and libs dirs
 		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
 			ext := filepath.Ext(path)
@@ -56,7 +60,11 @@ func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
 
 func (engine *JsonnetTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
 	templates := []*pkg.PathInfo{}
-	for _, pkg := range engine.env.GetPackages() {
+	packages, err := engine.env.GetPackages()
+	if err != nil {
+		panic(err)
+	}
+	for _, pkg := range packages {
 		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
 			ext := filepath.Ext(path)
 			if ext == ".jsonnet" {

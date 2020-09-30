@@ -75,12 +75,13 @@ func TestGetPackages(t *testing.T) {
 	lib, _ := env.LoadLib("/path/to/my-lib.gflowslib")
 
 	// act
-	packages := env.GetPackages()
+	packages, err := env.GetPackages()
 
 	// assert
 	libPackage := packages[0]
 	contextPackage := packages[1]
 	assert.Len(t, packages, 2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, ".gflows/workflows", contextPackage.WorkflowsDir())
 	assert.Equal(t, ".gflows/libs", contextPackage.LibsDir())

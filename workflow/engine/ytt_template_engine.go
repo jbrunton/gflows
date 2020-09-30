@@ -64,8 +64,12 @@ func (engine *YttTemplateEngine) GetWorkflowSources() []string {
 
 func (engine *YttTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
 	templates := []*pkg.PathInfo{}
-	for _, pkg := range engine.env.GetPackages() {
-		paths, err := afero.Glob(engine.fs, filepath.Join(engine.context.WorkflowsDir(), "/*"))
+	packages, err := engine.env.GetPackages()
+	if err != nil {
+		panic(err)
+	}
+	for _, pkg := range packages {
+		paths, err := afero.Glob(engine.fs, filepath.Join(pkg.WorkflowsDir(), "/*"))
 		if err != nil {
 			panic(err)
 		}

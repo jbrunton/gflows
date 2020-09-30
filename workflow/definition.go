@@ -13,6 +13,7 @@ import (
 type Definition struct {
 	Name        string
 	Source      string
+	Description string
 	Destination string
 	Content     string
 	JSON        interface{}
@@ -25,6 +26,7 @@ func (definition *Definition) SetContent(workflow string, template *pkg.PathInfo
 		fmt.Sprintf("# Source: %s", template.Description),
 	}, "\n")
 	definition.Content = meta + "\n" + workflow
+	definition.Description = template.Description
 
 	json, err := yamlutil.YamlToJson(definition.Content)
 	if err != nil {
