@@ -59,8 +59,8 @@ func (engine *YttTemplateEngine) GetObservableSourcesInDir(dir string) []string 
 	return files
 }
 
-func (engine *YttTemplateEngine) GetObservableSources() []string {
-	return engine.GetObservableSourcesInDir(engine.context.WorkflowsDir())
+func (engine *YttTemplateEngine) GetObservableSources() ([]string, error) {
+	return engine.GetObservableSourcesInDir(engine.context.WorkflowsDir()), nil
 }
 
 func (engine *YttTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {

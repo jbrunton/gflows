@@ -117,8 +117,9 @@ func TestGetJsonnetWorkflowSources(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 
-	sources := templateEngine.GetObservableSources()
+	sources, err := templateEngine.GetObservableSources()
 
+	assert.NoError(t, err)
 	assert.Equal(t, []string{".gflows/workflows/test.jsonnet", ".gflows/workflows/test.libsonnet"}, sources)
 }
 

@@ -34,15 +34,37 @@ func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, co
 	}
 }
 
-func (engine *JsonnetTemplateEngine) GetObservableSources() []string {
+func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
+	// TODO: this shouldn't traverse all packages. It should instead include:
+	// 1. All local files in the main package.
+	// 2. All files in libs and lib dirs.
+	// 3. It should NOT include files in package workflow dirs, as those aren't observable.
 	files := []string{}
-	packages, err := engine.env.GetPackages()
-	if err != nil {
-		panic(err)
-	}
-	for _, pkg := range packages {
-		// TODO: this should include *all* files in both workflows and libs dirs
-		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
+	for _, libPath := range append(
+		engine.context.Config.GetAllLibs(),
+		engine.context.WorkflowsDir(),
+		engine.context.LibsDir(),
+	) {
+		if pkg.IsRemotePath(libPath) {
+			// Can't watch remote files, so continue
+			continue
+		}
+		exists, err := engine.fs.Exists(libPath)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			continue
+		}
+		isDir, err := engine.fs.IsDir(libPath)
+		if err != nil {
+			return nil, err
+		}
+		if !isDir {
+			files = append(files, libPath)
+			continue
+		}
+		err = engine.fs.Walk(libPath, func(path string, f os.FileInfo, err error) error {
 			ext := filepath.Ext(path)
 			// TODO: should probably include other files, since jsonnet can include json (and maybe text? any other types?)
 			if ext == ".jsonnet" || ext == ".libsonnet" {
@@ -51,11 +73,11 @@ func (engine *JsonnetTemplateEngine) GetObservableSources() []string {
 			return nil
 		})
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
-	return files
+	return files, nil
 }
 
 func (engine *JsonnetTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {

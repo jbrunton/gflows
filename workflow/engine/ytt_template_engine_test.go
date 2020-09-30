@@ -55,8 +55,9 @@ func TestGetYttWorkflowSources(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte("ignored"), 0644)
 	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte("ignored"), 0644)
 
-	sources := templateEngine.GetObservableSources()
+	sources, err := templateEngine.GetObservableSources()
 
+	assert.NoError(t, err)
 	assert.Equal(t, []string{".gflows/workflows/my-workflow/config1.yml", ".gflows/workflows/my-workflow/config2.yaml", ".gflows/workflows/my-workflow/config3.txt"}, sources)
 }
 
