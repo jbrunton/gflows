@@ -23,14 +23,14 @@ func newTestEnv(roundTripper http.RoundTripper) (*GFlowsEnv, *content.Container)
 func TestLoadLocalLibrary(t *testing.T) {
 	env, container := newTestEnv(fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/lib/lib.yml", "foo: bar")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 
 	lib, err := env.LoadLib("/path/to/my-lib.gflowslib")
 
 	assert.NoError(t, err)
-	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", lib.LocalDir) // test it's a temp dir
-	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
+	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
+	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 	assert.False(t, lib.isRemote(), "expected local lib")
 }
@@ -39,14 +39,14 @@ func TestLoadRemoteLib(t *testing.T) {
 	roundTripper := fixtures.NewMockRoundTripper()
 	env, container := newTestEnv(roundTripper)
 	fs := container.FileSystem()
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
-	roundTripper.StubBody("https://example.com/path/to/lib/lib.yml", "foo: bar")
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
 	lib, err := env.LoadLib("https://example.com/path/to/my-lib.gflowslib")
 
 	assert.NoError(t, err)
-	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", lib.LocalDir) // test it's a temp dir
-	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "lib/lib.yml"))
+	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
+	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 	assert.True(t, lib.isRemote(), "expected remote lib")
 }
@@ -54,8 +54,8 @@ func TestLoadRemoteLib(t *testing.T) {
 func TestCacheRemoteLibs(t *testing.T) {
 	roundTripper := fixtures.NewMockRoundTripper()
 	env, _ := newTestEnv(roundTripper)
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"libs": ["lib/lib.yml"]}`)
-	roundTripper.StubBody("https://example.com/path/to/lib/lib.yml", "foo: bar")
+	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
 	libOne, err := env.LoadLib("https://example.com/path/to/my-lib.gflowslib")
 	assert.NoError(t, err)
@@ -65,4 +65,27 @@ func TestCacheRemoteLibs(t *testing.T) {
 	assert.True(t, libOne == libTwo, "expected same lib")
 	roundTripper.AssertNumberOfCalls(t, "RoundTrip", 2) // one call for the manifest and another for the lib.yml file
 	roundTripper.AssertExpectations(t)
+}
+
+func TestGetPackages(t *testing.T) {
+	// arrange
+	env, container := newTestEnv(fixtures.NewMockRoundTripper())
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
+	lib, _ := env.LoadLib("/path/to/my-lib.gflowslib")
+
+	// act
+	packages, err := env.GetPackages()
+
+	// assert
+	libPackage := packages[0]
+	contextPackage := packages[1]
+	assert.Len(t, packages, 2)
+	assert.NoError(t, err)
+
+	assert.Equal(t, ".gflows/workflows", contextPackage.WorkflowsDir())
+	assert.Equal(t, ".gflows/libs", contextPackage.LibsDir())
+
+	assert.Equal(t, filepath.Join(lib.LocalDir, "workflows"), libPackage.WorkflowsDir())
+	assert.Equal(t, filepath.Join(lib.LocalDir, "libs"), libPackage.LibsDir())
 }

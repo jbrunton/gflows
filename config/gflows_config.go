@@ -108,6 +108,15 @@ func (config *GFlowsConfig) GetTemplateArrayProperty(workflowName string, select
 	return values
 }
 
+func (config *GFlowsConfig) GetAllLibs() []string {
+	libs := []string{}
+	libs = append(libs, config.Templates.Defaults.Libs...)
+	for _, override := range config.Templates.Overrides {
+		libs = append(libs, override.Libs...)
+	}
+	return libs
+}
+
 func (config *GFlowsConfig) GetTemplateLibs(workflowName string) []string {
 	return config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
 		return config.Libs

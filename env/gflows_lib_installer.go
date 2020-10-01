@@ -1,8 +1,12 @@
 package env
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/spf13/afero"
 )
 
@@ -22,24 +26,32 @@ func NewGFlowsLibInstaller(fs *afero.Afero, reader *content.Reader, writer *cont
 	}
 }
 
-func (installer *GFlowsLibInstaller) install(manifestPath string, installDir string) error {
-	manifest, err := installer.loadManifest(manifestPath)
+func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*pkg.PathInfo, error) {
+	manifest, err := installer.loadManifest(lib.ManifestPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	rootPath, err := content.ParentPath(manifestPath)
+	rootPath, err := pkg.ParentPath(lib.ManifestPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, relPath := range manifest.Libs {
-		err := installer.copyFile(rootPath, installDir, relPath)
+	files := []*pkg.PathInfo{}
+	for _, relPath := range manifest.Files {
+		localPath, err := installer.copyFile(lib, rootPath, relPath)
 		if err != nil {
-			return err
+			return nil, err
 		}
+
+		pathInfo, err := lib.GetPathInfo(localPath)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, pathInfo)
 	}
-	return nil
+	return files, nil
 }
 
 func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsLibManifest, error) {
@@ -47,26 +59,37 @@ func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsL
 	if err != nil {
 		return nil, err
 	}
-	return ParseManifest(manifestContent)
+	manifest, err := ParseManifest(manifestContent)
+	if err == nil {
+		if manifest.Libs != nil {
+			installer.logger.Printfln(`WARNING: "libs" field is deprecated. Use "files" in %s`, manifestPath)
+			manifest.Files = manifest.Libs
+		}
+	}
+	return manifest, err
 }
 
-func (installer *GFlowsLibInstaller) copyFile(rootPath string, installDir string, relPath string) error {
-	sourcePath, err := content.JoinRelativePath(rootPath, relPath)
-	if err != nil {
-		return err
+func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, relPath string) (string, error) {
+	if !strings.HasPrefix(relPath, "libs/") && !strings.HasPrefix(relPath, "workflows/") {
+		return "", fmt.Errorf("Unexpected directory %s, file must be in libs/ or workflows/", relPath)
 	}
-	if content.IsRemotePath(rootPath) {
+	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
+	if err != nil {
+		return "", err
+	}
+	if pkg.IsRemotePath(rootPath) {
 		installer.logger.Debugf("Downloading %s\n", sourcePath)
 	} else {
 		installer.logger.Debugf("Copying %s\n", sourcePath)
 	}
-	destPath, err := content.JoinRelativePath(installDir, relPath)
+	localPath, err := pkg.JoinRelativePath(lib.LocalDir, relPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	sourceContent, err := installer.reader.ReadContent(sourcePath)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return installer.writer.SafelyWriteFile(destPath, sourceContent)
+	err = installer.writer.SafelyWriteFile(localPath, sourceContent)
+	return localPath, err
 }

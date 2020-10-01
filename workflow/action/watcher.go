@@ -22,12 +22,15 @@ func NewWatcher(manager *WorkflowManager, context *config.GFlowsContext) *Watche
 	}
 }
 
-func (watcher *Watcher) getWatchFiles() []string {
-	files := watcher.manager.GetWorkflowSources()
+func (watcher *Watcher) getWatchFiles() ([]string, error) {
+	files, err := watcher.manager.GetObservableSources()
+	if err != nil {
+		return nil, err
+	}
 	for _, workflow := range watcher.manager.GetWorkflows() {
 		files = append(files, workflow.Path)
 	}
-	return files
+	return files, nil
 }
 
 // WatchWorkflows - watch workflow files and invoke onChange on any changes
@@ -67,7 +70,11 @@ func (watcher *Watcher) WatchWorkflows(onChange func()) {
 	screen.MoveTopLeft()
 	log.Println("Watching workflow templates")
 
-	sources := watcher.getWatchFiles()
+	sources, err := watcher.getWatchFiles()
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 
 	for _, source := range sources {
 		fmt.Println("  Watching", source)

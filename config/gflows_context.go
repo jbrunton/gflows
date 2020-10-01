@@ -1,10 +1,13 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jbrunton/gflows/io"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/thoas/go-funk"
 
 	"github.com/davecgh/go-spew/spew"
@@ -17,7 +20,6 @@ type GFlowsContext struct {
 	Dir          string
 	ConfigPath   string
 	GitHubDir    string
-	WorkflowsDir string
 	Config       *GFlowsConfig
 	EnableColors bool
 }
@@ -46,13 +48,10 @@ func NewContext(fs *afero.Afero, logger *io.Logger, opts ContextOpts) (*GFlowsCo
 		githubDir = filepath.Join(filepath.Dir(contextDir), githubDir)
 	}
 
-	workflowsDir := filepath.Join(contextDir, "/workflows")
-
 	context := &GFlowsContext{
 		Config:       config,
 		ConfigPath:   opts.ConfigPath,
 		GitHubDir:    githubDir,
-		WorkflowsDir: workflowsDir,
 		Dir:          contextDir,
 		EnableColors: opts.EnableColors,
 	}
@@ -107,6 +106,29 @@ func CreateContextOpts(cmd *cobra.Command) ContextOpts {
 		Engine:         engine,
 		AllowNoContext: allowNoContext,
 	}
+}
+
+func (context *GFlowsContext) WorkflowsDir() string {
+	return filepath.Join(context.Dir, "/workflows")
+}
+
+func (context *GFlowsContext) LibsDir() string {
+	return filepath.Join(context.Dir, "/libs")
+}
+
+func (context *GFlowsContext) GetPathInfo(localPath string) (*pkg.PathInfo, error) {
+	relPath, err := filepath.Rel(context.Dir, localPath)
+	if err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(relPath, "..") {
+		return nil, fmt.Errorf("Expected %s to be a subdirectory of %s", localPath, context.Dir)
+	}
+	return &pkg.PathInfo{
+		LocalPath:   localPath,
+		SourcePath:  localPath,
+		Description: localPath,
+	}, err
 }
 
 // ResolvePath - returns paths relative to the working directory (since paths in configs may be written relative to the

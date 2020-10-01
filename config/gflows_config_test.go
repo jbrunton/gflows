@@ -198,3 +198,19 @@ func TestValidateConfig(t *testing.T) {
 		assert.Equal(t, scenario.expectedOutput, out.String(), "Output mismatch in scenario %q", scenario.description)
 	}
 }
+
+func TestGetAllLibs(t *testing.T) {
+	config, _ := parseConfig([]byte(strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    libs:",
+		"    - my-lib",
+		"  overrides:",
+		"    my-workflow:",
+		"      libs:",
+		"      - my-other-lib",
+	}, "\n")))
+
+	assert.Equal(t, []string{"my-lib", "my-other-lib"}, config.GetAllLibs())
+}

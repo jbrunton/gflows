@@ -99,7 +99,7 @@ func (manager *WorkflowManager) UpdateWorkflows() error {
 	}
 	valid := true
 	for _, definition := range definitions {
-		details := fmt.Sprintf("(from %s)", definition.Source)
+		details := fmt.Sprintf("(from %s)", definition.Description)
 		if definition.Status.Valid {
 			schemaResult := manager.validator.ValidateSchema(definition)
 			if schemaResult.Valid {

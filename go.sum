@@ -104,6 +104,7 @@ github.com/k14s/starlark-go v0.0.0-20200522161834-8a7b2030a110 h1:Hu5wSqbl7QVn+A
 github.com/k14s/starlark-go v0.0.0-20200522161834-8a7b2030a110/go.mod h1:nmDLcffg48OtT/PSW0Hg7FvpRQsQh5OSqIylirxKC7o=
 github.com/k14s/ytt v0.28.0 h1:ZMHxJt8vcOH3odXnObcsr/DiZaReprTYa5O4K+HMidw=
 github.com/k14s/ytt v0.28.0/go.mod h1:7MFKPHqen50zRfoSxWsm3cpJ70WX+ly5VIGaTwPFO/I=
+github.com/k14s/ytt v0.30.0 h1:0Jc1bM644L8bFIiJo5CYwN4SO9y3e6jR6d4YubToBcI=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd h1:Coekwdh0v2wtGp9Gmz1Ze3eVRAWJMLokvN3QjdzCHLY=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=

@@ -1,7 +1,7 @@
 {
-  "libs": [
-    "common/steps.lib.yml",
-    "common/values.yml",
-    "common/workflows.lib.yml"
+  "files": [
+    "libs/common/steps.lib.yml",
+    "libs/common/values.yml",
+    "libs/common/workflows.lib.yml"
   ]
 }

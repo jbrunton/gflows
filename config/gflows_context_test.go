@@ -2,9 +2,11 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/jbrunton/gflows/io"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/spf13/cobra"
 
 	"github.com/stretchr/testify/assert"
@@ -110,4 +112,23 @@ func TestCreateContextOpts(t *testing.T) {
 		scenario.setup(cmd)
 		cmd.Execute()
 	}
+}
+
+func TestGetPathInfo(t *testing.T) {
+	context := newTestContext()
+
+	info, err := context.GetPathInfo(".gflows/workflows/foo.jsonnet")
+
+	assert.NoError(t, err)
+	assert.Equal(t, &pkg.PathInfo{
+		LocalPath:   ".gflows/workflows/foo.jsonnet",
+		SourcePath:  ".gflows/workflows/foo.jsonnet",
+		Description: ".gflows/workflows/foo.jsonnet",
+	}, info)
+}
+
+func TestGetPathInfoErrors(t *testing.T) {
+	context := newTestContext()
+	_, err := context.GetPathInfo(".")
+	assert.Regexp(t, fmt.Sprintf("^Expected . to be a subdirectory of .gflows"), err)
 }

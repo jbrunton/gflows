@@ -5,8 +5,11 @@ import (
 )
 
 type GFlowsLibManifest struct {
-	// Libs - the list of files in the library. If the manifest is remote, this list is used to
+	// Files - the list of files in the library. If the manifest is remote, this list is used to
 	// download the files.
+	Files []string
+
+	// Libs - deprecated field, use Files instead
 	Libs []string
 }
 

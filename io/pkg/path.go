@@ -1,4 +1,4 @@
-package content
+package pkg
 
 import (
 	"net/url"

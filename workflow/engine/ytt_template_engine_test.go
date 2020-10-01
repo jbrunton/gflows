@@ -9,6 +9,7 @@ import (
 	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/fixtures"
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
 	"github.com/stretchr/testify/assert"
@@ -37,6 +38,7 @@ func TestGenerateYttWorkflowDefinitions(t *testing.T) {
 		Name:        "test",
 		Source:      ".gflows/workflows/test",
 		Destination: ".github/workflows/test.yml",
+		Description: ".gflows/workflows/test",
 		Content:     expectedContent,
 		Status:      workflow.ValidationResult{Valid: true},
 		JSON:        expectedJson,
@@ -44,18 +46,42 @@ func TestGenerateYttWorkflowDefinitions(t *testing.T) {
 	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
 }
 
-func TestGetYttWorkflowSources(t *testing.T) {
-	container, _, templateEngine, _ := newYttTemplateEngine("")
+func TestGetYttObservableSources(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    libs:",
+		"    - vendor",
+		"    - foo/bar.yml",
+		"    - my-lib/my-lib.gflowslib",
+		"    - https://example.com/config.yml",
+	}, "\n")
+	container, _, templateEngine, _ := newYttTemplateEngine(config)
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte("config1"), 0644)
-	fs.WriteFile(".gflows/workflows/my-workflow/config2.yaml", []byte("config2"), 0644)
-	fs.WriteFile(".gflows/workflows/my-workflow/config3.txt", []byte("config3"), 0644)
-	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte("ignored"), 0644)
-	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte("ignored"), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/config2.yaml", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/config3.txt", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/lib.yml", []byte(""), 0644)
+	fs.WriteFile(".gflows/libs/lib.yml", []byte(""), 0644)
+	fs.WriteFile("vendor/lib/config.yml", []byte(""), 0644)
+	fs.WriteFile("foo/bar.yml", []byte(""), 0644)
+	fs.WriteFile("my-lib/my-lib.gflowslib", []byte(`{"files":["my-lib/foo.yml"]}`), 0644)
+	fs.WriteFile("my-lib/foo.yml", []byte(`{}`), 0644)
 
-	sources := templateEngine.GetWorkflowSources()
+	sources, err := templateEngine.GetObservableSources()
 
-	assert.Equal(t, []string{".gflows/workflows/my-workflow/config1.yml", ".gflows/workflows/my-workflow/config2.yaml", ".gflows/workflows/my-workflow/config3.txt"}, sources)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{
+		"vendor/lib/config.yml",
+		"foo/bar.yml",
+		".gflows/workflows/lib.yml",
+		".gflows/workflows/my-workflow/config1.yml",
+		".gflows/workflows/my-workflow/config2.yaml",
+		".gflows/workflows/my-workflow/config3.txt",
+		".gflows/libs/lib.yml",
+	}, sources)
 }
 
 func TestGetYttWorkflowTemplates(t *testing.T) {
@@ -69,9 +95,22 @@ func TestGetYttWorkflowTemplates(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/another-workflow/config.yml", []byte("config"), 0644)
 	fs.WriteFile(".gflows/workflows/jsonnet/foo.jsonnet", []byte("jsonnet"), 0644)
 
-	templates := templateEngine.GetWorkflowTemplates()
+	templates, err := templateEngine.getWorkflowTemplates()
 
-	assert.Equal(t, []string{".gflows/workflows/another-workflow", ".gflows/workflows/my-workflow"}, templates)
+	expectedPaths := []*pkg.PathInfo{
+		&pkg.PathInfo{
+			SourcePath:  ".gflows/workflows/another-workflow",
+			LocalPath:   ".gflows/workflows/another-workflow",
+			Description: ".gflows/workflows/another-workflow",
+		},
+		&pkg.PathInfo{
+			SourcePath:  ".gflows/workflows/my-workflow",
+			LocalPath:   ".gflows/workflows/my-workflow",
+			Description: ".gflows/workflows/my-workflow",
+		},
+	}
+	assert.NoError(t, err)
+	assert.Equal(t, expectedPaths, templates)
 }
 
 func TestGetAllYttLibs(t *testing.T) {
@@ -121,14 +160,14 @@ func TestRemoteLibs(t *testing.T) {
 		"      libs: [https://example.com/other-lib.gflowslib]",
 	}, "\n")
 	_, _, engine, roundTripper := newYttTemplateEngine(config)
-	roundTripper.StubBody("https://example.com/my-lib.gflowslib", `{"libs":[]}`)
-	roundTripper.StubBody("https://example.com/other-lib.gflowslib", `{"libs":[]}`)
+	roundTripper.StubBody("https://example.com/my-lib.gflowslib", `{"files":[]}`)
+	roundTripper.StubBody("https://example.com/other-lib.gflowslib", `{"files":[]}`)
 
 	paths, err := engine.getYttLibs("my-workflow")
 	assert.NoError(t, err)
 	assert.Equal(t, len(paths), 2)
-	assert.Regexp(t, "my-lib.gflowslib[0-9]+$", paths[0])
-	assert.Regexp(t, "other-lib.gflowslib[0-9]+$", paths[1])
+	assert.Regexp(t, "my-lib.gflowslib[0-9]+/libs$", paths[0])
+	assert.Regexp(t, "other-lib.gflowslib[0-9]+/libs$", paths[1])
 }
 
 func TestIsLib(t *testing.T) {

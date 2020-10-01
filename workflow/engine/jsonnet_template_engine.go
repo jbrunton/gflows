@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/io/content"
+	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
 
@@ -33,45 +34,65 @@ func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, co
 	}
 }
 
-func (engine *JsonnetTemplateEngine) GetWorkflowSources() []string {
+func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
 	files := []string{}
-	err := engine.fs.Walk(engine.context.WorkflowsDir, func(path string, f os.FileInfo, err error) error {
-		ext := filepath.Ext(path)
-		if ext == ".jsonnet" || ext == ".libsonnet" {
-			files = append(files, path)
+	for _, libPath := range append(
+		engine.context.Config.GetAllLibs(),
+		engine.context.WorkflowsDir(),
+		engine.context.LibsDir(),
+	) {
+		libInfo, err := pkg.GetLibInfo(libPath, engine.fs)
+		if err != nil {
+			return nil, err
 		}
-		return nil
-	})
 
-	if err != nil {
-		panic(err)
+		if libInfo.IsRemote || !libInfo.Exists {
+			// Can't watch remote or non-existent files, so continue
+			continue
+		}
+
+		// If it's a file...
+		if !libInfo.IsDir {
+			if !libInfo.IsGFlowsLib {
+				// ...add it to the list if it's not a gflowslib package
+				files = append(files, libPath)
+			}
+			// ...and continue in either case
+			continue
+		}
+
+		// If we reach here, then libPath is a directory, so walk it
+		err = engine.fs.Walk(libPath, func(path string, f os.FileInfo, err error) error {
+			ext := filepath.Ext(path)
+			// TODO: should probably include other files, since jsonnet can include json (and maybe text? any other types?)
+			if ext == ".jsonnet" || ext == ".libsonnet" {
+				files = append(files, path)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return files
-}
-
-func (engine *JsonnetTemplateEngine) GetWorkflowTemplates() []string {
-	sources := engine.GetWorkflowSources()
-	var templates []string
-	for _, source := range sources {
-		if filepath.Ext(source) == ".jsonnet" {
-			templates = append(templates, source)
-		}
-	}
-	return templates
+	return files, nil
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
 func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
-	templates := engine.GetWorkflowTemplates()
+	templates, err := engine.getWorkflowTemplates()
+	if err != nil {
+		return nil, err
+	}
 	definitions := []*workflow.Definition{}
-	for _, templatePath := range templates {
-		workflowName := engine.getWorkflowName(engine.context.WorkflowsDir, templatePath)
+	for _, template := range templates {
+		workflowName := engine.getWorkflowName(template.LocalPath)
 		vm, err := engine.createVM(workflowName)
 		if err != nil {
 			return []*workflow.Definition{}, err
 		}
-		input, err := engine.fs.ReadFile(templatePath)
+		input, err := engine.fs.ReadFile(template.LocalPath)
 		if err != nil {
 			return []*workflow.Definition{}, err
 		}
@@ -79,12 +100,12 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 		destinationPath := filepath.Join(engine.context.GitHubDir, "workflows/", workflowName+".yml")
 		definition := &workflow.Definition{
 			Name:        workflowName,
-			Source:      templatePath,
+			Source:      template.LocalPath,
 			Destination: destinationPath,
 			Status:      workflow.ValidationResult{Valid: true},
 		}
 
-		workflow, err := vm.EvaluateSnippet(templatePath, string(input))
+		workflow, err := vm.EvaluateSnippet(template.LocalPath, string(input))
 
 		if err != nil {
 			definition.Status.Valid = false
@@ -97,7 +118,7 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 			}
 			definition.Status.Errors = []string{errorDescription}
 		} else {
-			definition.SetContent(workflow, templatePath)
+			definition.SetContent(workflow, template)
 		}
 
 		definitions = append(definitions, definition)
@@ -131,7 +152,7 @@ func (engine *JsonnetTemplateEngine) ImportWorkflow(wf *workflow.GitHubWorkflow)
 
 	_, filename := filepath.Split(wf.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
-	templatePath := filepath.Join(engine.context.WorkflowsDir, templateName+".jsonnet")
+	templatePath := filepath.Join(engine.context.Dir, "workflows", templateName+".jsonnet")
 	engine.contentWriter.SafelyWriteFile(templatePath, templateContent)
 
 	return templatePath, nil
@@ -151,7 +172,32 @@ func (engine *JsonnetTemplateEngine) WorkflowGenerator(templateVars map[string]s
 	}
 }
 
-func (engine *JsonnetTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
+func (engine *JsonnetTemplateEngine) getWorkflowTemplates() ([]*pkg.PathInfo, error) {
+	templates := []*pkg.PathInfo{}
+	packages, err := engine.env.GetPackages()
+	if err != nil {
+		return nil, err
+	}
+	for _, pkg := range packages {
+		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
+			ext := filepath.Ext(path)
+			if ext == ".jsonnet" {
+				pathInfo, err := pkg.GetPathInfo(path)
+				if err != nil {
+					return err
+				}
+				templates = append(templates, pathInfo)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return templates, nil
+}
+
+func (engine *JsonnetTemplateEngine) getWorkflowName(filename string) string {
 	_, templateFileName := filepath.Split(filename)
 	return strings.TrimSuffix(templateFileName, filepath.Ext(templateFileName))
 }
@@ -177,15 +223,7 @@ func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, er
 			if err != nil {
 				return []string{}, err
 			}
-			cd, err := os.Getwd()
-			if err != nil {
-				return []string{}, err
-			}
-			libDir := lib.LocalDir
-			if !filepath.IsAbs(libDir) {
-				libDir = filepath.Join(cd, libDir)
-			}
-			jpaths = append(jpaths, libDir)
+			jpaths = append(jpaths, lib.LibsDir())
 		} else {
 			jpaths = append(jpaths, path)
 		}

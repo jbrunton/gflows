@@ -1,9 +1,14 @@
 package env
 
 import (
+	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/io/pkg"
+
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io"
 	"github.com/spf13/afero"
@@ -23,6 +28,9 @@ type GFlowsLib struct {
 	// remote, then this will be a local temp directory.
 	LocalDir string
 
+	// Files - content of the package as an array of FileInfo
+	Files []*pkg.PathInfo
+
 	fs        *afero.Afero
 	installer *GFlowsLibInstaller
 	context   *config.GFlowsContext
@@ -30,10 +38,9 @@ type GFlowsLib struct {
 }
 
 func NewGFlowsLib(fs *afero.Afero, installer *GFlowsLibInstaller, logger *io.Logger, manifestPath string, context *config.GFlowsContext) *GFlowsLib {
-	manifestName := filepath.Base(manifestPath)
 	return &GFlowsLib{
-		ManifestPath: manifestPath,
-		ManifestName: manifestName,
+		ManifestPath: context.ResolvePath(manifestPath),
+		ManifestName: filepath.Base(manifestPath),
 		installer:    installer,
 		fs:           fs,
 		context:      context,
@@ -50,6 +57,39 @@ func (lib *GFlowsLib) CleanUp() {
 	lib.fs.RemoveAll(lib.LocalDir)
 }
 
+func (lib *GFlowsLib) WorkflowsDir() string {
+	return filepath.Join(lib.LocalDir, "/workflows")
+}
+
+func (lib *GFlowsLib) LibsDir() string {
+	return filepath.Join(lib.LocalDir, "/libs")
+}
+
+func (lib *GFlowsLib) GetPathInfo(localPath string) (*pkg.PathInfo, error) {
+	if !filepath.IsAbs(localPath) {
+		return nil, fmt.Errorf("Expected %s to be absolute", localPath)
+	}
+	relPath, err := filepath.Rel(lib.LocalDir, localPath)
+	if err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(relPath, "..") {
+		return nil, fmt.Errorf("Expected %s to be a subdirectory of %s", localPath, lib.LocalDir)
+	}
+	rootPath, err := pkg.ParentPath(lib.ManifestPath)
+	if err != nil {
+		return nil, err
+	}
+	sourcePath, err := pkg.JoinRelativePath(rootPath, relPath)
+	return &pkg.PathInfo{
+		LocalPath:  localPath,
+		SourcePath: sourcePath,
+		// TODO: Description should be SourcePath if remote, relative SourcePath if within context dir (i.e. in source control),
+		// and in terms of library name otherwise (since in that case the path is local but outside the repo, so not v useful)
+		Description: path.Join(lib.ManifestName, relPath),
+	}, err
+}
+
 func (lib *GFlowsLib) Setup() error {
 	lib.logger.Debugf("Installing %s (%s)\n", lib.ManifestName, lib.ManifestPath)
 
@@ -59,11 +99,11 @@ func (lib *GFlowsLib) Setup() error {
 	}
 	lib.LocalDir = tempDir
 
-	manifestPath := lib.context.ResolvePath(lib.ManifestPath)
-	err = lib.installer.install(manifestPath, tempDir)
+	lib.Files, err = lib.installer.install(lib)
 
 	if err == nil {
 		lib.logger.Debugf("Installed %s\n", lib.ManifestName)
+		lib.logger.Debugf("Installed %s\n", spew.Sdump(lib.Files))
 	}
 
 	return err
