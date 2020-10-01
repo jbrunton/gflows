@@ -171,11 +171,6 @@ func (engine *YttTemplateEngine) WorkflowGenerator(templateVars map[string]strin
 func (engine *YttTemplateEngine) getSourcesInDir(dir string) []string {
 	files := []string{}
 	err := engine.fs.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		// TODO: should this check apply to all package workflow dirs? (or is it even still needed?)
-		if filepath.Dir(path) == engine.context.WorkflowsDir() {
-			// ignore files in the top level workflows dir, as we need them to be in a nested directory to infer the template name
-			return nil
-		}
 		ext := filepath.Ext(path)
 		if ext == ".yml" || ext == ".yaml" || ext == ".txt" {
 			files = append(files, path)

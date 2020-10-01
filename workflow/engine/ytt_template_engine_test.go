@@ -63,7 +63,8 @@ func TestGetYttObservableSources(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/my-workflow/config2.yaml", []byte(""), 0644)
 	fs.WriteFile(".gflows/workflows/my-workflow/config3.txt", []byte(""), 0644)
 	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte(""), 0644)
-	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/lib.yml", []byte(""), 0644)
+	fs.WriteFile(".gflows/libs/lib.yml", []byte(""), 0644)
 	fs.WriteFile("vendor/lib/config.yml", []byte(""), 0644)
 	fs.WriteFile("foo/bar.yml", []byte(""), 0644)
 	fs.WriteFile("my-lib/my-lib.gflowslib", []byte(`{"files":["my-lib/foo.yml"]}`), 0644)
@@ -75,9 +76,11 @@ func TestGetYttObservableSources(t *testing.T) {
 	assert.Equal(t, []string{
 		"vendor/lib/config.yml",
 		"foo/bar.yml",
+		".gflows/workflows/lib.yml",
 		".gflows/workflows/my-workflow/config1.yml",
 		".gflows/workflows/my-workflow/config2.yaml",
 		".gflows/workflows/my-workflow/config3.txt",
+		".gflows/libs/lib.yml",
 	}, sources)
 }
 
