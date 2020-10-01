@@ -118,6 +118,7 @@ func TestGetJsonnetWorkflowSources(t *testing.T) {
 		"    libs:",
 		"    - vendor",
 		"    - foo/bar.libsonnet",
+		"    - my-lib/my-lib.gflowslib",
 	}, "\n")
 	container, _, templateEngine := newJsonnetTemplateEngine(config, fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
@@ -127,6 +128,8 @@ func TestGetJsonnetWorkflowSources(t *testing.T) {
 	fs.WriteFile(".gflows/libs/lib.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	fs.WriteFile("vendor/lib.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	fs.WriteFile("foo/bar.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
+	fs.WriteFile("my-lib/my-lib.gflowslib", []byte(`{"files":["my-lib/foo.libsonnet"]}`), 0644)
+	fs.WriteFile("my-lib/foo.libsonnet", []byte(`{}`), 0644)
 
 	sources, err := templateEngine.GetObservableSources()
 

@@ -45,25 +45,21 @@ func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
 		engine.context.WorkflowsDir(),
 		engine.context.LibsDir(),
 	) {
-		if pkg.IsRemotePath(libPath) {
-			// Can't watch remote files, so continue
-			continue
-		}
-		exists, err := engine.fs.Exists(libPath)
+		libInfo, err := pkg.GetLibInfo(libPath, engine.fs)
 		if err != nil {
 			return nil, err
 		}
-		if !exists {
+
+		if libInfo.IsRemote || !libInfo.Exists {
+			// Can't watch remote or non-existent files, so continue
 			continue
 		}
-		isDir, err := engine.fs.IsDir(libPath)
-		if err != nil {
-			return nil, err
-		}
-		if !isDir {
+
+		if !libInfo.IsDir && !libInfo.IsGFlowsLib {
 			files = append(files, libPath)
 			continue
 		}
+
 		err = engine.fs.Walk(libPath, func(path string, f os.FileInfo, err error) error {
 			ext := filepath.Ext(path)
 			// TODO: should probably include other files, since jsonnet can include json (and maybe text? any other types?)
@@ -72,6 +68,7 @@ func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
 			}
 			return nil
 		})
+
 		if err != nil {
 			return nil, err
 		}

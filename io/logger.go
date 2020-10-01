@@ -22,6 +22,11 @@ func NewLogger(out io.Writer, enableColors bool, debug bool) *Logger {
 	}
 }
 
+func NewTestLogger() (*Logger, *bytes.Buffer) {
+	out := new(bytes.Buffer)
+	return NewLogger(out, false, false), out
+}
+
 func (logger *Logger) Debug(a ...interface{}) (n int, err error) {
 	if logger.debug {
 		logger.Write([]byte("DEBUG: "))
