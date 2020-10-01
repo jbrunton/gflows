@@ -55,11 +55,17 @@ func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
 			continue
 		}
 
-		if !libInfo.IsDir && !libInfo.IsGFlowsLib {
-			files = append(files, libPath)
+		// If it's a file...
+		if !libInfo.IsDir {
+			if !libInfo.IsGFlowsLib {
+				// ...add it to the list if it's not a gflowslib package
+				files = append(files, libPath)
+			}
+			// ...and continue in either case
 			continue
 		}
 
+		// If we reach here, then libPath is a directory, so walk it
 		err = engine.fs.Walk(libPath, func(path string, f os.FileInfo, err error) error {
 			ext := filepath.Ext(path)
 			// TODO: should probably include other files, since jsonnet can include json (and maybe text? any other types?)
