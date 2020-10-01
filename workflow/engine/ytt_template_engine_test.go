@@ -72,7 +72,7 @@ func TestGetYttWorkflowTemplates(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/another-workflow/config.yml", []byte("config"), 0644)
 	fs.WriteFile(".gflows/workflows/jsonnet/foo.jsonnet", []byte("jsonnet"), 0644)
 
-	templates := templateEngine.GetWorkflowTemplates()
+	templates, err := templateEngine.getWorkflowTemplates()
 
 	expectedPaths := []*pkg.PathInfo{
 		&pkg.PathInfo{
@@ -86,6 +86,7 @@ func TestGetYttWorkflowTemplates(t *testing.T) {
 			Description: ".gflows/workflows/my-workflow",
 		},
 	}
+	assert.NoError(t, err)
 	assert.Equal(t, expectedPaths, templates)
 }
 

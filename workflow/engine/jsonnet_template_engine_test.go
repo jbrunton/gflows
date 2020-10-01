@@ -147,7 +147,7 @@ func TestGetJsonnetWorkflowTemplates(t *testing.T) {
 	fs.WriteFile(".gflows/workflows/test.libsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	fs.WriteFile(".gflows/workflows/invalid.ext", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 
-	templates := templateEngine.GetWorkflowTemplates()
+	templates, err := templateEngine.getWorkflowTemplates()
 
 	expectedPaths := []*pkg.PathInfo{
 		&pkg.PathInfo{
@@ -156,6 +156,7 @@ func TestGetJsonnetWorkflowTemplates(t *testing.T) {
 			Description: ".gflows/workflows/test.jsonnet",
 		},
 	}
+	assert.NoError(t, err)
 	assert.Equal(t, expectedPaths, templates)
 }
 

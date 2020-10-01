@@ -80,34 +80,12 @@ func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
 	return files, nil
 }
 
-func (engine *JsonnetTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
-	templates := []*pkg.PathInfo{}
-	packages, err := engine.env.GetPackages()
-	if err != nil {
-		panic(err)
-	}
-	for _, pkg := range packages {
-		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
-			ext := filepath.Ext(path)
-			if ext == ".jsonnet" {
-				pathInfo, err := pkg.GetPathInfo(path)
-				if err != nil {
-					return err
-				}
-				templates = append(templates, pathInfo)
-			}
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
-	return templates
-}
-
 // GetWorkflowDefinitions - get workflow definitions for the given context
 func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
-	templates := engine.GetWorkflowTemplates()
+	templates, err := engine.getWorkflowTemplates()
+	if err != nil {
+		return nil, err
+	}
 	definitions := []*workflow.Definition{}
 	for _, template := range templates {
 		workflowName := engine.getWorkflowName(template.LocalPath)
@@ -193,6 +171,31 @@ func (engine *JsonnetTemplateEngine) WorkflowGenerator(templateVars map[string]s
 			content.NewWorkflowSource("/jsonnet/config.yml", "/config.yml"),
 		},
 	}
+}
+
+func (engine *JsonnetTemplateEngine) getWorkflowTemplates() ([]*pkg.PathInfo, error) {
+	templates := []*pkg.PathInfo{}
+	packages, err := engine.env.GetPackages()
+	if err != nil {
+		return nil, err
+	}
+	for _, pkg := range packages {
+		err := engine.fs.Walk(pkg.WorkflowsDir(), func(path string, f os.FileInfo, err error) error {
+			ext := filepath.Ext(path)
+			if ext == ".jsonnet" {
+				pathInfo, err := pkg.GetPathInfo(path)
+				if err != nil {
+					return err
+				}
+				templates = append(templates, pathInfo)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return templates, nil
 }
 
 func (engine *JsonnetTemplateEngine) getWorkflowName(filename string) string {

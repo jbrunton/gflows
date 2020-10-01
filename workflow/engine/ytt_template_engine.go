@@ -1,12 +1,12 @@
 package engine
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/jbrunton/gflows/io/pkg"
+	"github.com/jbrunton/gflows/workflow/engine/ytt"
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/env"
@@ -37,161 +37,49 @@ func NewYttTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, conten
 	}
 }
 
-func (engine *YttTemplateEngine) GetObservableSourcesInDir(dir string) []string {
-	files := []string{}
-	err := engine.fs.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		// TODO: should this check apply to all package workflow dirs? (or is it even still needed?)
-		if filepath.Dir(path) == engine.context.WorkflowsDir() {
-			// ignore files in the top level workflows dir, as we need them to be in a nested directory to infer the template name
-			return nil
-		}
-		ext := filepath.Ext(path)
-		if ext == ".yml" || ext == ".yaml" || ext == ".txt" {
-			files = append(files, path)
-		}
-		return nil
-	})
-
-	if err != nil {
-		panic(err)
-	}
-
-	return files
-}
-
 func (engine *YttTemplateEngine) GetObservableSources() ([]string, error) {
-	return engine.GetObservableSourcesInDir(engine.context.WorkflowsDir()), nil
+	return engine.getSourcesInDir(engine.context.WorkflowsDir()), nil
 }
 
-func (engine *YttTemplateEngine) GetWorkflowTemplates() []*pkg.PathInfo {
+func (engine *YttTemplateEngine) getWorkflowTemplates() ([]*pkg.PathInfo, error) {
 	templates := []*pkg.PathInfo{}
 	packages, err := engine.env.GetPackages()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	for _, pkg := range packages {
 		paths, err := afero.Glob(engine.fs, filepath.Join(pkg.WorkflowsDir(), "/*"))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		for _, path := range paths {
 			isDir, err := engine.fs.IsDir(path)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 			if !isDir || engine.isLib(path) {
 				continue
 			}
-			sources := engine.GetObservableSourcesInDir(path)
+			sources := engine.getSourcesInDir(path)
 			if len(sources) > 0 {
 				// only add directories with genuine source files
 				pathInfo, err := pkg.GetPathInfo(path)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				templates = append(templates, pathInfo)
 			}
 		}
 	}
-	return templates
-}
-
-type FileSource struct {
-	fs   *afero.Afero
-	path string
-	dir  string
-}
-
-func NewFileSource(fs *afero.Afero, path, dir string) FileSource { return FileSource{fs, path, dir} }
-
-func (s FileSource) Description() string { return fmt.Sprintf("file '%s'", s.path) }
-
-func (s FileSource) RelativePath() (string, error) {
-	if s.dir == "" {
-		return filepath.Base(s.path), nil
-	}
-
-	cleanPath, err := filepath.Abs(filepath.Clean(s.path))
-	if err != nil {
-		return "", err
-	}
-
-	cleanDir, err := filepath.Abs(filepath.Clean(s.dir))
-	if err != nil {
-		return "", err
-	}
-
-	if strings.HasPrefix(cleanPath, cleanDir) {
-		result := strings.TrimPrefix(cleanPath, cleanDir)
-		result = strings.TrimPrefix(result, string(os.PathSeparator))
-		return result, nil
-	}
-
-	return "", fmt.Errorf("unknown relative path for %s", s.path)
-}
-
-func (s FileSource) Bytes() ([]byte, error) { return s.fs.ReadFile(s.path) }
-
-func (engine *YttTemplateEngine) getInput(workflowName string, templateDir string) (*cmdtpl.TemplateInput, error) {
-	var in cmdtpl.TemplateInput
-	for _, sourcePath := range engine.GetObservableSourcesInDir(templateDir) {
-		source := NewFileSource(engine.fs, sourcePath, filepath.Dir(sourcePath))
-		file, err := files.NewFileFromSource(source)
-		if err != nil {
-			panic(err)
-		}
-		in.Files = append(in.Files, file)
-	}
-	paths, err := engine.getYttLibs(workflowName)
-	if err != nil {
-		return nil, err
-	}
-	libs, err := files.NewSortedFilesFromPaths(paths, files.SymlinkAllowOpts{})
-	if err != nil {
-		return nil, err
-	}
-	in.Files = append(in.Files, libs...)
-	return &in, nil
-}
-
-func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) (string, error) {
-	ui := cmdcore.NewPlainUI(false)
-	in, err := engine.getInput(workflowName, templateDir)
-	if err != nil {
-		return "", err
-	}
-	rootLibrary := workspace.NewRootLibrary(in.Files)
-
-	libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
-		IgnoreUnknownComments: true,
-		StrictYAML:            false,
-	})
-
-	libraryCtx := workspace.LibraryExecutionContext{Current: rootLibrary, Root: rootLibrary}
-	libraryLoader := libraryExecutionFactory.New(libraryCtx)
-
-	values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{})
-	if err != nil {
-		return "", err
-	}
-
-	result, err := libraryLoader.Eval(values, libraryValues)
-	if err != nil {
-		return "", err
-	}
-
-	workflowContent := ""
-
-	for _, file := range result.Files {
-		workflowContent = workflowContent + string(file.Bytes())
-	}
-
-	return workflowContent, nil
+	return templates, nil
 }
 
 // GetWorkflowDefinitions - get workflow definitions for the given context
 func (engine *YttTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Definition, error) {
-	templates := engine.GetWorkflowTemplates()
+	templates, err := engine.getWorkflowTemplates()
+	if err != nil {
+		return nil, err
+	}
 	definitions := []*workflow.Definition{}
 	for _, template := range templates {
 		workflowName := filepath.Base(template.LocalPath)
@@ -249,6 +137,85 @@ func (engine *YttTemplateEngine) WorkflowGenerator(templateVars map[string]strin
 			content.NewWorkflowSource("/ytt/config.yml", "/config.yml"),
 		},
 	}
+}
+
+func (engine *YttTemplateEngine) getSourcesInDir(dir string) []string {
+	files := []string{}
+	err := engine.fs.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		// TODO: should this check apply to all package workflow dirs? (or is it even still needed?)
+		if filepath.Dir(path) == engine.context.WorkflowsDir() {
+			// ignore files in the top level workflows dir, as we need them to be in a nested directory to infer the template name
+			return nil
+		}
+		ext := filepath.Ext(path)
+		if ext == ".yml" || ext == ".yaml" || ext == ".txt" {
+			files = append(files, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return files
+}
+
+func (engine *YttTemplateEngine) getInput(workflowName string, templateDir string) (*cmdtpl.TemplateInput, error) {
+	var in cmdtpl.TemplateInput
+	for _, sourcePath := range engine.getSourcesInDir(templateDir) {
+		source := ytt.NewFileSource(engine.fs, sourcePath, filepath.Dir(sourcePath))
+		file, err := files.NewFileFromSource(source)
+		if err != nil {
+			panic(err)
+		}
+		in.Files = append(in.Files, file)
+	}
+	paths, err := engine.getYttLibs(workflowName)
+	if err != nil {
+		return nil, err
+	}
+	libs, err := files.NewSortedFilesFromPaths(paths, files.SymlinkAllowOpts{})
+	if err != nil {
+		return nil, err
+	}
+	in.Files = append(in.Files, libs...)
+	return &in, nil
+}
+
+func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) (string, error) {
+	ui := cmdcore.NewPlainUI(false)
+	in, err := engine.getInput(workflowName, templateDir)
+	if err != nil {
+		return "", err
+	}
+	rootLibrary := workspace.NewRootLibrary(in.Files)
+
+	libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
+		IgnoreUnknownComments: true,
+		StrictYAML:            false,
+	})
+
+	libraryCtx := workspace.LibraryExecutionContext{Current: rootLibrary, Root: rootLibrary}
+	libraryLoader := libraryExecutionFactory.New(libraryCtx)
+
+	values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{})
+	if err != nil {
+		return "", err
+	}
+
+	result, err := libraryLoader.Eval(values, libraryValues)
+	if err != nil {
+		return "", err
+	}
+
+	workflowContent := ""
+
+	for _, file := range result.Files {
+		workflowContent = workflowContent + string(file.Bytes())
+	}
+
+	return workflowContent, nil
 }
 
 func (engine *YttTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
