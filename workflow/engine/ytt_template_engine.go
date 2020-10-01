@@ -38,7 +38,36 @@ func NewYttTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, conten
 }
 
 func (engine *YttTemplateEngine) GetObservableSources() ([]string, error) {
-	return engine.getSourcesInDir(engine.context.WorkflowsDir()), nil
+	files := []string{}
+	for _, libPath := range append(
+		engine.context.Config.GetAllLibs(),
+		engine.context.WorkflowsDir(),
+		engine.context.LibsDir(),
+	) {
+		libInfo, err := pkg.GetLibInfo(libPath, engine.fs)
+		if err != nil {
+			return nil, err
+		}
+
+		if libInfo.IsRemote || !libInfo.Exists {
+			// Can't watch remote or non-existent files, so continue
+			continue
+		}
+
+		// If it's a file...
+		if !libInfo.IsDir {
+			if !libInfo.IsGFlowsLib {
+				// ...add it to the list if it's not a gflowslib package
+				files = append(files, libPath)
+			}
+			// ...and continue in either case
+			continue
+		}
+
+		// If we reach here, it's a directory
+		files = append(files, engine.getSourcesInDir(libPath)...)
+	}
+	return files, nil
 }
 
 func (engine *YttTemplateEngine) getWorkflowTemplates() ([]*pkg.PathInfo, error) {

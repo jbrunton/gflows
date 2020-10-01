@@ -110,7 +110,7 @@ func TestSerializationError(t *testing.T) {
 	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
 }
 
-func TestGetJsonnetWorkflowSources(t *testing.T) {
+func TestGetJsonnetObservableSources(t *testing.T) {
 	config := strings.Join([]string{
 		"templates:",
 		"  engine: jsonnet",
@@ -119,6 +119,7 @@ func TestGetJsonnetWorkflowSources(t *testing.T) {
 		"    - vendor",
 		"    - foo/bar.libsonnet",
 		"    - my-lib/my-lib.gflowslib",
+		"    - https://example.com/config.yml",
 	}, "\n")
 	container, _, templateEngine := newJsonnetTemplateEngine(config, fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()

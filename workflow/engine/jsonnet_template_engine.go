@@ -35,10 +35,6 @@ func NewJsonnetTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, co
 }
 
 func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
-	// TODO: this shouldn't traverse all packages. It should instead include:
-	// 1. All local files in the main package.
-	// 2. All files in libs and lib dirs.
-	// 3. It should NOT include files in package workflow dirs, as those aren't observable.
 	files := []string{}
 	for _, libPath := range append(
 		engine.context.Config.GetAllLibs(),

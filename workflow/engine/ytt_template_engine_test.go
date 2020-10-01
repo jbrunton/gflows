@@ -46,19 +46,39 @@ func TestGenerateYttWorkflowDefinitions(t *testing.T) {
 	assert.Equal(t, []*workflow.Definition{&expectedDefinition}, definitions)
 }
 
-func TestGetYttWorkflowSources(t *testing.T) {
-	container, _, templateEngine, _ := newYttTemplateEngine("")
+func TestGetYttObservableSources(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    libs:",
+		"    - vendor",
+		"    - foo/bar.yml",
+		"    - my-lib/my-lib.gflowslib",
+		"    - https://example.com/config.yml",
+	}, "\n")
+	container, _, templateEngine, _ := newYttTemplateEngine(config)
 	fs := container.FileSystem()
-	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte("config1"), 0644)
-	fs.WriteFile(".gflows/workflows/my-workflow/config2.yaml", []byte("config2"), 0644)
-	fs.WriteFile(".gflows/workflows/my-workflow/config3.txt", []byte("config3"), 0644)
-	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte("ignored"), 0644)
-	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte("ignored"), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/config1.yml", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/config2.yaml", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/config3.txt", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/my-workflow/invalid.ext", []byte(""), 0644)
+	fs.WriteFile(".gflows/workflows/invalid-dir.yml", []byte(""), 0644)
+	fs.WriteFile("vendor/lib/config.yml", []byte(""), 0644)
+	fs.WriteFile("foo/bar.yml", []byte(""), 0644)
+	fs.WriteFile("my-lib/my-lib.gflowslib", []byte(`{"files":["my-lib/foo.yml"]}`), 0644)
+	fs.WriteFile("my-lib/foo.yml", []byte(`{}`), 0644)
 
 	sources, err := templateEngine.GetObservableSources()
 
 	assert.NoError(t, err)
-	assert.Equal(t, []string{".gflows/workflows/my-workflow/config1.yml", ".gflows/workflows/my-workflow/config2.yaml", ".gflows/workflows/my-workflow/config3.txt"}, sources)
+	assert.Equal(t, []string{
+		"vendor/lib/config.yml",
+		"foo/bar.yml",
+		".gflows/workflows/my-workflow/config1.yml",
+		".gflows/workflows/my-workflow/config2.yaml",
+		".gflows/workflows/my-workflow/config3.txt",
+	}, sources)
 }
 
 func TestGetYttWorkflowTemplates(t *testing.T) {
