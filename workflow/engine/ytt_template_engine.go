@@ -261,7 +261,7 @@ func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, erro
 	var paths []string
 	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
 		if strings.HasSuffix(path, ".gflowslib") {
-			lib, err := engine.env.LoadLib(path)
+			lib, err := engine.env.LoadDependency(path)
 			if err != nil {
 				return []string{}, err
 			}

@@ -26,7 +26,7 @@ func TestLoadLocalLibrary(t *testing.T) {
 	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
 
-	lib, err := env.LoadLib("/path/to/my-lib.gflowslib")
+	lib, err := env.LoadDependency("/path/to/my-lib.gflowslib")
 
 	assert.NoError(t, err)
 	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
@@ -42,7 +42,7 @@ func TestLoadRemoteLib(t *testing.T) {
 	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
-	lib, err := env.LoadLib("https://example.com/path/to/my-lib.gflowslib")
+	lib, err := env.LoadDependency("https://example.com/path/to/my-lib.gflowslib")
 
 	assert.NoError(t, err)
 	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
@@ -57,9 +57,9 @@ func TestCacheRemoteLibs(t *testing.T) {
 	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
 
-	libOne, err := env.LoadLib("https://example.com/path/to/my-lib.gflowslib")
+	libOne, err := env.LoadDependency("https://example.com/path/to/my-lib.gflowslib")
 	assert.NoError(t, err)
-	libTwo, err := env.LoadLib("https://example.com/path/to/my-lib.gflowslib")
+	libTwo, err := env.LoadDependency("https://example.com/path/to/my-lib.gflowslib")
 	assert.NoError(t, err)
 
 	assert.True(t, libOne == libTwo, "expected same lib")
@@ -72,7 +72,7 @@ func TestGetPackages(t *testing.T) {
 	env, container := newTestEnv(fixtures.NewMockRoundTripper())
 	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
-	lib, _ := env.LoadLib("/path/to/my-lib.gflowslib")
+	lib, _ := env.LoadDependency("/path/to/my-lib.gflowslib")
 
 	// act
 	packages, err := env.GetPackages()

@@ -13,7 +13,7 @@ setup:
         templates:
           engine: jsonnet
           defaults:
-            libs:
+            dependencies:
             - https://example.com/my-lib.gflowslib
     - path: .gflows/workflows/test.jsonnet
       content: |

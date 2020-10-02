@@ -42,7 +42,8 @@ type GFlowsWorkflowConfig struct {
 }
 
 type GFlowsTemplateConfig struct {
-	Libs []string
+	Libs         []string
+	Dependencies []string
 }
 
 // LoadConfig - finds and returns the GFlowsConfig
@@ -117,9 +118,24 @@ func (config *GFlowsConfig) GetAllLibs() []string {
 	return libs
 }
 
+func (config *GFlowsConfig) GetAllDependencies() []string {
+	deps := []string{}
+	deps = append(deps, config.Templates.Defaults.Dependencies...)
+	for _, override := range config.Templates.Overrides {
+		deps = append(deps, override.Dependencies...)
+	}
+	return deps
+}
+
 func (config *GFlowsConfig) GetTemplateLibs(workflowName string) []string {
 	return config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
 		return config.Libs
+	})
+}
+
+func (config *GFlowsConfig) GetTemplateDeps(workflowName string) []string {
+	return config.GetTemplateArrayProperty(workflowName, func(config *GFlowsTemplateConfig) []string {
+		return config.Dependencies
 	})
 }
 

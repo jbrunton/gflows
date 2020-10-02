@@ -1,8 +1,6 @@
 package env
 
 import (
-	"strings"
-
 	"github.com/thoas/go-funk"
 
 	"github.com/jbrunton/gflows/config"
@@ -12,7 +10,7 @@ import (
 )
 
 type GFlowsEnv struct {
-	libs      map[string]*GFlowsLib
+	deps      map[string]*GFlowsLib
 	fs        *afero.Afero
 	installer *GFlowsLibInstaller
 	context   *config.GFlowsContext
@@ -21,7 +19,7 @@ type GFlowsEnv struct {
 
 func NewGFlowsEnv(fs *afero.Afero, installer *GFlowsLibInstaller, context *config.GFlowsContext, logger *io.Logger) *GFlowsEnv {
 	return &GFlowsEnv{
-		libs:      make(map[string]*GFlowsLib),
+		deps:      make(map[string]*GFlowsLib),
 		fs:        fs,
 		installer: installer,
 		context:   context,
@@ -29,41 +27,54 @@ func NewGFlowsEnv(fs *afero.Afero, installer *GFlowsLibInstaller, context *confi
 	}
 }
 
-func (env *GFlowsEnv) LoadLib(libPath string) (*GFlowsLib, error) {
-	lib := env.libs[libPath]
+func (env *GFlowsEnv) LoadDependency(path string) (*GFlowsLib, error) {
+	lib := env.deps[path]
 	if lib != nil {
 		// already processed
 		return lib, nil
 	}
 
-	lib = NewGFlowsLib(env.fs, env.installer, env.logger, libPath, env.context)
+	lib = NewGFlowsLib(env.fs, env.installer, env.logger, path, env.context)
 	err := lib.Setup()
 	if err != nil {
 		return nil, err
 	}
 
-	env.libs[libPath] = lib
+	env.deps[path] = lib
 	return lib, nil
 }
 
 func (env *GFlowsEnv) GetPackages() ([]pkg.GFlowsPackage, error) {
-	for _, libPath := range env.context.Config.GetAllLibs() {
-		if strings.HasSuffix(libPath, ".gflowslib") {
-			_, err := env.LoadLib(libPath)
-			if err != nil {
-				return nil, err
-			}
+	for _, libPath := range env.context.Config.GetAllDependencies() {
+		_, err := env.LoadDependency(libPath)
+		if err != nil {
+			return nil, err
 		}
 	}
-	libs := funk.Map(funk.Values(env.libs), func(lib *GFlowsLib) pkg.GFlowsPackage {
-		return lib
+	deps := funk.Map(funk.Values(env.deps), func(dep *GFlowsLib) pkg.GFlowsPackage {
+		return dep
 	}).([]pkg.GFlowsPackage)
-	return append(libs, env.context), nil
+	return append(deps, env.context), nil
+}
+
+// GetLibPaths - returns search paths for the given workflow (including libs and local dependency
+// directories)
+func (env *GFlowsEnv) GetLibPaths(workflowName string) ([]string, error) {
+	libPaths := env.context.Config.GetTemplateLibs(workflowName)
+	depPaths := env.context.Config.GetTemplateDeps(workflowName)
+	for _, depPath := range depPaths {
+		dep, err := env.LoadDependency(depPath)
+		if err != nil {
+			return nil, err
+		}
+		libPaths = append(libPaths, dep.LibsDir())
+	}
+	return libPaths, nil
 }
 
 func (env *GFlowsEnv) CleanUp() {
-	for _, lib := range env.libs {
-		lib.CleanUp()
+	for _, dep := range env.deps {
+		dep.CleanUp()
 	}
-	env.libs = make(map[string]*GFlowsLib)
+	env.deps = make(map[string]*GFlowsLib)
 }
