@@ -214,3 +214,19 @@ func TestGetAllLibs(t *testing.T) {
 
 	assert.Equal(t, []string{"my-lib", "my-other-lib"}, config.GetAllLibs())
 }
+
+func TestGetAllDependencies(t *testing.T) {
+	config, _ := parseConfig([]byte(strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    dependencies:",
+		"    - my-lib/my-lib.gflowslib",
+		"  overrides:",
+		"    my-workflow:",
+		"      dependencies:",
+		"      - my-other-lib/my-other-lib.gflowslib",
+	}, "\n")))
+
+	assert.Equal(t, []string{"my-lib/my-lib.gflowslib", "my-other-lib/my-other-lib.gflowslib"}, config.GetAllDependencies())
+}
