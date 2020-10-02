@@ -19,43 +19,43 @@ func newTestLib(manifestPath string) (*GFlowsLib, *content.Container, *fixtures.
 	httpClient := &http.Client{Transport: roundTripper}
 	container := content.NewContainer(ioContainer, httpClient)
 	installer := NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
-	lib := NewGFlowsLib(container.FileSystem(), installer, container.Logger(), manifestPath, context)
+	lib, _ := NewGFlowsLib(container.FileSystem(), installer, container.Logger(), manifestPath, context)
 	return lib, container, roundTripper
 }
 
 func TestSetupLocalLib(t *testing.T) {
-	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
+	lib, container, _ := newTestLib("/path/to/my-lib")
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
 
 	assert.NoError(t, err)
-	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
+	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 	assert.False(t, lib.isRemote(), "expected local lib")
 }
 
 func TestSetupRemoteLib(t *testing.T) {
-	lib, container, roundTripper := newTestLib("https://example.com/path/to/my-lib.gflowslib")
+	lib, container, roundTripper := newTestLib("https://example.com/path/to/my-lib")
 	fs := container.FileSystem()
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
-	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
+	roundTripper.StubBody("https://example.com/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/my-lib/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
 
 	assert.NoError(t, err)
-	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
+	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 }
 
 func TestLibStructureErrors(t *testing.T) {
-	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["foo/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/foo/lib.yml", "foo: bar")
+	lib, container, _ := newTestLib("/path/to/my-lib")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["foo/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/foo/lib.yml", "foo: bar")
 
 	err := lib.Setup()
 
@@ -64,10 +64,10 @@ func TestLibStructureErrors(t *testing.T) {
 
 func TestCleanUp(t *testing.T) {
 	// arrange
-	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
+	lib, container, _ := newTestLib("/path/to/my-lib")
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/libs/lib.yml", "foo: bar")
 
 	err := lib.Setup()
 	assert.NoError(t, err)
@@ -86,8 +86,8 @@ func TestCleanUp(t *testing.T) {
 }
 
 func TestGetLocalPathInfo(t *testing.T) {
-	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": []}`)
+	lib, container, _ := newTestLib("/path/to/my-lib")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": []}`)
 	err := lib.Setup()
 	assert.NoError(t, err)
 
@@ -97,14 +97,14 @@ func TestGetLocalPathInfo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &pkg.PathInfo{
 		LocalPath:   localPath,
-		SourcePath:  "/path/to/foo/bar.yml",
-		Description: "my-lib.gflowslib/foo/bar.yml",
+		SourcePath:  "/path/to/my-lib/foo/bar.yml",
+		Description: "my-lib/foo/bar.yml",
 	}, info)
 }
 
 func TestGetRemotePathInfo(t *testing.T) {
-	lib, _, roundTripper := newTestLib("https://example.com/path/to/my-lib.gflowslib")
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": []}`)
+	lib, _, roundTripper := newTestLib("https://example.com/path/to/my-lib")
+	roundTripper.StubBody("https://example.com/path/to/my-lib/gflowspkg.json", `{"files": []}`)
 	err := lib.Setup()
 	assert.NoError(t, err)
 
@@ -114,14 +114,14 @@ func TestGetRemotePathInfo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &pkg.PathInfo{
 		LocalPath:   localPath,
-		SourcePath:  "https://example.com/path/to/foo/bar.yml",
-		Description: "my-lib.gflowslib/foo/bar.yml",
+		SourcePath:  "https://example.com/path/to/my-lib/foo/bar.yml",
+		Description: "my-lib/foo/bar.yml",
 	}, info)
 }
 
 func TestGetPathInfoErrors(t *testing.T) {
-	lib, container, _ := newTestLib("/path/to/my-lib.gflowslib")
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": []}`)
+	lib, container, _ := newTestLib("/path/to/my-lib")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": []}`)
 	err := lib.Setup()
 	assert.NoError(t, err)
 

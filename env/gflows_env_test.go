@@ -24,13 +24,13 @@ func newTestEnv(config string, roundTripper http.RoundTripper) (*GFlowsEnv, *con
 func TestLoadLocalLibrary(t *testing.T) {
 	env, container := newTestEnv("", fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/libs/lib.yml", "foo: bar")
 
-	lib, err := env.LoadDependency("/path/to/my-lib.gflowslib")
+	lib, err := env.LoadDependency("/path/to/my-lib")
 
 	assert.NoError(t, err)
-	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
+	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 	assert.False(t, lib.isRemote(), "expected local lib")
@@ -40,13 +40,13 @@ func TestLoadRemoteLib(t *testing.T) {
 	roundTripper := fixtures.NewMockRoundTripper()
 	env, container := newTestEnv("", roundTripper)
 	fs := container.FileSystem()
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
-	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
+	roundTripper.StubBody("https://example.com/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/my-lib/libs/lib.yml", "foo: bar")
 
-	lib, err := env.LoadDependency("https://example.com/path/to/my-lib.gflowslib")
+	lib, err := env.LoadDependency("https://example.com/path/to/my-lib")
 
 	assert.NoError(t, err)
-	fixtures.AssertTempDir(t, fs, "my-lib.gflowslib", lib.LocalDir)
+	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
 	assert.True(t, lib.isRemote(), "expected remote lib")
@@ -55,12 +55,12 @@ func TestLoadRemoteLib(t *testing.T) {
 func TestCacheRemoteLibs(t *testing.T) {
 	roundTripper := fixtures.NewMockRoundTripper()
 	env, _ := newTestEnv("", roundTripper)
-	roundTripper.StubBody("https://example.com/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
-	roundTripper.StubBody("https://example.com/path/to/libs/lib.yml", "foo: bar")
+	roundTripper.StubBody("https://example.com/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
+	roundTripper.StubBody("https://example.com/path/to/my-lib/libs/lib.yml", "foo: bar")
 
-	libOne, err := env.LoadDependency("https://example.com/path/to/my-lib.gflowslib")
+	libOne, err := env.LoadDependency("https://example.com/path/to/my-lib")
 	assert.NoError(t, err)
-	libTwo, err := env.LoadDependency("https://example.com/path/to/my-lib.gflowslib")
+	libTwo, err := env.LoadDependency("https://example.com/path/to/my-lib")
 	assert.NoError(t, err)
 
 	assert.True(t, libOne == libTwo, "expected same lib")
@@ -71,9 +71,9 @@ func TestCacheRemoteLibs(t *testing.T) {
 func TestGetPackages(t *testing.T) {
 	// arrange
 	env, container := newTestEnv("", fixtures.NewMockRoundTripper())
-	container.ContentWriter().SafelyWriteFile("/path/to/my-lib.gflowslib", `{"files": ["libs/lib.yml"]}`)
-	container.ContentWriter().SafelyWriteFile("/path/to/libs/lib.yml", "foo: bar")
-	lib, _ := env.LoadDependency("/path/to/my-lib.gflowslib")
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/libs/lib.yml", "foo: bar")
+	lib, _ := env.LoadDependency("/path/to/my-lib")
 
 	// act
 	packages, err := env.GetPackages()
@@ -97,17 +97,17 @@ func TestGetLibPaths(t *testing.T) {
 		"  engine: jsonnet",
 		"  defaults:",
 		"    libs: [/libs/some-lib]",
-		"    dependencies: [/deps/some-pkg/some-pkg.gflowslib]",
+		"    dependencies: [/deps/some-pkg]",
 		"  overrides:",
 		"    my-workflow:",
 		"      libs: [/libs/my-lib]",
-		"      dependencies: [/deps/my-pkg/my-pkg.gflowslib]",
+		"      dependencies: [/deps/my-pkg]",
 	}, "\n")
 	env, container := newTestEnv(config, fixtures.NewMockRoundTripper())
-	container.ContentWriter().SafelyWriteFile("/deps/some-pkg/some-pkg.gflowslib", `{"files": []}`)
-	container.ContentWriter().SafelyWriteFile("/deps/my-pkg/my-pkg.gflowslib", `{"files": []}`)
-	somePkg, _ := env.LoadDependency("/deps/some-pkg/some-pkg.gflowslib")
-	myPkg, _ := env.LoadDependency("/deps/my-pkg/my-pkg.gflowslib")
+	container.ContentWriter().SafelyWriteFile("/deps/some-pkg/gflowspkg.json", `{"files": []}`)
+	container.ContentWriter().SafelyWriteFile("/deps/my-pkg/gflowspkg.json", `{"files": []}`)
+	somePkg, _ := env.LoadDependency("/deps/some-pkg")
+	myPkg, _ := env.LoadDependency("/deps/my-pkg")
 
 	paths, err := env.GetLibPaths("my-workflow")
 	assert.NoError(t, err)

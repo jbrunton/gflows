@@ -34,8 +34,11 @@ func (env *GFlowsEnv) LoadDependency(path string) (*GFlowsLib, error) {
 		return lib, nil
 	}
 
-	lib = NewGFlowsLib(env.fs, env.installer, env.logger, path, env.context)
-	err := lib.Setup()
+	lib, err := NewGFlowsLib(env.fs, env.installer, env.logger, path, env.context)
+	if err != nil {
+		return nil, err
+	}
+	err = lib.Setup()
 	if err != nil {
 		return nil, err
 	}

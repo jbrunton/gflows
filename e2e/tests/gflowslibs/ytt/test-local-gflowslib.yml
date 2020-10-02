@@ -1,7 +1,7 @@
 setup:
   files:
-    - path: my-lib/my-lib.gflowslib
-      source: e2e/gflowslibs/ytt/my-lib.gflowslib
+    - path: my-lib/gflowspkg.json
+      source: e2e/gflowslibs/ytt/gflowspkg.json
     - path: my-lib/libs/common/steps.lib.yml
       source: e2e/gflowslibs/ytt/libs/common/steps.lib.yml
     - path: my-lib/libs/common/values.yml
@@ -14,7 +14,7 @@ setup:
           engine: ytt
           defaults:
             dependencies:
-              - ../my-lib/my-lib.gflowslib
+              - ../my-lib
     - path: .gflows/workflows/test/config.yml
       content: |
         #@ load("common/steps.lib.yml", "run")
@@ -35,7 +35,7 @@ expect:
   files:
   - path: .gflows/config.yml
   - path: .gflows/workflows/test/config.yml
-  - path: my-lib/my-lib.gflowslib
+  - path: my-lib/gflowspkg.json
   - path: my-lib/libs/common/values.yml
   - path: my-lib/libs/common/steps.lib.yml
   - path: my-lib/libs/common/workflows.lib.yml

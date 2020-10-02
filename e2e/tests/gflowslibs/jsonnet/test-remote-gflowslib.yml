@@ -1,12 +1,12 @@
 setup:
   files:
-    - path: https://example.com/my-lib.gflowslib
-      source: e2e/gflowslibs/jsonnet/my-lib.gflowslib
-    - path: https://example.com/libs/common/steps.libsonnet
+    - path: https://example.com/my-lib/gflowspkg.json
+      source: e2e/gflowslibs/jsonnet/gflowspkg.json
+    - path: https://example.com/my-lib/libs/common/steps.libsonnet
       source: e2e/gflowslibs/jsonnet/libs/common/steps.libsonnet
-    - path: https://example.com/libs/common/git.libsonnet
+    - path: https://example.com/my-lib/libs/common/git.libsonnet
       source: e2e/gflowslibs/jsonnet/libs/common/git.libsonnet
-    - path: https://example.com/libs/common/workflows.libsonnet
+    - path: https://example.com/my-lib/libs/common/workflows.libsonnet
       source: e2e/gflowslibs/jsonnet/libs/common/workflows.libsonnet
     - path: .gflows/config.yml
       content: |
@@ -14,7 +14,7 @@ setup:
           engine: jsonnet
           defaults:
             dependencies:
-            - https://example.com/my-lib.gflowslib
+            - https://example.com/my-lib
     - path: .gflows/workflows/test.jsonnet
       content: |
         local steps = import 'common/steps.libsonnet';
