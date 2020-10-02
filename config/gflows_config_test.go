@@ -221,12 +221,12 @@ func TestGetAllDependencies(t *testing.T) {
 		"  engine: ytt",
 		"  defaults:",
 		"    dependencies:",
-		"    - my-lib/my-lib.gflowslib",
+		"    - my-lib",
 		"  overrides:",
 		"    my-workflow:",
 		"      dependencies:",
-		"      - my-other-lib/my-other-lib.gflowslib",
+		"      - my-other-lib",
 	}, "\n")))
 
-	assert.Equal(t, []string{"my-lib/my-lib.gflowslib", "my-other-lib/my-other-lib.gflowslib"}, config.GetAllDependencies())
+	assert.Equal(t, []string{"my-lib", "my-other-lib"}, config.GetAllDependencies())
 }
