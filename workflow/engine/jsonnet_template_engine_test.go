@@ -169,37 +169,3 @@ func TestGetJsonnetWorkflowName(t *testing.T) {
 	assert.Equal(t, "my-workflow-1", templateEngine.getWorkflowName("/workflows/my-workflow-1.jsonnet"))
 	assert.Equal(t, "my-workflow-2", templateEngine.getWorkflowName("/workflows/workflows/my-workflow-2.jsonnet"))
 }
-
-func TestGetJPath(t *testing.T) {
-	config := strings.Join([]string{
-		"templates:",
-		"  engine: jsonnet",
-		"  defaults:",
-		"    libs: [some-lib]",
-		"  overrides:",
-		"    my-workflow:",
-		"      libs: [my-lib]",
-	}, "\n")
-	_, _, engine := newJsonnetTemplateEngine(config, fixtures.NewMockRoundTripper())
-
-	jpath, _ := engine.getJPath("my-workflow")
-	assert.Equal(t, []string{".gflows/some-lib", ".gflows/my-lib"}, jpath)
-
-	jpath, _ = engine.getJPath("other-workflow")
-	assert.Equal(t, []string{".gflows/some-lib"}, jpath)
-}
-
-func TestJPathErrors(t *testing.T) {
-	roundTripper := fixtures.NewMockRoundTripper()
-	roundTripper.StubStatusCode("https://example.com/my-lib.gflowslib", 500)
-	config := strings.Join([]string{
-		"templates:",
-		"  engine: jsonnet",
-		"  defaults:",
-		"    libs: [https://example.com/my-lib.gflowslib]",
-	}, "\n")
-	_, _, engine := newJsonnetTemplateEngine(config, roundTripper)
-
-	_, err := engine.getJPath("my-workflow")
-	assert.EqualError(t, err, "Received status code 500 from https://example.com/my-lib.gflowslib")
-}

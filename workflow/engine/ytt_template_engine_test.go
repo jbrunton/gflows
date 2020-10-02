@@ -128,48 +128,6 @@ func TestGetAllYttLibs(t *testing.T) {
 	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, engine.getAllYttLibs())
 }
 
-func TestGetYttLibs(t *testing.T) {
-	config := strings.Join([]string{
-		"templates:",
-		"  engine: ytt",
-		"  defaults:",
-		"    libs: [common, config]",
-		"  overrides:",
-		"    my-workflow:",
-		"      libs: [my-lib]",
-	}, "\n")
-	_, _, engine, _ := newYttTemplateEngine(config)
-
-	paths, err := engine.getYttLibs("my-workflow")
-	assert.NoError(t, err)
-	assert.Equal(t, []string{".gflows/common", ".gflows/config", ".gflows/my-lib"}, paths)
-
-	paths, err = engine.getYttLibs("other-workflow")
-	assert.NoError(t, err)
-	assert.Equal(t, []string{".gflows/common", ".gflows/config"}, paths)
-}
-
-func TestRemoteLibs(t *testing.T) {
-	config := strings.Join([]string{
-		"templates:",
-		"  engine: ytt",
-		"  defaults:",
-		"    libs: [https://example.com/my-lib.gflowslib]",
-		"  overrides:",
-		"    my-workflow:",
-		"      libs: [https://example.com/other-lib.gflowslib]",
-	}, "\n")
-	_, _, engine, roundTripper := newYttTemplateEngine(config)
-	roundTripper.StubBody("https://example.com/my-lib.gflowslib", `{"files":[]}`)
-	roundTripper.StubBody("https://example.com/other-lib.gflowslib", `{"files":[]}`)
-
-	paths, err := engine.getYttLibs("my-workflow")
-	assert.NoError(t, err)
-	assert.Equal(t, len(paths), 2)
-	assert.Regexp(t, "my-lib.gflowslib[0-9]+/libs$", paths[0])
-	assert.Regexp(t, "other-lib.gflowslib[0-9]+/libs$", paths[1])
-}
-
 func TestIsLib(t *testing.T) {
 	config := strings.Join([]string{
 		"templates:",
