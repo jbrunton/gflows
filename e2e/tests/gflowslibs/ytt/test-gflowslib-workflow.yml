@@ -29,7 +29,7 @@ setup:
         templates:
           engine: ytt
           defaults:
-            libs:
+            dependencies:
               - https://example.com/my-lib.gflowslib
 
 run: update

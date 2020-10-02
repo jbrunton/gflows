@@ -195,7 +195,7 @@ func (engine *YttTemplateEngine) getInput(workflowName string, templateDir strin
 		}
 		in.Files = append(in.Files, file)
 	}
-	paths, err := engine.getYttLibs(workflowName)
+	paths, err := engine.env.GetLibPaths(workflowName)
 	if err != nil {
 		return nil, err
 	}
@@ -255,22 +255,6 @@ func (engine *YttTemplateEngine) getAllYttLibs() []string {
 	}
 
 	return engine.context.ResolvePaths(libs)
-}
-
-func (engine *YttTemplateEngine) getYttLibs(workflowName string) ([]string, error) {
-	var paths []string
-	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
-		if strings.HasSuffix(path, ".gflowslib") {
-			lib, err := engine.env.LoadDependency(path)
-			if err != nil {
-				return []string{}, err
-			}
-			paths = append(paths, lib.LibsDir())
-		} else {
-			paths = append(paths, path)
-		}
-	}
-	return engine.context.ResolvePaths(paths), nil
 }
 
 func (engine *YttTemplateEngine) isLib(path string) bool {

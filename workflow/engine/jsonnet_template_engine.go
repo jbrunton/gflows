@@ -204,7 +204,7 @@ func (engine *JsonnetTemplateEngine) getWorkflowName(filename string) string {
 
 func (engine *JsonnetTemplateEngine) createVM(workflowName string) (*gojsonnet.VM, error) {
 	vm := gojsonnet.MakeVM()
-	jpaths, err := engine.getJPath(workflowName)
+	jpaths, err := engine.env.GetLibPaths(workflowName)
 	if err != nil {
 		return nil, err
 	}
@@ -213,12 +213,4 @@ func (engine *JsonnetTemplateEngine) createVM(workflowName string) (*gojsonnet.V
 	})
 	vm.StringOutput = true
 	return vm, nil
-}
-
-func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, error) {
-	jPaths, err := engine.env.GetLibPaths(workflowName)
-	if err != nil {
-		return nil, err
-	}
-	return engine.context.ResolvePaths(jPaths), nil
 }

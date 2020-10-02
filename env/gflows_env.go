@@ -69,7 +69,7 @@ func (env *GFlowsEnv) GetLibPaths(workflowName string) ([]string, error) {
 		}
 		libPaths = append(libPaths, dep.LibsDir())
 	}
-	return libPaths, nil
+	return env.context.ResolvePaths(libPaths), nil
 }
 
 func (env *GFlowsEnv) CleanUp() {

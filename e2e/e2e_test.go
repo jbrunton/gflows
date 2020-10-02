@@ -69,6 +69,5 @@ func TestMiscErrors(t *testing.T) {
 
 func TestGFlowsLibs(t *testing.T) {
 	runTests(t, "./tests/gflowslibs/jsonnet/*.yml", false)
-	//runTests(t, "./tests/gflowslibs/jsonnet/*.yml", false)
-	//runTests(t, "./tests/gflowslibs/ytt/*.yml", false)
+	runTests(t, "./tests/gflowslibs/ytt/*.yml", false)
 }

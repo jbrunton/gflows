@@ -13,7 +13,7 @@ setup:
         templates:
           engine: ytt
           defaults:
-            libs:
+            dependencies:
               - https://example.com/my-lib.gflowslib
     - path: .gflows/workflows/test/config.yml
       content: |
