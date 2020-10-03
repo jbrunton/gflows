@@ -118,6 +118,24 @@ func TestGetLibPaths(t *testing.T) {
 	assert.Equal(t, []string{"/libs/some-lib", somePkg.LibsDir()}, paths)
 }
 
+func TestGetLibPathsAddContextLibsDir(t *testing.T) {
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: jsonnet",
+		"  defaults:",
+		"    libs: [/libs/some-lib]",
+		"    dependencies: [/deps/some-pkg]",
+	}, "\n")
+	env, container := newTestEnv(config, fixtures.NewMockRoundTripper())
+	container.ContentWriter().SafelyWriteFile("/deps/some-pkg/gflowspkg.json", `{"files": []}`)
+	somePkg, _ := env.LoadDependency("/deps/some-pkg")
+	container.FileSystem().Mkdir(".gflows/libs", 0644)
+
+	paths, err := env.GetLibPaths("my-workflow")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"/libs/some-lib", somePkg.LibsDir(), ".gflows/libs"}, paths)
+}
+
 func TestCleanUpEnv(t *testing.T) {
 	// arrange
 	config := strings.Join([]string{

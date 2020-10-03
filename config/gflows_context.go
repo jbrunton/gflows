@@ -140,7 +140,17 @@ func (context *GFlowsContext) ResolvePath(path string) string {
 	if filepath.HasPrefix(path, "http://") || filepath.HasPrefix(path, "https://") {
 		return path
 	}
-	return filepath.Join(context.Dir, path)
+
+	// check if the path given is relative to the context dir (e.g. already includes ".gflows/")
+	relPath, err := filepath.Rel(context.Dir, path)
+	if err != nil {
+		return path
+	}
+	if strings.HasPrefix(relPath, "..") {
+		// if it's not, join it to the context dir
+		return filepath.Join(context.Dir, path)
+	}
+	return path
 }
 
 // ResolvePaths - returns an array of resolved paths

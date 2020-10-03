@@ -3,6 +3,3 @@
 githubDir: $GITHUB_DIR
 templates:
   engine: ytt
-  defaults:
-    libs:
-      - workflows/common

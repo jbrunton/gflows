@@ -1,6 +1,6 @@
-local git_config = import 'common/git.libsonnet';
-local steps = import 'common/steps.libsonnet';
-local workflows = import 'common/workflows.libsonnet';
+local git_config = import 'git.libsonnet';
+local steps = import 'steps.libsonnet';
+local workflows = import 'workflows.libsonnet';
 
 local check_workflows_job = {
   'name': 'check-workflows [ex-default-jsonnet-gflows]',
@@ -13,7 +13,7 @@ local check_workflows_job = {
         token: "${{ secrets.GITHUB_TOKEN }}",
       }
     },
-    steps.named('validate workflows', 'gflows check') {
+    steps.named('validate workflows', 'go run main.go check') {
       env: {
         GFLOWS_CONFIG: '.gflows/examples/default-jsonnet/config.yml'
       },

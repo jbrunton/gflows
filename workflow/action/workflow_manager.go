@@ -20,13 +20,13 @@ import (
 	"github.com/spf13/afero"
 )
 
-func CreateWorkflowEngine(fs *afero.Afero, context *config.GFlowsContext, contentWriter *content.Writer, env *env.GFlowsEnv) workflow.TemplateEngine {
+func CreateWorkflowEngine(fs *afero.Afero, context *config.GFlowsContext, contentWriter *content.Writer, env *env.GFlowsEnv, logger *io.Logger) workflow.TemplateEngine {
 	var templateEngine workflow.TemplateEngine
 	switch engineName := context.Config.Templates.Engine; engineName {
 	case "jsonnet":
 		templateEngine = engine.NewJsonnetTemplateEngine(fs, context, contentWriter, env)
 	case "ytt":
-		templateEngine = engine.NewYttTemplateEngine(fs, context, contentWriter, env)
+		templateEngine = engine.NewYttTemplateEngine(fs, context, contentWriter, env, logger)
 	default:
 		panic(fmt.Errorf("Unexpected engine: %s", engineName))
 	}

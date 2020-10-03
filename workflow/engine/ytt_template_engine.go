@@ -5,6 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
+
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/pkg"
 	"github.com/jbrunton/gflows/workflow/engine/ytt"
 
@@ -26,14 +29,16 @@ type YttTemplateEngine struct {
 	context       *config.GFlowsContext
 	contentWriter *content.Writer
 	env           *env.GFlowsEnv
+	logger        *io.Logger
 }
 
-func NewYttTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, contentWriter *content.Writer, env *env.GFlowsEnv) *YttTemplateEngine {
+func NewYttTemplateEngine(fs *afero.Afero, context *config.GFlowsContext, contentWriter *content.Writer, env *env.GFlowsEnv, logger *io.Logger) *YttTemplateEngine {
 	return &YttTemplateEngine{
 		fs:            fs,
 		context:       context,
 		contentWriter: contentWriter,
 		env:           env,
+		logger:        logger,
 	}
 }
 
@@ -156,9 +161,9 @@ func (engine *YttTemplateEngine) WorkflowGenerator(templateVars map[string]strin
 		Name:         "gflows",
 		TemplateVars: templateVars,
 		Sources: []content.WorkflowSource{
-			content.NewWorkflowSource("/ytt/workflows/common/steps.lib.yml", "/workflows/common/steps.lib.yml"),
-			content.NewWorkflowSource("/ytt/workflows/common/workflows.lib.yml", "/workflows/common/workflows.lib.yml"),
-			content.NewWorkflowSource("/ytt/workflows/common/values.yml", "/workflows/common/values.yml"),
+			content.NewWorkflowSource("/ytt/libs/steps.lib.yml", "/libs/steps.lib.yml"),
+			content.NewWorkflowSource("/ytt/libs/workflows.lib.yml", "/libs/workflows.lib.yml"),
+			content.NewWorkflowSource("/ytt/libs/values.yml", "/libs/values.yml"),
 			content.NewWorkflowSource("/ytt/workflows/gflows/gflows.yml", "/workflows/$WORKFLOW_NAME/$WORKFLOW_NAME.yml"),
 			content.NewWorkflowSource("/ytt/config.yml", "/config.yml"),
 		},
@@ -193,6 +198,7 @@ func (engine *YttTemplateEngine) getInput(workflowName string, templateDir strin
 		in.Files = append(in.Files, file)
 	}
 	paths, err := engine.env.GetLibPaths(workflowName)
+	engine.logger.Debugf("Lib paths for %s: %s", workflowName, spew.Sdump(paths))
 	if err != nil {
 		return nil, err
 	}
