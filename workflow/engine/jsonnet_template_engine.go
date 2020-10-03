@@ -53,11 +53,8 @@ func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
 
 		// If it's a file...
 		if !libInfo.IsDir {
-			if !libInfo.IsGFlowsLib {
-				// ...add it to the list if it's not a gflowslib package
-				files = append(files, libPath)
-			}
-			// ...and continue in either case
+			// ...add it to the list
+			files = append(files, libPath)
 			continue
 		}
 

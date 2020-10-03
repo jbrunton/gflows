@@ -54,7 +54,6 @@ func TestGetYttObservableSources(t *testing.T) {
 		"    libs:",
 		"    - vendor",
 		"    - foo/bar.yml",
-		"    - my-lib/my-lib.gflowslib",
 		"    - https://example.com/config.yml",
 	}, "\n")
 	container, _, templateEngine, _ := newYttTemplateEngine(config)
@@ -67,8 +66,6 @@ func TestGetYttObservableSources(t *testing.T) {
 	fs.WriteFile(".gflows/libs/lib.yml", []byte(""), 0644)
 	fs.WriteFile("vendor/lib/config.yml", []byte(""), 0644)
 	fs.WriteFile("foo/bar.yml", []byte(""), 0644)
-	fs.WriteFile("my-lib/my-lib.gflowslib", []byte(`{"files":["my-lib/foo.yml"]}`), 0644)
-	fs.WriteFile("my-lib/foo.yml", []byte(`{}`), 0644)
 
 	sources, err := templateEngine.GetObservableSources()
 
