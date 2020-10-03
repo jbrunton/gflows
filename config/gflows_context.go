@@ -137,7 +137,7 @@ func (context *GFlowsContext) ResolvePath(path string) string {
 	if filepath.IsAbs(path) {
 		return path
 	}
-	if filepath.HasPrefix(path, "http://") || filepath.HasPrefix(path, "https://") {
+	if pkg.IsRemotePath(path) {
 		return path
 	}
 

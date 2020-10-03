@@ -35,7 +35,6 @@ func TestSetupLocalLib(t *testing.T) {
 	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
-	assert.False(t, lib.isRemote(), "expected local lib")
 }
 
 func TestSetupRemoteLib(t *testing.T) {

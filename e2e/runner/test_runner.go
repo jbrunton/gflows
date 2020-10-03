@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jbrunton/gflows/io/pkg"
+
 	"github.com/jbrunton/gflows/cmd"
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/fixtures"
@@ -98,7 +100,7 @@ func (runner *TestRunner) setup(e2eDirectory string) error {
 			}
 			content = string(source)
 		}
-		if strings.HasPrefix(file.Path, "http://") || strings.HasPrefix(file.Path, "https://") {
+		if pkg.IsRemotePath(file.Path) {
 			runner.roundTripper.StubBody(file.Path, content)
 		} else {
 			err := runner.container.ContentWriter().SafelyWriteFile(file.Path, content)

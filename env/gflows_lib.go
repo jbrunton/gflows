@@ -21,6 +21,8 @@ type GFlowsLib struct {
 	// ManifestPath - the path to the manifest, computed from Path.
 	ManifestPath string
 
+	// PackageName - the name of the package. This defaults to the name of the parent directory of
+	// the manifest, but will be updated to the name in the manifest if given.
 	PackageName string
 
 	// LocalDir - the local directory of the library, to add to the lib paths. If ManifestPath is
@@ -52,10 +54,6 @@ func NewGFlowsLib(fs *afero.Afero, installer *GFlowsLibInstaller, logger *io.Log
 		context:      context,
 		logger:       logger,
 	}, nil
-}
-
-func (lib *GFlowsLib) isRemote() bool {
-	return strings.HasPrefix(lib.ManifestPath, "http://") || strings.HasPrefix(lib.ManifestPath, "https://")
 }
 
 func (lib *GFlowsLib) CleanUp() {
@@ -105,11 +103,16 @@ func (lib *GFlowsLib) Setup() error {
 	}
 	lib.LocalDir = tempDir
 
-	lib.Files, err = lib.installer.install(lib)
+	files, manifest, err := lib.installer.install(lib)
+	lib.Files = files
 
 	if err == nil {
 		lib.logger.Debugf("Installed %s\n", lib.PackageName)
 		lib.logger.Debugf("Installed %s\n", spew.Sdump(lib.Files))
+
+		if manifest.Name != "" {
+			lib.PackageName = manifest.Name
+		}
 	}
 
 	return err
