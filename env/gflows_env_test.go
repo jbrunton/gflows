@@ -117,3 +117,31 @@ func TestGetLibPaths(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"/libs/some-lib", somePkg.LibsDir()}, paths)
 }
+
+func TestCleanUpEnv(t *testing.T) {
+	// arrange
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    dependencies: [/deps/some-pkg]",
+	}, "\n")
+	env, container := newTestEnv(config, fixtures.NewMockRoundTripper())
+	fs := container.FileSystem()
+	container.ContentWriter().SafelyWriteFile("/deps/some-pkg/gflowspkg.json", `{"files": []}`)
+
+	lib, err := env.LoadDependency("/deps/some-pkg")
+	assert.NoError(t, err)
+
+	exists, err := fs.Exists(lib.LocalDir)
+	assert.NoError(t, err)
+	assert.True(t, exists, "expected LocalDir to exist")
+
+	// act
+	env.CleanUp()
+
+	// assert
+	exists, err = fs.Exists(lib.LocalDir)
+	assert.NoError(t, err)
+	assert.False(t, exists, "expected LocalDir to have been removed")
+}

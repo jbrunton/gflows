@@ -62,7 +62,7 @@ func TestLibStructureErrors(t *testing.T) {
 	assert.EqualError(t, err, "Unexpected directory foo/lib.yml, file must be in libs/ or workflows/")
 }
 
-func TestCleanUp(t *testing.T) {
+func TestCleanUpLib(t *testing.T) {
 	// arrange
 	lib, container, _ := newTestLib("/path/to/my-lib")
 	fs := container.FileSystem()
