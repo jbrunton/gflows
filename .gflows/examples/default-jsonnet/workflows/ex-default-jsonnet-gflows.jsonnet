@@ -13,7 +13,7 @@ local check_workflows_job = {
         token: "${{ secrets.GITHUB_TOKEN }}",
       }
     },
-    steps.named('validate workflows', 'go run main.go check') {
+    steps.named('validate workflows', 'gflows check') {
       env: {
         GFLOWS_CONFIG: '.gflows/examples/default-jsonnet/config.yml'
       },
