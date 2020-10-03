@@ -26,32 +26,32 @@ func NewGFlowsLibInstaller(fs *afero.Afero, reader *content.Reader, writer *cont
 	}
 }
 
-func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*pkg.PathInfo, error) {
+func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*pkg.PathInfo, *GFlowsLibManifest, error) {
 	manifest, err := installer.loadManifest(lib.ManifestPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	rootPath, err := pkg.ParentPath(lib.ManifestPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	files := []*pkg.PathInfo{}
 	for _, relPath := range manifest.Files {
 		localPath, err := installer.copyFile(lib, rootPath, relPath)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		pathInfo, err := lib.GetPathInfo(localPath)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		files = append(files, pathInfo)
 	}
-	return files, nil
+	return files, manifest, nil
 }
 
 func (installer *GFlowsLibInstaller) loadManifest(manifestPath string) (*GFlowsLibManifest, error) {

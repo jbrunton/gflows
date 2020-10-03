@@ -31,9 +31,9 @@ func TestLoadLocalLibrary(t *testing.T) {
 
 	assert.NoError(t, err)
 	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
+	assert.Equal(t, "my-lib", lib.PackageName)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
-	assert.False(t, lib.isRemote(), "expected local lib")
 }
 
 func TestLoadRemoteLib(t *testing.T) {
@@ -46,10 +46,10 @@ func TestLoadRemoteLib(t *testing.T) {
 	lib, err := env.LoadDependency("https://example.com/path/to/my-lib")
 
 	assert.NoError(t, err)
+	assert.Equal(t, "my-lib", lib.PackageName)
 	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
 	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
 	assert.Equal(t, "foo: bar", string(libContent))
-	assert.True(t, lib.isRemote(), "expected remote lib")
 }
 
 func TestCacheRemoteLibs(t *testing.T) {
@@ -66,6 +66,16 @@ func TestCacheRemoteLibs(t *testing.T) {
 	assert.True(t, libOne == libTwo, "expected same lib")
 	roundTripper.AssertNumberOfCalls(t, "RoundTrip", 2) // one call for the manifest and another for the lib.yml file
 	roundTripper.AssertExpectations(t)
+}
+
+func TestCustomPackageName(t *testing.T) {
+	env, container := newTestEnv("", fixtures.NewMockRoundTripper())
+	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": [], "name": "my-lib-name"}`)
+
+	lib, err := env.LoadDependency("/path/to/my-lib")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "my-lib-name", lib.PackageName)
 }
 
 func TestGetPackages(t *testing.T) {

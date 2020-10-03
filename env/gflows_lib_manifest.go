@@ -11,6 +11,9 @@ type GFlowsLibManifest struct {
 
 	// Libs - deprecated field, use Files instead
 	Libs []string
+
+	// Name - the name of the package
+	Name string
 }
 
 func ParseManifest(content string) (*GFlowsLibManifest, error) {
