@@ -160,9 +160,9 @@ func (engine *JsonnetTemplateEngine) WorkflowGenerator(templateVars map[string]s
 		Name:         "gflows",
 		TemplateVars: templateVars,
 		Sources: []content.WorkflowSource{
-			content.NewWorkflowSource("/jsonnet/workflows/common/steps.libsonnet", "/workflows/common/steps.libsonnet"),
-			content.NewWorkflowSource("/jsonnet/workflows/common/workflows.libsonnet", "/workflows/common/workflows.libsonnet"),
-			content.NewWorkflowSource("/jsonnet/workflows/common/git.libsonnet", "/workflows/common/git.libsonnet"),
+			content.NewWorkflowSource("/jsonnet/libs/steps.libsonnet", "/libs/steps.libsonnet"),
+			content.NewWorkflowSource("/jsonnet/libs/workflows.libsonnet", "/libs/workflows.libsonnet"),
+			content.NewWorkflowSource("/jsonnet/libs/git.libsonnet", "/libs/git.libsonnet"),
 			content.NewWorkflowSource("/jsonnet/workflows/gflows.jsonnet", "/workflows/$WORKFLOW_NAME.jsonnet"),
 			content.NewWorkflowSource("/jsonnet/config.yml", "/config.yml"),
 		},
