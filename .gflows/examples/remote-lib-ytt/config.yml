@@ -5,4 +5,4 @@ templates:
   engine: ytt
   defaults:
     dependencies:
-    - https://raw.githubusercontent.com/jbrunton/gflows/separate-libs-packages/e2e/gflowspkgs/ytt
+    - https://raw.githubusercontent.com/jbrunton/gflows/develop/e2e/gflowspkgs/ytt
