@@ -2,6 +2,3 @@
 # See https://github.com/jbrunton/gflows/wiki/Configuration for options.
 templates:
   engine: ytt
-  defaults:
-    libs:
-      - workflows/common
