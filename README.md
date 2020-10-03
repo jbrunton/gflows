@@ -8,7 +8,7 @@ GFlows is a CLI tool that makes templating GitHub Workflows easy, using either [
 
 * Import existing workflows to help you quickly get started.
 * Validate GitHub workflows are up to date with their source templates and conform to a valid schema.
-* Share common code for workflows with [GFlows Libraries](https://github.com/jbrunton/gflows/wiki/GFlows-Libraries).
+* Share common config code and workflows with [GFlows Packages](https://github.com/jbrunton/gflows/wiki/GFlows-Packages).
 * Watch changes to the templates, so you can develop and refactor workflows with fast feedback on your changes.
 
 ![Example refactor](https://raw.githubusercontent.com/jbrunton/gflows/develop/refactor.gif)
