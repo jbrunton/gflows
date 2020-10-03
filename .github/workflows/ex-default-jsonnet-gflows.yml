@@ -15,7 +15,7 @@
     - "env":
         "GFLOWS_CONFIG": ".gflows/examples/default-jsonnet/config.yml"
       "name": "validate workflows"
-      "run": "go run main.go check"
+      "run": "gflows check"
 "name": "gflows"
 "on":
   "pull_request":
