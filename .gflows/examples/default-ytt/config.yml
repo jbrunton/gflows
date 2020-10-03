@@ -3,6 +3,3 @@
 githubDir: ../../.github
 templates:
   engine: ytt
-  defaults:
-    libs:
-      - workflows/common
