@@ -18,5 +18,4 @@ jobs:
     - name: validate workflows
       env:
         GFLOWS_CONFIG: .gflows/examples/remote-lib-ytt/config.yml
-      # TODO: update this to run `gflows check` following next release
-      run: go run main.go check
+      run: gflows check
