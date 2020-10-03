@@ -15,13 +15,13 @@ import (
 )
 
 type GFlowsLib struct {
-	// ManifestPath - the path specified as the lib manifest. Can be remote, local (relative) or
-	// local (absolute).
+	// Path - the path to the package. Can be remote, local (relative) or local (absolute).
+	Path string
+
+	// ManifestPath - the path to the manifest, computed from Path.
 	ManifestPath string
 
-	// ManifestName - the name of the manifest, which is the file name (without the path).
-	// E.g. /path/to/my-manifest.gflowslib has the name `my-manifest.gflowslib`
-	ManifestName string
+	PackageName string
 
 	// LocalDir - the local directory of the library, to add to the lib paths. If ManifestPath is
 	// local then this will simply be the directory containing ManifestPath. If ManifestPath is
@@ -37,15 +37,21 @@ type GFlowsLib struct {
 	logger    *io.Logger
 }
 
-func NewGFlowsLib(fs *afero.Afero, installer *GFlowsLibInstaller, logger *io.Logger, manifestPath string, context *config.GFlowsContext) *GFlowsLib {
+func NewGFlowsLib(fs *afero.Afero, installer *GFlowsLibInstaller, logger *io.Logger, path string, context *config.GFlowsContext) (*GFlowsLib, error) {
+	resolvedPath := context.ResolvePath(path)
+	manifestPath, err := pkg.JoinRelativePath(resolvedPath, "gflowspkg.json")
+	if err != nil {
+		return nil, err
+	}
 	return &GFlowsLib{
-		ManifestPath: context.ResolvePath(manifestPath),
-		ManifestName: filepath.Base(manifestPath),
+		Path:         resolvedPath,
+		ManifestPath: manifestPath,
+		PackageName:  filepath.Base(resolvedPath),
 		installer:    installer,
 		fs:           fs,
 		context:      context,
 		logger:       logger,
-	}
+	}, nil
 }
 
 func (lib *GFlowsLib) isRemote() bool {
@@ -86,14 +92,14 @@ func (lib *GFlowsLib) GetPathInfo(localPath string) (*pkg.PathInfo, error) {
 		SourcePath: sourcePath,
 		// TODO: Description should be SourcePath if remote, relative SourcePath if within context dir (i.e. in source control),
 		// and in terms of library name otherwise (since in that case the path is local but outside the repo, so not v useful)
-		Description: path.Join(lib.ManifestName, relPath),
+		Description: path.Join(lib.PackageName, relPath),
 	}, err
 }
 
 func (lib *GFlowsLib) Setup() error {
-	lib.logger.Debugf("Installing %s (%s)\n", lib.ManifestName, lib.ManifestPath)
+	lib.logger.Debugf("Installing %s (%s)\n", lib.PackageName, lib.Path)
 
-	tempDir, err := lib.fs.TempDir("", lib.ManifestName)
+	tempDir, err := lib.fs.TempDir("", lib.PackageName)
 	if err != nil {
 		return err
 	}
@@ -102,7 +108,7 @@ func (lib *GFlowsLib) Setup() error {
 	lib.Files, err = lib.installer.install(lib)
 
 	if err == nil {
-		lib.logger.Debugf("Installed %s\n", lib.ManifestName)
+		lib.logger.Debugf("Installed %s\n", lib.PackageName)
 		lib.logger.Debugf("Installed %s\n", spew.Sdump(lib.Files))
 	}
 

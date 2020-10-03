@@ -1,24 +1,20 @@
 package pkg
 
 import (
-	"path"
-
 	"github.com/spf13/afero"
 )
 
 type LibInfo struct {
-	Path        string
-	IsGFlowsLib bool
-	IsRemote    bool
-	Exists      bool
-	IsDir       bool
+	Path     string
+	IsRemote bool
+	Exists   bool
+	IsDir    bool
 }
 
 func GetLibInfo(libPath string, fs *afero.Afero) (*LibInfo, error) {
 	libInfo := &LibInfo{
-		Path:        libPath,
-		IsGFlowsLib: path.Ext(libPath) == ".gflowslib",
-		IsRemote:    IsRemotePath(libPath),
+		Path:     libPath,
+		IsRemote: IsRemotePath(libPath),
 	}
 
 	if libInfo.IsRemote {

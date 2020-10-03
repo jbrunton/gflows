@@ -53,11 +53,8 @@ func (engine *JsonnetTemplateEngine) GetObservableSources() ([]string, error) {
 
 		// If it's a file...
 		if !libInfo.IsDir {
-			if !libInfo.IsGFlowsLib {
-				// ...add it to the list if it's not a gflowslib package
-				files = append(files, libPath)
-			}
-			// ...and continue in either case
+			// ...add it to the list
+			files = append(files, libPath)
 			continue
 		}
 
@@ -204,7 +201,7 @@ func (engine *JsonnetTemplateEngine) getWorkflowName(filename string) string {
 
 func (engine *JsonnetTemplateEngine) createVM(workflowName string) (*gojsonnet.VM, error) {
 	vm := gojsonnet.MakeVM()
-	jpaths, err := engine.getJPath(workflowName)
+	jpaths, err := engine.env.GetLibPaths(workflowName)
 	if err != nil {
 		return nil, err
 	}
@@ -213,20 +210,4 @@ func (engine *JsonnetTemplateEngine) createVM(workflowName string) (*gojsonnet.V
 	})
 	vm.StringOutput = true
 	return vm, nil
-}
-
-func (engine *JsonnetTemplateEngine) getJPath(workflowName string) ([]string, error) {
-	var jpaths []string
-	for _, path := range engine.context.Config.GetTemplateLibs(workflowName) {
-		if strings.HasSuffix(path, ".gflowslib") {
-			lib, err := engine.env.LoadLib(path)
-			if err != nil {
-				return []string{}, err
-			}
-			jpaths = append(jpaths, lib.LibsDir())
-		} else {
-			jpaths = append(jpaths, path)
-		}
-	}
-	return engine.context.ResolvePaths(jpaths), nil
 }
