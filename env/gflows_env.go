@@ -72,6 +72,14 @@ func (env *GFlowsEnv) GetLibPaths(workflowName string) ([]string, error) {
 		}
 		libPaths = append(libPaths, dep.LibsDir())
 	}
+	contextLibPath := env.context.LibsDir()
+	libInfo, err := pkg.GetLibInfo(contextLibPath, env.fs)
+	if err != nil {
+		return nil, err
+	}
+	if libInfo.Exists {
+		libPaths = append(libPaths, contextLibPath)
+	}
 	return env.context.ResolvePaths(libPaths), nil
 }
 

@@ -21,7 +21,7 @@ func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsCont
 	container := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
 	installer := env.NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
 	env := env.NewGFlowsEnv(container.FileSystem(), installer, context, container.Logger())
-	templateEngine := NewYttTemplateEngine(container.FileSystem(), context, container.ContentWriter(), env)
+	templateEngine := NewYttTemplateEngine(container.FileSystem(), context, container.ContentWriter(), env, container.Logger())
 	return container, context, templateEngine, roundTripper
 }
 
