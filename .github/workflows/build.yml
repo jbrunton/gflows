@@ -31,15 +31,15 @@ jobs:
       if: github.event_name == 'pull_request'
       name: configure environment for pull request
       run: |
-        echo ::set-env name=GIT_BRANCH::$GITHUB_HEAD_REF
-        echo ::set-env name=GIT_COMMIT_SHA::$HEAD_SHA
+        echo "GIT_BRANCH=$GITHUB_HEAD_REF" >> $GITHUB_ENV
+        echo "GIT_COMMIT_SHA=$HEAD_SHA" >> $GITHUB_ENV
     - env:
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       if: github.event_name == 'push'
       name: configure environment for push
       run: |
-        echo ::set-env name=GIT_BRANCH::${GITHUB_REF#refs/heads/}
-        echo ::set-env name=GIT_COMMIT_SHA::$GITHUB_SHA
+        echo "GIT_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        echo "GIT_COMMIT_SHA=$GITHUB_SHA" >> $GITHUB_ENV
     - name: prepare test reporter
       run: |
         curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
