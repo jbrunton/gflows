@@ -1,4 +1,4 @@
-// This implementation for Patch is taken from go-get:
+// This implementation for Patch is taken from go-git:
 // https://github.com/go-git/go-git/blob/master/plumbing/object/patch.go
 
 package diff
