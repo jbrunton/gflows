@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jbrunton/gflows/content"
-	"github.com/jbrunton/gflows/di"
 	"github.com/jbrunton/gflows/jsonnet"
 	"github.com/jbrunton/gflows/styles"
 
@@ -19,7 +18,7 @@ type GitWorkflow struct {
 	definition *WorkflowDefinition
 }
 
-func getWorkflows(container *di.Container) []GitWorkflow {
+func getWorkflows(container *Container) []GitWorkflow {
 	files := []string{}
 	files, err := afero.Glob(container.FileSystem(), filepath.Join(container.Context().GitHubDir, "workflows/*.yml"))
 	if err != nil {
@@ -48,7 +47,7 @@ func getWorkflows(container *di.Container) []GitWorkflow {
 	return workflows
 }
 
-func ImportWorkflows(container *di.Container) {
+func ImportWorkflows(container *Container) {
 	imported := 0
 	workflows := getWorkflows(container)
 	writer := content.NewWriter(container)

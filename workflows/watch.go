@@ -10,7 +10,7 @@ import (
 	"github.com/jbrunton/gflows/di"
 )
 
-func getWatchFiles(container *di.Container) []string {
+func getWatchFiles(container Container) []string {
 	context := container.Context()
 	workflowManager := NewWorkflowManager(container)
 	files := workflowManager.GetWorkflowSources(context)

@@ -10,6 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Factory interface {
+	FileSystem() *afero.Afero
+	Logger() *logs.Logger
+	Context() *config.GFlowsContext
+}
+
 type Container struct {
 	fileSystem *afero.Afero
 	logger     *logs.Logger

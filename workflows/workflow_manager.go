@@ -51,14 +51,14 @@ type WorkflowManager struct {
 	TemplateManager
 }
 
-func NewWorkflowManager(container *di.Container) *WorkflowManager {
+func NewWorkflowManager(container *Container) *WorkflowManager {
 	return &WorkflowManager{
 		fs:              container.FileSystem(),
 		logger:          container.Logger(),
-		validator:       NewWorkflowValidator(container),
+		validator:       container.Validator(),
 		context:         container.Context(),
-		contentWriter:   content.NewWriter(container),
-		TemplateManager: NewJsonnetTemplateManager(container),
+		contentWriter:   container.ContentWriter(),
+		TemplateManager: container.TemplateManager(),
 	}
 }
 
