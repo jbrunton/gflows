@@ -4,8 +4,21 @@ import (
 	"net/url"
 	gopath "path"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+// IsGitPath - returns true if the path is for a Git repository, false otherwise
+func IsGitPath(path string) bool {
+	return strings.HasPrefix(path, "git@")
+}
+
+// ParseGitPath - returns the components of a Git path (the domain and the subdirectory)
+func ParseGitPath(path string) (string, string) {
+	r := regexp.MustCompile(`^(git@.*\.git)(.*)$`)
+	matches := r.FindStringSubmatch(path)
+	return matches[1], matches[2]
+}
 
 // IsRemotePath - returns true if the path is a URL, false otherwise
 func IsRemotePath(path string) bool {

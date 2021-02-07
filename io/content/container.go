@@ -8,7 +8,8 @@ import (
 
 type Container struct {
 	*io.Container
-	httpClient *http.Client
+	httpClient  *http.Client
+	repoManager *RepoManager
 }
 
 func (container *Container) HttpClient() *http.Client {
@@ -23,6 +24,11 @@ func (container *Container) ContentReader() *Reader {
 	return NewReader(container.FileSystem(), container.HttpClient())
 }
 
+func (container *Container) RepoManager() *RepoManager {
+	return container.repoManager
+}
+
 func NewContainer(parentContainer *io.Container, httpClient *http.Client) *Container {
-	return &Container{parentContainer, httpClient}
+	repoManager := NewRepoManager(parentContainer.GitAdapter(), parentContainer.FileSystem(), parentContainer.Logger())
+	return &Container{parentContainer, httpClient, repoManager}
 }

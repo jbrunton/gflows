@@ -16,7 +16,8 @@ func newTestEnv(config string, roundTripper http.RoundTripper) (*GFlowsEnv, *con
 	ioContainer, context, _ := fixtures.NewTestContext(config)
 	httpClient := &http.Client{Transport: roundTripper}
 	container := content.NewContainer(ioContainer, httpClient)
-	installer := NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
+	repoManager := content.NewRepoManager(container.GitAdapter(), container.FileSystem(), container.Logger())
+	installer := NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger(), repoManager)
 	env := NewGFlowsEnv(container.FileSystem(), installer, context, container.Logger())
 	return env, container
 }

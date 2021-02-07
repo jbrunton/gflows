@@ -84,6 +84,7 @@ func (env *GFlowsEnv) GetLibPaths(workflowName string) ([]string, error) {
 }
 
 func (env *GFlowsEnv) CleanUp() {
+	env.installer.CleanUp()
 	for _, dep := range env.deps {
 		dep.CleanUp()
 	}

@@ -9,6 +9,7 @@ type Container struct {
 	fileSystem *afero.Afero
 	logger     *Logger
 	styles     *styles.Styles
+	gitAdapter GitAdapter
 }
 
 func (container *Container) FileSystem() *afero.Afero {
@@ -23,10 +24,15 @@ func (container *Container) Styles() *styles.Styles {
 	return container.styles
 }
 
-func NewContainer(fs *afero.Afero, logger *Logger, styles *styles.Styles) *Container {
+func (container *Container) GitAdapter() GitAdapter {
+	return container.gitAdapter
+}
+
+func NewContainer(fs *afero.Afero, logger *Logger, styles *styles.Styles, gitAdapter GitAdapter) *Container {
 	return &Container{
 		fileSystem: fs,
 		logger:     logger,
 		styles:     styles,
+		gitAdapter: gitAdapter,
 	}
 }

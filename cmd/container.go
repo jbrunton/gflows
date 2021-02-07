@@ -25,12 +25,16 @@ func buildContainer(cmd *cobra.Command) (*action.Container, error) {
 	fs := io.CreateOsFs()
 	opts := config.CreateContextOpts(cmd)
 	logger := io.NewLogger(os.Stdout, opts.EnableColors, opts.Debug)
+	gitAdapter := io.NewGoGitAdapter()
 	context, err := config.NewContext(fs, logger, opts)
 	if err != nil {
 		return nil, err
 	}
-	ioContainer := io.NewContainer(fs, logger, styles.NewStyles(context.EnableColors))
-	contentContainer := content.NewContainer(ioContainer, http.DefaultClient)
+	ioContainer := io.NewContainer(fs, logger, styles.NewStyles(context.EnableColors), gitAdapter)
+	contentContainer := content.NewContainer(
+		ioContainer,
+		http.DefaultClient,
+	)
 	container, err := action.NewContainer(contentContainer, context), nil
 	if err == nil {
 		containers[cmd.Root()] = container

@@ -74,7 +74,7 @@ func NewTestRunner(osFs *afero.Afero, testPath string, useMemFs bool, assert Ass
 
 	out := new(bytes.Buffer)
 	roundTripper := fixtures.NewTestRoundTripper()
-	ioContainer := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false))
+	ioContainer := io.NewContainer(fs, io.NewLogger(out, false, false), styles.NewStyles(false), io.NewGoGitAdapter())
 	contentContainer := content.NewContainer(ioContainer, &http.Client{Transport: roundTripper})
 
 	return &TestRunner{

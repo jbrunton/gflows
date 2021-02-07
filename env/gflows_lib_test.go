@@ -18,7 +18,8 @@ func newTestLib(manifestPath string) (*GFlowsLib, *content.Container, *fixtures.
 	roundTripper := fixtures.NewMockRoundTripper()
 	httpClient := &http.Client{Transport: roundTripper}
 	container := content.NewContainer(ioContainer, httpClient)
-	installer := NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
+	repoManager := content.NewRepoManager(container.GitAdapter(), container.FileSystem(), container.Logger())
+	installer := NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger(), repoManager)
 	lib, _ := NewGFlowsLib(container.FileSystem(), installer, container.Logger(), manifestPath, context)
 	return lib, container, roundTripper
 }
@@ -42,6 +43,40 @@ func TestSetupRemoteLib(t *testing.T) {
 	fs := container.FileSystem()
 	roundTripper.StubBody("https://example.com/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
 	roundTripper.StubBody("https://example.com/path/to/my-lib/libs/lib.yml", "foo: bar")
+
+	err := lib.Setup()
+
+	assert.NoError(t, err)
+	fixtures.AssertTempDir(t, fs, "my-lib", lib.LocalDir)
+	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
+	assert.Equal(t, "foo: bar", string(libContent))
+}
+
+func TestSetupGitLib(t *testing.T) {
+	lib, container, _ := newTestLib("git@example.com:my/repo.git")
+	fs := container.FileSystem()
+	gitAdapter := container.GitAdapter().(*fixtures.TestGitAdapter)
+	gitAdapter.StubRepo("git@example.com:my/repo.git", &map[string]string{
+		"gflowspkg.json": `{"files": ["libs/lib.yml"]}`,
+		"libs/lib.yml":   "foo: bar",
+	})
+
+	err := lib.Setup()
+
+	assert.NoError(t, err)
+	fixtures.AssertTempDir(t, fs, "repo.git", lib.LocalDir)
+	libContent, _ := fs.ReadFile(filepath.Join(lib.LocalDir, "libs/lib.yml"))
+	assert.Equal(t, "foo: bar", string(libContent))
+}
+
+func TestSetupNestedGitLib(t *testing.T) {
+	lib, container, _ := newTestLib("git@example.com:my/repo.git/my-lib")
+	fs := container.FileSystem()
+	gitAdapter := container.GitAdapter().(*fixtures.TestGitAdapter)
+	gitAdapter.StubRepo("git@example.com:my/repo.git", &map[string]string{
+		"my-lib/gflowspkg.json": `{"files": ["libs/lib.yml"]}`,
+		"my-lib/libs/lib.yml":   "foo: bar",
+	})
 
 	err := lib.Setup()
 

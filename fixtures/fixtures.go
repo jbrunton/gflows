@@ -57,7 +57,7 @@ func CreateTestFileSystem(files []File, assetNamespace string) http.FileSystem {
 func NewTestContext(configString string) (*io.Container, *config.GFlowsContext, *bytes.Buffer) {
 	fs := io.CreateMemFs()
 	logger, out := io.NewTestLogger()
-	container := io.NewContainer(fs, logger, styles.NewStyles(false))
+	container := io.NewContainer(fs, logger, styles.NewStyles(false), NewTestGitAdapter(fs))
 
 	configPath := ".gflows/config.yml"
 	if configString == "" {

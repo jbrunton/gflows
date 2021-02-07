@@ -22,7 +22,8 @@ func newTestWorkflowManager() (*afero.Afero, *bytes.Buffer, *WorkflowManager) {
 	fs := ioContainer.FileSystem()
 	validator := workflow.NewValidator(fs, context)
 	container := content.NewContainer(ioContainer, httpClient)
-	installer := env.NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger())
+	repoManager := content.NewRepoManager(container.GitAdapter(), container.FileSystem(), container.Logger())
+	installer := env.NewGFlowsLibInstaller(container.FileSystem(), container.ContentReader(), container.ContentWriter(), container.Logger(), repoManager)
 	env := env.NewGFlowsEnv(fs, installer, context, container.Logger())
 	templateEngine := CreateWorkflowEngine(fs, context, container.ContentWriter(), env, container.Logger())
 	return fs, out, NewWorkflowManager(
