@@ -76,8 +76,6 @@ func (env *GFlowsEnv) GetLibPaths(workflowName string) ([]string, error) {
 		}
 		if libInfo.Exists {
 			libPaths = append(libPaths, libPath)
-		} else {
-			env.logger.Println("Lib path does not exist", libPath)
 		}
 	}
 

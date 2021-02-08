@@ -52,7 +52,14 @@ func TestGetJsonnetWorkflowDefinitions(t *testing.T) {
 }
 
 func TestGetJsonnetWorkflowDefinitionsWithLibs(t *testing.T) {
-	container, _, templateEngine := newJsonnetTemplateEngine("", fixtures.NewMockRoundTripper())
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: jsonnet",
+		"  defaults:",
+		"    dependencies:",
+		"    - /path/to/my-lib",
+	}, "\n")
+	container, _, templateEngine := newJsonnetTemplateEngine(config, fixtures.NewMockRoundTripper())
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test.jsonnet", []byte(fixtures.ExampleJsonnetTemplate), 0644)
 	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["workflows/lib-workflow.jsonnet"]}`)
