@@ -26,9 +26,17 @@ func newYttTemplateEngine(config string) (*content.Container, *config.GFlowsCont
 }
 
 func TestGenerateYttWorkflowDefinitions(t *testing.T) {
-	container, _, templateEngine, _ := newYttTemplateEngine("")
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: ytt",
+		"  defaults:",
+		"    dependencies:",
+		"    - /my-pkg",
+	}, "\n")
+	container, _, templateEngine, _ := newYttTemplateEngine(config)
 	fs := container.FileSystem()
 	fs.WriteFile(".gflows/workflows/test/config.yml", []byte(""), 0644)
+	fs.WriteFile("/my-pkg/gflowspkg.json", []byte(`{"files": []}`), 0644)
 
 	definitions, _ := templateEngine.GetWorkflowDefinitions()
 
