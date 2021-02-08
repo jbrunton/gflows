@@ -80,7 +80,14 @@ func TestCustomPackageName(t *testing.T) {
 
 func TestGetAllPackages(t *testing.T) {
 	// arrange
-	env, container := newTestEnv("", fixtures.NewMockRoundTripper())
+	config := strings.Join([]string{
+		"templates:",
+		"  engine: jsonnet",
+		"  defaults:",
+		"    dependencies:",
+		"    - /path/to/my-lib",
+	}, "\n")
+	env, container := newTestEnv(config, fixtures.NewMockRoundTripper())
 	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
 	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/libs/lib.yml", "foo: bar")
 	lib, _ := env.LoadDependency("/path/to/my-lib")
