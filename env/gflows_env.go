@@ -59,8 +59,7 @@ func (env *GFlowsEnv) GetWorkflowPackages(workflowName string) ([]pkg.GFlowsPack
 	return append(deps, env.context), err
 }
 
-// GetLibPaths - returns search paths for the given workflow (including libs and local dependency
-// directories)
+// GetLibPaths - returns search paths for the given workflow (including libs, packages and local context)
 func (env *GFlowsEnv) GetLibPaths(workflowName string) ([]string, error) {
 	libPaths := env.context.Config.GetTemplateLibs(workflowName)
 
