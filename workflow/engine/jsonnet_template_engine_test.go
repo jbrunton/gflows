@@ -99,6 +99,7 @@ func TestSerializationError(t *testing.T) {
 	expectedDefinition := workflow.Definition{
 		Name:        "test",
 		Source:      ".gflows/workflows/test.jsonnet",
+		Description: ".gflows/workflows/test.jsonnet",
 		Destination: ".github/workflows/test.yml",
 		Content:     "",
 		Status: workflow.ValidationResult{
