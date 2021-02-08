@@ -26,7 +26,6 @@ func (definition *Definition) SetContent(workflow string, template *pkg.PathInfo
 		fmt.Sprintf("# Source: %s", template.Description),
 	}, "\n")
 	definition.Content = meta + "\n" + workflow
-	definition.Description = template.Description
 
 	json, err := yamlutil.YamlToJson(definition.Content)
 	if err != nil {

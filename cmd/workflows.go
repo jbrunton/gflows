@@ -66,7 +66,7 @@ func newListWorkflowsCmd(containerFunc ContainerBuilderFunc) *cobra.Command {
 					}
 				}
 
-				row := []string{definition.Name, definition.Source, definition.Destination, status}
+				row := []string{definition.Name, definition.Description, definition.Destination, status}
 				table.Rich(row, colors)
 			}
 			table.Render()

@@ -98,6 +98,7 @@ func (engine *JsonnetTemplateEngine) GetWorkflowDefinitions() ([]*workflow.Defin
 		definition := &workflow.Definition{
 			Name:        workflowName,
 			Source:      template.LocalPath,
+			Description: template.Description,
 			Destination: destinationPath,
 			Status:      workflow.ValidationResult{Valid: true},
 		}
