@@ -197,7 +197,16 @@ func (engine *YttTemplateEngine) getInput(workflowName string, templateDir strin
 		}
 		in.Files = append(in.Files, file)
 	}
-	paths, err := engine.env.GetLibPaths(workflowName)
+	candidatePaths, err := engine.env.GetLibPaths(workflowName)
+	// NewSortedFilesFromPaths errors if a path doesn't exist. Since GetLibPaths returns a libs
+	// directory for all packages (regardless of whether one exists), we need to filter here.
+	paths := funk.Filter(candidatePaths, func(path string) bool {
+		exists, err := engine.fs.Exists(path)
+		if err != nil {
+			panic(err)
+		}
+		return exists
+	}).([]string)
 	engine.logger.Debugf("Lib paths for %s: %s", workflowName, spew.Sdump(paths))
 	if err != nil {
 		return nil, err
