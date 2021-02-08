@@ -104,7 +104,7 @@ func TestGetAllPackages(t *testing.T) {
 func TestGetLibPaths(t *testing.T) {
 	config := strings.Join([]string{
 		"templates:",
-		"  engine: jsonnet",
+		"  engine: ytt",
 		"  defaults:",
 		"    libs: [/libs/some-lib]",
 		"    dependencies: [/deps/some-pkg]",
@@ -114,15 +114,27 @@ func TestGetLibPaths(t *testing.T) {
 		"      dependencies: [/deps/my-pkg]",
 	}, "\n")
 	env, container := newTestEnv(config, fixtures.NewMockRoundTripper())
-	container.ContentWriter().SafelyWriteFile("/deps/some-pkg/gflowspkg.json", `{"files": []}`)
-	container.ContentWriter().SafelyWriteFile("/deps/my-pkg/gflowspkg.json", `{"files": []}`)
+
+	container.ContentWriter().SafelyWriteFile(
+		"/deps/some-pkg/gflowspkg.json",
+		`{"files": ["libs/some-lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/deps/some-pkg/libs/some-lib.yml", "")
+	container.ContentWriter().SafelyWriteFile(
+		"/deps/my-pkg/gflowspkg.json",
+		`{"files": ["libs/my-lib.yml"]}`)
+	container.ContentWriter().SafelyWriteFile("/deps/my-pkg/libs/my-lib.yml", "")
 	somePkg, _ := env.LoadDependency("/deps/some-pkg")
 	myPkg, _ := env.LoadDependency("/deps/my-pkg")
 
+	// Note that we don't return empty package dirs
+	container.ContentWriter().SafelyWriteFile("/deps/pkg-without-libs/gflowspkg.json", `{"files": []}`)
+
+	// Scenario: config includes dependency override
 	paths, err := env.GetLibPaths("my-workflow")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"/libs/some-lib", "/libs/my-lib", somePkg.LibsDir(), myPkg.LibsDir()}, paths)
 
+	// Scenario: only default dependencies
 	paths, err = env.GetLibPaths("other-workflow")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"/libs/some-lib", somePkg.LibsDir()}, paths)

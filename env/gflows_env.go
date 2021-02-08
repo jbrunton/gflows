@@ -1,8 +1,6 @@
 package env
 
 import (
-	"github.com/thoas/go-funk"
-
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/pkg"
@@ -49,13 +47,15 @@ func (env *GFlowsEnv) LoadDependency(path string) (*GFlowsLib, error) {
 
 // GetAllPackages - Returns all packages used by the configuration (including the local context)
 func (env *GFlowsEnv) GetAllPackages() ([]pkg.GFlowsPackage, error) {
-	deps, err := env.loadPackages(env.context.Config.GetAllDependencies())
+	depPaths := env.context.Config.GetAllDependencies()
+	deps, err := env.loadPackages(depPaths)
 	return append(deps, env.context), err
 }
 
 // GetWorkflowPackages - Returns all packages for a named workflow (including the local context)
 func (env *GFlowsEnv) GetWorkflowPackages(workflowName string) ([]pkg.GFlowsPackage, error) {
-	deps, err := env.loadPackages(env.context.Config.GetTemplateDeps(workflowName))
+	depPaths := env.context.Config.GetTemplateDeps(workflowName)
+	deps, err := env.loadPackages(depPaths)
 	return append(deps, env.context), err
 }
 
@@ -76,6 +76,8 @@ func (env *GFlowsEnv) GetLibPaths(workflowName string) ([]string, error) {
 		}
 		if libInfo.Exists {
 			libPaths = append(libPaths, libPath)
+		} else {
+			env.logger.Println("Lib path does not exist", libPath)
 		}
 	}
 
@@ -90,14 +92,26 @@ func (env *GFlowsEnv) CleanUp() {
 }
 
 func (env *GFlowsEnv) loadPackages(paths []string) ([]pkg.GFlowsPackage, error) {
+	deps := []pkg.GFlowsPackage{}
 	for _, libPath := range paths {
-		_, err := env.LoadDependency(libPath)
+		dep, err := env.LoadDependency(libPath)
 		if err != nil {
 			return nil, err
 		}
+		deps = append(deps, dep)
 	}
-	deps := funk.Map(funk.Values(env.deps), func(dep *GFlowsLib) pkg.GFlowsPackage {
-		return dep
-	}).([]pkg.GFlowsPackage)
 	return deps, nil
 }
+
+// func (env *GFlowsEnv) loadPackages(paths []string) ([]pkg.GFlowsPackage, error) {
+// 	for _, libPath := range paths {
+// 		_, err := env.LoadDependency(libPath)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	}
+// 	deps := funk.Map(funk.Values(env.deps), func(dep *GFlowsLib) pkg.GFlowsPackage {
+// 		return dep
+// 	}).([]pkg.GFlowsPackage)
+// 	return deps, nil
+// }
