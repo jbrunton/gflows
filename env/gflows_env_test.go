@@ -78,7 +78,7 @@ func TestCustomPackageName(t *testing.T) {
 	assert.Equal(t, "my-lib-name", lib.PackageName)
 }
 
-func TestGetPackages(t *testing.T) {
+func TestGetAllPackages(t *testing.T) {
 	// arrange
 	env, container := newTestEnv("", fixtures.NewMockRoundTripper())
 	container.ContentWriter().SafelyWriteFile("/path/to/my-lib/gflowspkg.json", `{"files": ["libs/lib.yml"]}`)
@@ -86,7 +86,7 @@ func TestGetPackages(t *testing.T) {
 	lib, _ := env.LoadDependency("/path/to/my-lib")
 
 	// act
-	packages, err := env.GetPackages()
+	packages, err := env.GetAllPackages()
 
 	// assert
 	libPackage := packages[0]

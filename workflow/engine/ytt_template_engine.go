@@ -74,7 +74,7 @@ func (engine *YttTemplateEngine) GetObservableSources() ([]string, error) {
 
 func (engine *YttTemplateEngine) getWorkflowTemplates() ([]*pkg.PathInfo, error) {
 	templates := []*pkg.PathInfo{}
-	packages, err := engine.env.GetPackages()
+	packages, err := engine.env.GetAllPackages()
 	if err != nil {
 		return nil, err
 	}

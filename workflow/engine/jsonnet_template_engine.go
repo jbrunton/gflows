@@ -171,7 +171,7 @@ func (engine *JsonnetTemplateEngine) WorkflowGenerator(templateVars map[string]s
 
 func (engine *JsonnetTemplateEngine) getWorkflowTemplates() ([]*pkg.PathInfo, error) {
 	templates := []*pkg.PathInfo{}
-	packages, err := engine.env.GetPackages()
+	packages, err := engine.env.GetAllPackages()
 	if err != nil {
 		return nil, err
 	}
