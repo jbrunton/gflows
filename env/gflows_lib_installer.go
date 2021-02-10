@@ -2,6 +2,7 @@ package env
 
 import (
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/jbrunton/gflows/io"
@@ -11,22 +12,43 @@ import (
 )
 
 type GFlowsLibInstaller struct {
-	fs     *afero.Afero
-	reader *content.Reader
-	writer *content.Writer
-	logger *io.Logger
+	fs          *afero.Afero
+	reader      *content.Reader
+	writer      *content.Writer
+	logger      *io.Logger
+	repoManager *content.RepoManager
 }
 
-func NewGFlowsLibInstaller(fs *afero.Afero, reader *content.Reader, writer *content.Writer, logger *io.Logger) *GFlowsLibInstaller {
+func NewGFlowsLibInstaller(
+	fs *afero.Afero,
+	reader *content.Reader,
+	writer *content.Writer,
+	logger *io.Logger,
+	repoManager *content.RepoManager,
+) *GFlowsLibInstaller {
 	return &GFlowsLibInstaller{
-		fs:     fs,
-		reader: reader,
-		writer: writer,
-		logger: logger,
+		fs:          fs,
+		reader:      reader,
+		writer:      writer,
+		logger:      logger,
+		repoManager: repoManager,
 	}
 }
 
 func (installer *GFlowsLibInstaller) install(lib *GFlowsLib) ([]*pkg.PathInfo, *GFlowsLibManifest, error) {
+	if pkg.IsGitPath(lib.Path) {
+		repoUrl, subdir := pkg.ParseGitPath(lib.Path)
+		repo, err := installer.repoManager.GetRepo(repoUrl)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		lib.ManifestPath, err = pkg.JoinRelativePath(repo.LocalDir, path.Join(subdir, "gflowspkg.json"))
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	manifest, err := installer.loadManifest(lib.ManifestPath)
 	if err != nil {
 		return nil, nil, err
@@ -92,4 +114,8 @@ func (installer *GFlowsLibInstaller) copyFile(lib *GFlowsLib, rootPath string, r
 	}
 	err = installer.writer.SafelyWriteFile(localPath, sourceContent)
 	return localPath, err
+}
+
+func (installer *GFlowsLibInstaller) CleanUp() {
+	installer.repoManager.CleanUp()
 }

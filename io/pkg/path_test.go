@@ -6,6 +6,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsGitPath(t *testing.T) {
+	assert.True(t, IsGitPath("git@github.com:my-org/my-repo.git"))
+	assert.False(t, IsGitPath("http://example.com"))
+	assert.False(t, IsGitPath("git/my-package"))
+}
+
+func TestParseGitPath(t *testing.T) {
+	repo, subdir := ParseGitPath("git@github.com:my-org/my-repo.git/my-lib")
+	assert.Equal(t, "git@github.com:my-org/my-repo.git", repo)
+	assert.Equal(t, "/my-lib", subdir)
+
+	repo, subdir = ParseGitPath("git@github.com:my-org/my-repo.git")
+	assert.Equal(t, "git@github.com:my-org/my-repo.git", repo)
+	assert.Equal(t, "", subdir)
+}
+
 func TestIsRemotePath(t *testing.T) {
 	assert.True(t, IsRemotePath("http://example.com"))
 	assert.True(t, IsRemotePath("https://example.com"))

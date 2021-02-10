@@ -140,6 +140,9 @@ func (context *GFlowsContext) ResolvePath(path string) string {
 	if pkg.IsRemotePath(path) {
 		return path
 	}
+	if pkg.IsGitPath(path) {
+		return path
+	}
 
 	// check if the path given is relative to the context dir (e.g. already includes ".gflows/")
 	relPath, err := filepath.Rel(context.Dir, path)

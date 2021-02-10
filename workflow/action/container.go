@@ -2,6 +2,7 @@ package action
 
 import (
 	"github.com/jbrunton/gflows/env"
+	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 
@@ -59,9 +60,14 @@ func (container *Container) Installer() *env.GFlowsLibInstaller {
 			container.ContentReader(),
 			container.ContentWriter(),
 			container.Logger(),
+			container.RepoManager(),
 		)
 	}
 	return container.installer
+}
+
+func (container *Container) GitAdapter() io.GitAdapter {
+	return io.NewGoGitAdapter()
 }
 
 func (container *Container) Validator() *workflow.Validator {
