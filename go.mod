@@ -8,7 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.1.0
 	github.com/google/go-jsonnet v0.16.0
 	github.com/inancgumus/screen v0.0.0-20190314163918-06e984b86ed3
-	github.com/k14s/ytt v0.28.0
+	github.com/k14s/ytt v0.31.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/rakyll/statik v0.1.7
@@ -21,4 +21,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.4
 )
 
-replace go.starlark.net => github.com/k14s/starlark-go v0.0.0-20200522161834-8a7b2030a110
+//replace go.starlark.net => github.com/k14s/starlark-go v0.0.0-20200522161834-8a7b2030a110
+
+replace github.com/k14s/ytt => github.com/vmware-tanzu/carvel-ytt v0.31.0
