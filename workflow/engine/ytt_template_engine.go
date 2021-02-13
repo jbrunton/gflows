@@ -19,6 +19,7 @@ import (
 	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
 	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
 	"github.com/k14s/ytt/pkg/files"
+	"github.com/k14s/ytt/pkg/schema"
 	"github.com/k14s/ytt/pkg/workspace"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
@@ -236,7 +237,7 @@ func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) 
 	libraryCtx := workspace.LibraryExecutionContext{Current: rootLibrary, Root: rootLibrary}
 	libraryLoader := libraryExecutionFactory.New(libraryCtx)
 
-	values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{})
+	values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{}, &schema.AnySchema{})
 	if err != nil {
 		return "", err
 	}
