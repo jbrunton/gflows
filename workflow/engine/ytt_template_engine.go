@@ -2,6 +2,8 @@ package engine
 
 import (
 	"os"
+	"os/exec"
+	"bytes"
 	"path/filepath"
 	"strings"
 
@@ -16,11 +18,8 @@ import (
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
-	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
 	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
 	"github.com/k14s/ytt/pkg/files"
-	"github.com/k14s/ytt/pkg/schema"
-	"github.com/k14s/ytt/pkg/workspace"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
 )
@@ -221,39 +220,79 @@ func (engine *YttTemplateEngine) getInput(workflowName string, templateDir strin
 	return &in, nil
 }
 
+func (engine *YttTemplateEngine) getInputPaths(workflowName string, templateDir string) ([]string, error) {
+	var sourcePaths []string
+	for _, sourcePath := range engine.getSourcesInDir(templateDir) {
+		sourcePaths = append(sourcePaths, sourcePath)
+	}
+	libPaths, _ := engine.env.GetLibPaths(workflowName)
+	inputPaths := append(sourcePaths, libPaths...)
+	engine.logger.Debugf("Input paths for %s: %s", workflowName, spew.Sdump(inputPaths))
+
+	return inputPaths, nil
+}
+
 func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) (string, error) {
-	ui := cmdcore.NewPlainUI(false)
-	in, err := engine.getInput(workflowName, templateDir)
-	if err != nil {
+
+	//cmd := exec.Command("bat", "--language", language, "--color", color, "--style", "plain")
+	engine.getInput(workflowName, templateDir)
+	inputPaths, _ := engine.getInputPaths(workflowName, templateDir)
+	var args []string
+	for _, path := range inputPaths {
+		args = append(args, "-f", path)
+	}
+	cmd := exec.Command("ytt", args...)
+	//cmd.Stdin = strings.NewReader(code)
+
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		engine.logger.Println("error running cmd")
+		engine.logger.Println(stderr.String())
+		engine.logger.Println(err)
 		return "", err
 	}
-	rootLibrary := workspace.NewRootLibrary(in.Files)
 
-	libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
-		IgnoreUnknownComments: true,
-		StrictYAML:            false,
-	})
+	engine.logger.Println(out.String())
 
-	libraryCtx := workspace.LibraryExecutionContext{Current: rootLibrary, Root: rootLibrary}
-	libraryLoader := libraryExecutionFactory.New(libraryCtx)
+	return out.String(), nil
+	// ui := cmdcore.NewPlainUI(false)
+	// in, err := engine.getInput(workflowName, templateDir)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// rootLibrary := workspace.NewRootLibrary(in.Files)
 
-	values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{}, &schema.AnySchema{})
-	if err != nil {
-		return "", err
-	}
+	// libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
+	// 	IgnoreUnknownComments: true,
+	// 	StrictYAML:            false,
+	// })
 
-	result, err := libraryLoader.Eval(values, libraryValues)
-	if err != nil {
-		return "", err
-	}
+	// libraryCtx := workspace.LibraryExecutionContext{Current: rootLibrary, Root: rootLibrary}
+	// libraryLoader := libraryExecutionFactory.New(libraryCtx)
 
-	workflowContent := ""
+	// values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{}, &schema.AnySchema{})
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	for _, file := range result.Files {
-		workflowContent = workflowContent + string(file.Bytes())
-	}
+	// result, err := libraryLoader.Eval(values, libraryValues)
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	return workflowContent, nil
+	// workflowContent := ""
+
+	// for _, file := range result.Files {
+	// 	workflowContent = workflowContent + string(file.Bytes())
+	// }
+
+	// return workflowContent, nil
 }
 
 func (engine *YttTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {
