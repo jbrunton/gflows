@@ -14,10 +14,16 @@
   },
 
   checkout: steps.uses('actions/checkout@v2'),
-  
-  setup_go: steps.uses('actions/setup-go@v2') {
+
+  setup_gflows: steps.uses('jbrunton/setup-gflows@v1') {
     with: {
-      'go-version': '^1.14.4'
+      token: "${{ secrets.GITHUB_TOKEN }}",
     }
-  }
+  },
+
+  check_workflows: steps.named('validate workflows', 'gflows check') {
+    env: {
+      GFLOWS_CONFIG: '$CONFIG_PATH'
+    },
+  },
 }
