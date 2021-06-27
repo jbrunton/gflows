@@ -23,4 +23,4 @@ expect:
   output: |
     Checking test ... FAILED
       Content is out of date for "test" (.github/workflows/test.yml)
-      ► Run "gflows workflow update" to update
+      ► Run "gflows update" to update
