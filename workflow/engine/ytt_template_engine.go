@@ -3,6 +3,7 @@ package engine
 import (
 	"os"
 	"os/exec"
+	"log"
 	"bytes"
 	"path/filepath"
 	"strings"
@@ -216,10 +217,9 @@ func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) 
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		engine.logger.Println("error running cmd")
-		engine.logger.Println(stderr.String())
-		engine.logger.Println(err)
-		return "", err
+		log.Print(stderr.String())
+		panic(err);
+		//return "", err
 	}
 
 	engine.logger.Println(out.String())
