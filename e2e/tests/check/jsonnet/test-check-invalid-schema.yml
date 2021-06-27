@@ -23,4 +23,4 @@ expect:
       Schema validation failed:
       ► (root): jobs is required
       Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-      ► Run "gflows workflow update" to update
+      ► Run "gflows update" to update

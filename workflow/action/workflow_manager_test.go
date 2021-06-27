@@ -88,7 +88,7 @@ Checking test ... FAILED
   Schema validation failed:
   ► (root): jobs is required
   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-  ► Run "gflows workflow update" to update
+  ► Run "gflows update" to update
 `,
 		},
 		{
@@ -100,7 +100,7 @@ Checking test ... FAILED
 			expectedOutput: `
 Checking test ... FAILED
   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-  ► Run "gflows workflow update" to update
+  ► Run "gflows update" to update
 `,
 		},
 		{
@@ -113,7 +113,7 @@ Checking test ... FAILED
 			expectedOutput: `
 Checking test ... FAILED
   Content is out of date for "test" (.github/workflows/test.yml)
-  ► Run "gflows workflow update" to update
+  ► Run "gflows update" to update
 `,
 		},
 		{
@@ -165,13 +165,13 @@ Checking test ... OK
 	//   Schema validation failed:
 	//   ► (root): jobs is required
 	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
+	//   ► Run "gflows update" to update
 	// Checking test ... FAILED
 	//   Workflow missing for "test" (expected workflow at .github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
+	//   ► Run "gflows update" to update
 	// Checking test ... FAILED
 	//   Content is out of date for "test" (.github/workflows/test.yml)
-	//   ► Run "gflows workflow update" to update
+	//   ► Run "gflows update" to update
 	// Checking test ... OK
 	// `
 	// 	fmt.Println("out:", out.String())

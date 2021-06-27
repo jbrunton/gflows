@@ -59,8 +59,8 @@ func TestRunnerOutOfDate(t *testing.T) {
 		"Unexpected error (%s)", "./tests/test-runner-out-of-date.yml")
 	assertions.On(
 		"Equal",
-		"Checking test ... FAILED\n  Content is out of date for \"test\" (.github/workflows/test.yml)\n  ► Run \"gflows workflow update\" to update\n",
-		"Checking test ... FAILED\n  Content is out of date for \"test\" (.github/workflows/test.yml)\n  ► Run \"gflows workflow update\" to update\n",
+		"Checking test ... FAILED\n  Content is out of date for \"test\" (.github/workflows/test.yml)\n  ► Run \"gflows update\" to update\n",
+		"Checking test ... FAILED\n  Content is out of date for \"test\" (.github/workflows/test.yml)\n  ► Run \"gflows update\" to update\n",
 		"Unexpected output (%s)", "./tests/test-runner-out-of-date.yml")
 
 	runner.Run()

@@ -151,7 +151,7 @@ func (manager *WorkflowManager) ValidateWorkflows(showDiff bool) error {
 				manager.logger.Println(manager.styles.StyleError("FAILED"))
 			}
 			manager.logger.Println("  " + contentResult.Errors[0])
-			manager.logger.Println("  ► Run \"gflows workflow update\" to update")
+			manager.logger.Println("  ► Run \"gflows update\" to update")
 			valid = false
 
 			if showDiff {
