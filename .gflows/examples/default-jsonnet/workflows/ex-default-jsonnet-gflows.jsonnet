@@ -7,17 +7,8 @@ local check_workflows_job = {
   'runs-on': 'ubuntu-latest',
   steps: [
     steps.checkout,
-    steps.setup_go,
-    steps.uses('jbrunton/setup-gflows@v1') {
-      with: {
-        token: "${{ secrets.GITHUB_TOKEN }}",
-      }
-    },
-    steps.named('validate workflows', 'gflows check') {
-      env: {
-        GFLOWS_CONFIG: '.gflows/examples/default-jsonnet/config.yml'
-      },
-    },
+    steps.setup_gflows,
+    steps.check_workflows
   ]
 };
 
