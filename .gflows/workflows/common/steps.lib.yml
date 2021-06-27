@@ -1,3 +1,16 @@
+#@ def setup_gflows():
+  uses: jbrunton/setup-gflows@v1
+  with:
+    token: ${{ secrets.GITHUB_TOKEN }}
+#@ end
+---
+#@ def check_workflows():
+  name: check workflows
+  env:
+    GFLOWS_CONFIG: .gflows/config.yml
+  run: gflows check
+#@ end
+---
 #@ def setup_go():
   uses: actions/setup-go@v2
   with:
