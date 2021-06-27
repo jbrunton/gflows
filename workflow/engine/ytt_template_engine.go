@@ -11,15 +11,12 @@ import (
 
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/pkg"
-	"github.com/jbrunton/gflows/workflow/engine/ytt"
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
-	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
-	"github.com/k14s/ytt/pkg/files"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
 )
@@ -188,38 +185,6 @@ func (engine *YttTemplateEngine) getSourcesInDir(dir string) []string {
 	return files
 }
 
-func (engine *YttTemplateEngine) getInput(workflowName string, templateDir string) (*cmdtpl.TemplateInput, error) {
-	var in cmdtpl.TemplateInput
-	for _, sourcePath := range engine.getSourcesInDir(templateDir) {
-		source := ytt.NewFileSource(engine.fs, sourcePath, filepath.Dir(sourcePath))
-		file, err := files.NewFileFromSource(source)
-		if err != nil {
-			panic(err)
-		}
-		in.Files = append(in.Files, file)
-	}
-	candidatePaths, err := engine.env.GetLibPaths(workflowName)
-	// NewSortedFilesFromPaths errors if a path doesn't exist. Since GetLibPaths returns a libs
-	// directory for all packages (regardless of whether one exists), we need to filter here.
-	paths := funk.Filter(candidatePaths, func(path string) bool {
-		exists, err := engine.fs.Exists(path)
-		if err != nil {
-			panic(err)
-		}
-		return exists
-	}).([]string)
-	engine.logger.Debugf("Lib paths for %s: %s", workflowName, spew.Sdump(paths))
-	if err != nil {
-		return nil, err
-	}
-	libs, err := files.NewSortedFilesFromPaths(paths, files.SymlinkAllowOpts{})
-	if err != nil {
-		return nil, err
-	}
-	in.Files = append(in.Files, libs...)
-	return &in, nil
-}
-
 func (engine *YttTemplateEngine) getInputPaths(workflowName string, templateDir string) ([]string, error) {
 	var sourcePaths []string
 	for _, sourcePath := range engine.getSourcesInDir(templateDir) {
@@ -235,7 +200,6 @@ func (engine *YttTemplateEngine) getInputPaths(workflowName string, templateDir 
 func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) (string, error) {
 
 	//cmd := exec.Command("bat", "--language", language, "--color", color, "--style", "plain")
-	engine.getInput(workflowName, templateDir)
 	inputPaths, _ := engine.getInputPaths(workflowName, templateDir)
 	var args []string
 	for _, path := range inputPaths {
