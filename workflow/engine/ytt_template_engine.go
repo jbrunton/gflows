@@ -1,10 +1,10 @@
 package engine
 
 import (
+	"bytes"
+	"log"
 	"os"
 	"os/exec"
-	"log"
-	"bytes"
 	"path/filepath"
 	"strings"
 
@@ -209,7 +209,6 @@ func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) 
 	cmd := exec.Command("ytt", args...)
 	//cmd.Stdin = strings.NewReader(code)
 
-
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
@@ -218,11 +217,11 @@ func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) 
 
 	if err := cmd.Run(); err != nil {
 		log.Print(stderr.String())
-		panic(err);
+		panic(err)
 		//return "", err
 	}
 
-	engine.logger.Println(out.String())
+	//engine.logger.Println(out.String())
 
 	return out.String(), nil
 	// ui := cmdcore.NewPlainUI(false)
