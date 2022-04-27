@@ -51,4 +51,4 @@ expect:
         }
       };
       
-      std.manifestYamlDoc(workflow)
+      std.manifestYamlDoc(workflow, quote_keys=false)
