@@ -20,7 +20,3 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	gopkg.in/yaml.v2 v2.2.7
 )
-
-//replace go.starlark.net => github.com/k14s/starlark-go v0.0.0-20200522161834-8a7b2030a110
-
-replace github.com/k14s/ytt => github.com/vmware-tanzu/carvel-ytt v0.31.0
