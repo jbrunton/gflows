@@ -20,7 +20,7 @@ setup:
               ]
             }
           }
-        })
+        }, quote_keys=false)
     - path: .github/workflows/test.yml
 
 run: ls

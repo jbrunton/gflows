@@ -146,7 +146,7 @@ func (engine *JsonnetTemplateEngine) ImportWorkflow(wf *workflow.GitHubWorkflow)
 		return "", err
 	}
 
-	templateContent := fmt.Sprintf("local workflow = %s;\n\nstd.manifestYamlDoc(workflow)\n", string(json))
+	templateContent := fmt.Sprintf("local workflow = %s;\n\nstd.manifestYamlDoc(workflow, quote_keys=false)\n", string(json))
 
 	_, filename := filepath.Split(wf.Path)
 	templateName := strings.TrimSuffix(filename, filepath.Ext(filename))
