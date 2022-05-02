@@ -28,6 +28,7 @@ expect:
   error: errors encountered generating workflows
   output: |2
           error .github/workflows/test.yml (from .gflows/workflows/test.jsonnet)
+      ► jobs.hello: Must validate one and only one schema (oneOf)
       ► jobs.hello: runs-on is required
   files:
   - path: .gflows/config.yml
