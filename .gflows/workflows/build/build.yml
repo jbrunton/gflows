@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - #@ setup_go()
-    - run: go get github.com/rakyll/statik
+    - run: go install github.com/rakyll/statik@latest
     - run: make compile
     - run: ./check-static-content.sh
   test:
