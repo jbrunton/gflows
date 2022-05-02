@@ -34,6 +34,7 @@ jobs:
         echo "GIT_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
         echo "GIT_COMMIT_SHA=$GITHUB_SHA" >> $GITHUB_ENV
     - name: prepare test reporter
+      if: github.event_name == 'push'
       run: |
         curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
         chmod +x ./cc-test-reporter
@@ -42,6 +43,7 @@ jobs:
       run: make unit-test
     - env:
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      if: github.event_name == 'push'
       name: upload coverage
       run: ./cc-test-reporter after-build --prefix github.com/jbrunton/gflows
     - name: e2e test
