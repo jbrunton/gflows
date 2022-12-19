@@ -1,3 +1,9 @@
+# Do you really need this?
+
+I created this tool when GitHub Actions was a less mature product. If you want to share workflows across repos, or call one workflow from another, then you should probably check out the GitHub docs for [reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
+
+I will probably deprecate this tool at some point, given the options available with GitHub Actions itself.
+
 # GFlows - GitHub Workflow Templates
 
 [![Build Status](https://github.com/jbrunton/gflows/workflows/build/badge.svg?branch=develop)](https://github.com/jbrunton/gflows/actions?query=branch%3Adevelop+workflow%3Abuild)
