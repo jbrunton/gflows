@@ -1,7 +1,10 @@
 package engine
 
 import (
+	"bytes"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -9,18 +12,12 @@ import (
 
 	"github.com/jbrunton/gflows/io"
 	"github.com/jbrunton/gflows/io/pkg"
-	"github.com/jbrunton/gflows/workflow/engine/ytt"
 
 	"github.com/jbrunton/gflows/config"
 	"github.com/jbrunton/gflows/env"
 	"github.com/jbrunton/gflows/io/content"
 	"github.com/jbrunton/gflows/workflow"
 	"github.com/jbrunton/gflows/yamlutil"
-	cmdcore "github.com/k14s/ytt/pkg/cmd/core"
-	cmdtpl "github.com/k14s/ytt/pkg/cmd/template"
-	"github.com/k14s/ytt/pkg/files"
-	"github.com/k14s/ytt/pkg/schema"
-	"github.com/k14s/ytt/pkg/workspace"
 	"github.com/spf13/afero"
 	"github.com/thoas/go-funk"
 )
@@ -189,71 +186,76 @@ func (engine *YttTemplateEngine) getSourcesInDir(dir string) []string {
 	return files
 }
 
-func (engine *YttTemplateEngine) getInput(workflowName string, templateDir string) (*cmdtpl.TemplateInput, error) {
-	var in cmdtpl.TemplateInput
+func (engine *YttTemplateEngine) getInputPaths(workflowName string, templateDir string) ([]string, error) {
+	var sourcePaths []string
 	for _, sourcePath := range engine.getSourcesInDir(templateDir) {
-		source := ytt.NewFileSource(engine.fs, sourcePath, filepath.Dir(sourcePath))
-		file, err := files.NewFileFromSource(source)
-		if err != nil {
-			panic(err)
-		}
-		in.Files = append(in.Files, file)
+		sourcePaths = append(sourcePaths, sourcePath)
 	}
-	candidatePaths, err := engine.env.GetLibPaths(workflowName)
-	// NewSortedFilesFromPaths errors if a path doesn't exist. Since GetLibPaths returns a libs
-	// directory for all packages (regardless of whether one exists), we need to filter here.
-	paths := funk.Filter(candidatePaths, func(path string) bool {
-		exists, err := engine.fs.Exists(path)
-		if err != nil {
-			panic(err)
-		}
-		return exists
-	}).([]string)
-	engine.logger.Debugf("Lib paths for %s: %s", workflowName, spew.Sdump(paths))
-	if err != nil {
-		return nil, err
-	}
-	libs, err := files.NewSortedFilesFromPaths(paths, files.SymlinkAllowOpts{})
-	if err != nil {
-		return nil, err
-	}
-	in.Files = append(in.Files, libs...)
-	return &in, nil
+	libPaths, _ := engine.env.GetLibPaths(workflowName)
+	inputPaths := append(sourcePaths, libPaths...)
+	engine.logger.Debugf("Input paths for %s: %s", workflowName, spew.Sdump(inputPaths))
+
+	return inputPaths, nil
 }
 
 func (engine *YttTemplateEngine) apply(workflowName string, templateDir string) (string, error) {
-	ui := cmdcore.NewPlainUI(false)
-	in, err := engine.getInput(workflowName, templateDir)
-	if err != nil {
-		return "", err
+
+	//cmd := exec.Command("bat", "--language", language, "--color", color, "--style", "plain")
+	inputPaths, _ := engine.getInputPaths(workflowName, templateDir)
+	var args []string
+	for _, path := range inputPaths {
+		args = append(args, "-f", path)
 	}
-	rootLibrary := workspace.NewRootLibrary(in.Files)
+	cmd := exec.Command("ytt", args...)
+	//cmd.Stdin = strings.NewReader(code)
 
-	libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
-		IgnoreUnknownComments: true,
-		StrictYAML:            false,
-	})
+	var out bytes.Buffer
+	cmd.Stdout = &out
 
-	libraryCtx := workspace.LibraryExecutionContext{Current: rootLibrary, Root: rootLibrary}
-	libraryLoader := libraryExecutionFactory.New(libraryCtx)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 
-	values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{}, &schema.AnySchema{})
-	if err != nil {
-		return "", err
-	}
-
-	result, err := libraryLoader.Eval(values, libraryValues)
-	if err != nil {
-		return "", err
+	if err := cmd.Run(); err != nil {
+		log.Print(stderr.String())
+		panic(err)
+		//return "", err
 	}
 
-	workflowContent := ""
+	//engine.logger.Println(out.String())
 
-	for _, file := range result.Files {
-		workflowContent = workflowContent + string(file.Bytes())
-	}
+	return out.String(), nil
+	// ui := cmdcore.NewPlainUI(false)
+	// in, err := engine.getInput(workflowName, templateDir)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// rootLibrary := workspace.NewRootLibrary(in.Files)
 
-	return workflowContent, nil
+	// libraryExecutionFactory := workspace.NewLibraryExecutionFactory(ui, workspace.TemplateLoaderOpts{
+	// 	IgnoreUnknownComments: true,
+	// 	StrictYAML:            false,
+	// })
+
+	// libraryCtx := workspace.LibraryExecutionContext{Current: rootLibrary, Root: rootLibrary}
+	// libraryLoader := libraryExecutionFactory.New(libraryCtx)
+
+	// values, libraryValues, err := libraryLoader.Values([]*workspace.DataValues{}, &schema.AnySchema{})
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	// result, err := libraryLoader.Eval(values, libraryValues)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	// workflowContent := ""
+
+	// for _, file := range result.Files {
+	// 	workflowContent = workflowContent + string(file.Bytes())
+	// }
+
+	// return workflowContent, nil
 }
 
 func (engine *YttTemplateEngine) getWorkflowName(workflowsDir string, filename string) string {

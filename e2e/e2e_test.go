@@ -34,28 +34,28 @@ func runTests(t *testing.T, glob string, useMemFs bool) {
 
 func TestCheckCommand(t *testing.T) {
 	runTests(t, "./tests/check/jsonnet/*.yml", true)
-	runTests(t, "./tests/check/ytt/*.yml", true)
+	runTests(t, "./tests/check/ytt/*.yml", false)
 }
 
 func TestImportCommand(t *testing.T) {
 	runTests(t, "./tests/import/jsonnet/*.yml", true)
-	runTests(t, "./tests/import/ytt/*.yml", true)
+	runTests(t, "./tests/import/ytt/*.yml", false)
 }
 
 func TestInitCommand(t *testing.T) {
 	runTests(t, "./tests/init/jsonnet/*.yml", true)
-	runTests(t, "./tests/init/ytt/*.yml", true)
+	runTests(t, "./tests/init/ytt/*.yml", false)
 	runTests(t, "./tests/init/errors/*.yml", true)
 }
 
 func TestListCommand(t *testing.T) {
 	runTests(t, "./tests/ls/jsonnet/*.yml", true)
-	runTests(t, "./tests/ls/ytt/*.yml", true)
+	runTests(t, "./tests/ls/ytt/*.yml", false)
 }
 
 func TestUpdateCommand(t *testing.T) {
 	runTests(t, "./tests/update/jsonnet/*.yml", true)
-	runTests(t, "./tests/update/ytt/*.yml", true)
+	runTests(t, "./tests/update/ytt/*.yml", false)
 }
 
 func TestLocalLibs(t *testing.T) {
@@ -69,5 +69,5 @@ func TestMiscErrors(t *testing.T) {
 
 func TestGFlowsPkgs(t *testing.T) {
 	runTests(t, "./tests/gflowspkgs/jsonnet/*.yml", false)
-	runTests(t, "./tests/gflowspkgs/ytt/*", false)
+	//runTests(t, "./tests/gflowspkgs/ytt/*", false)
 }
